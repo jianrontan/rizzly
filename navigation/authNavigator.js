@@ -1,10 +1,11 @@
 import React from 'react';
-import { useState, useCallback, useEffect } from 'react';
-import { Text } from 'react-native';
+import { Text, View, Alert, TouchableOpacity } from 'react-native';
+import { useState, useEffect, useCallback } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { getAuth } from 'firebase/auth';
 
 import Welcome from '../screens/welcome';
 import SignUp from '../screens/signup';
@@ -56,7 +57,7 @@ export default function AuthStack() {
     }
 
     return (
-        <NavigationContainer>
+        <NavigationContainer onLayout={onLayoutRootView}>
             <Stack.Navigator
                 initialRouteName='Welcome'
                 screenOptions={{

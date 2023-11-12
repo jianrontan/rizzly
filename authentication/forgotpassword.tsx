@@ -3,7 +3,6 @@ import { Text, View, TouchableOpacity, SafeAreaView, ScrollView, Alert } from 'r
 import { Input } from 'react-native-elements';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
 
-import styles from '../myComponents/welcome/welcome.style';
 import { COLORS, SIZES } from '../constants';
 
 const auth = getAuth();
@@ -54,23 +53,22 @@ const ForgotPassword = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flex: 1, padding: SIZES.medium, }}>
 
-          <View style={styles.signupView}>
-            <Text style={styles.welcomeText}>Forgot Password</Text>
+          <View>
+            <Text>Forgot Password</Text>
           </View>
 
-          {!!value.error && <View><Text style={styles.errorText}>{value.error}</Text></View>}
+          {!!value.error && <View><Text>{value.error}</Text></View>}
 
           <View>
             <Input
-              style={styles.signupInput}
               placeholder='Email'
               value={value.email}
               onChangeText={(text) => setValue({ ...value, email: text })}
             />
 
             <View style={{ alignItems: 'center', padding: SIZES.large }}>
-              <TouchableOpacity style={styles.resetButton} onPress={resetPassword} >
-                <Text style={styles.signupText}>Reset Password</Text>
+              <TouchableOpacity onPress={resetPassword} >
+                <Text>Reset Password</Text>
               </TouchableOpacity>
             </View>
 

@@ -4,7 +4,6 @@ import { Input } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 
-import styles from '../myComponents/welcome/welcome.style';
 import { COLORS, SIZES } from '../constants';
 
 const auth = getAuth();
@@ -92,15 +91,14 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flex: 1, padding: SIZES.medium, }}>
 
-          <View style={styles.signupView}>
-            <Text style={styles.welcomeText}>Register a new account</Text>
+          <View>
+            <Text>Register a new account</Text>
           </View>
 
-          {!!value.error && <View><Text style={styles.errorText}>{value.error}</Text></View>}
+          {!!value.error && <View><Text>{value.error}</Text></View>}
 
           <View>
             <Input
-              style={styles.signupInput}
               placeholder='Email'
               value={value.email}
               onChangeText={(text) => setValue({ ...value, email: text })}
@@ -108,7 +106,6 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
             />
 
             <Input
-              style={styles.signupInput}
               placeholder='Password'
               value={value.password}
               onChangeText={(text) => setValue({ ...value, password: text })}
@@ -117,7 +114,6 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
             />
 
             <Input
-              style={styles.signupInput}
               placeholder='Confirm password'
               value={value.cfmPassword}
               onChangeText={(text) => setValue({ ...value, cfmPassword: text })}
@@ -126,8 +122,8 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
             />
 
             <View style={{ padding: 8 }}>
-              <TouchableOpacity style={styles.signupButton} onPress={signUp} >
-                <Text style={styles.signupText}>Sign Up</Text>
+              <TouchableOpacity onPress={signUp}>
+                <Text>Sign Up</Text>
               </TouchableOpacity>
             </View>
 

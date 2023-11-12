@@ -5,11 +5,3 @@ module.exports = function(api) {
     plugins: ['react-native-reanimated/plugin'],
   };
 };
-
-module.exports = {
-  ...
-  plugins: [
-    ...
-    'react-native-reanimated/plugin', // Reanimated plugin has to be listed last.
-  ],
-};
