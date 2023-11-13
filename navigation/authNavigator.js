@@ -5,13 +5,13 @@ import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { getAuth } from 'firebase/auth';
 
-import Welcome from '../screens/welcome';
-import SignUp from '../screens/signup';
-import SignIn from '../screens/signin';
-import ForgotPassword from '../screens/forgotpassword';
-import styles from '../myComponents/common/header/header/header.style';
+import Welcome from '../authentication/welcome';
+import SignIn from '../authentication/signin';
+import SignUp from '../authentication/signup';
+import ForgotPassword from '../authentication/forgotpassword';
 import { COLORS } from '../constants';
 
 const Stack = createNativeStackNavigator();
@@ -43,7 +43,7 @@ export default function AuthStack() {
             }
         }
         prepare();
-    }, []); // Remove fontsLoaded from the dependency array
+    }, [fontsLoaded]);
 
     // useCallback creates a memoized callback onLayoutRootView that only changes appIsReady / fontsLoaded changes
     const onLayoutRootView = useCallback(async () => {
@@ -57,13 +57,13 @@ export default function AuthStack() {
     }
 
     return (
-        <NavigationContainer onLayout={onLayoutRootView}>
+        <NavigationContainer onlayout={onLayoutRootView}>
             <Stack.Navigator
                 initialRouteName='Welcome'
                 screenOptions={{
                     headerStyle: { backgroundColor: COLORS.lightBeige },
                     headerTitle: () => (
-                        <Text style={styles.headerStyle}>Welcome</Text>
+                        <Text>Welcome</Text>
                     ),
                     headerTitleAlign: 'center',
                 }}

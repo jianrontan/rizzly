@@ -38,7 +38,7 @@ export default function DrawerStack() {
                 }
             }
             prepare();
-        }, []); // Remove fontsLoaded from the dependency array
+        }, [fontsLoaded]);
     
         // useCallback creates a memoized callback onLayoutRootView that only changes appIsReady / fontsLoaded changes
         const onLayoutRootView = useCallback(async () => {

@@ -3,7 +3,6 @@ import { Text, View, TouchableOpacity, SafeAreaView, ScrollView } from 'react-na
 import { Input } from 'react-native-elements';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
-import styles from '../myComponents/welcome/welcome.style';
 import { COLORS, SIZES } from '../constants';
 
 const auth = getAuth();
@@ -38,15 +37,14 @@ const SignIn = ({navigation}) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flex: 1, padding: SIZES.medium, }}>
 
-          <View style={styles.signupView}>
-            <Text style={styles.welcomeText}>Log In</Text>
+          <View>
+            <Text>Log In</Text>
           </View>
 
-          {!!value.error && <View><Text style={styles.errorText}>{value.error}</Text></View>}
+          {!!value.error && <View><Text>{value.error}</Text></View>}
 
           <View>
             <Input
-              style={styles.signupInput}
               placeholder='Email'
               value={value.email}
               onChangeText={(text) => setValue({ ...value, email: text })}
@@ -54,7 +52,6 @@ const SignIn = ({navigation}) => {
             />
 
             <Input
-              style={styles.signupInput}
               placeholder='Password'
               value={value.password}
               onChangeText={(text) => setValue({ ...value, password: text })}
@@ -63,20 +60,20 @@ const SignIn = ({navigation}) => {
             />
 
             <View style={{ paddingLeft: 8, paddingTop: SIZES.xSmall, paddingBottom: SIZES.xLarge }}>
-              <TouchableOpacity style={styles.signupButton} onPress={signIn} >
-                <Text style={styles.signupText}>Sign In</Text>
+              <TouchableOpacity onPress={signIn} >
+                <Text>Sign In</Text>
               </TouchableOpacity>
             </View>
 
             <View style={{ padding: 8 }}>
               <TouchableOpacity onPress={() => navigation.navigate('SignUp')} >
-                <Text style={styles.noAccountText}>Don't have an account? Sign up</Text>
+                <Text>Don't have an account? Sign up</Text>
               </TouchableOpacity>
             </View>
 
             <View style={{ padding: 8 }}>
               <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} >
-                <Text style={styles.forgotText}>Forgot Password?</Text>
+                <Text>Forgot Password?</Text>
               </TouchableOpacity>
             </View>
 
