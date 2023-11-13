@@ -10,7 +10,8 @@ import { getAuth } from 'firebase/auth';
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../drawer/settings';
 import ScreenHeaderBtn from '../components/app/button/ScreenHeaderBtn';
-import { icons } from '../constants';
+import appStyles from '../components/app/app.style';
+import { FONT, icons } from '../constants';
 
 const Drawer = createDrawerNavigator();
 
@@ -63,13 +64,19 @@ export default function DrawerStack() {
                     drawerStyle: {
                         width: 180,
                     },
+                    drawerLabelStyle: {
+                        fontFamily: FONT.medium,
+                        color: 'black',
+                    },
                     headerTitle: route.name,
                     headerTitleAlign: 'center',
                     headerShadowVisible: 'true',
+                    headerTitleStyle: appStyles.headerFont,
+                    drawerActiveTintColor: 'gray',
                     headerLeft: () => {
                         const navigation = useNavigation();
                         return (
-                            <View>
+                            <View style={appStyles.buttonPadding}>
                                 <ScreenHeaderBtn
                                     iconUrl={icons.left}
                                     dimension='60%'

@@ -1,12 +1,14 @@
 import React from "react";
-import { Text } from "react-native";
+import { View, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import Home from "../home/home";
 import ChatStack from "./chatNavigator";
 import LikesScreen from "../screens/LikesScreen";
 import ScreenHeaderBtn from "../components/app/button/ScreenHeaderBtn";
-import { COLORS, icons } from "../constants";
+import { COLORS, FONT, icons } from "../constants";
+import appStyles from "../components/app/app.style"
 
 const Tab = createBottomTabNavigator();
 
@@ -16,20 +18,55 @@ export default function BottomTabStack({ navigation }) {
         initialRouteName='Home'
         screenOptions={{
             headerLeft: () => (
-                <ScreenHeaderBtn
-                    iconUrl={icons.menu}
-                    dimension="60%"
-                    onPress={() => navigation.openDrawer()}
-                />
+                <View style={appStyles.buttonPadding}>
+                    <ScreenHeaderBtn
+                        iconUrl={icons.menu}
+                        dimension="60%"
+                        onPress={() => navigation.openDrawer()}
+                    />
+                </View>
             ),
             headerTitle: () => (
-                <Text>App</Text>
+                <Text style={appStyles.headerFont}>App</Text>
             ),
             headerTitleAlign: 'center',
         }}>
-            <Tab.Screen name="Home" component={Home}/>
-            <Tab.Screen name="Likes" component={LikesScreen}/>
-            <Tab.Screen name="Chats" component={ChatStack}/>
+            <Tab.Screen
+                name="Home"
+                component={Home}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialCommunityIcons name="home" color={color} size={size} />
+                    ),
+                    tabBarLabel: 'Home',
+                    tabBarLabelStyle: appStyles.bottomTabLabel,
+                    tabBarActiveTintColor: '#824444',
+                }}
+            />
+            <Tab.Screen
+                name="Likes"
+                component={LikesScreen}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialCommunityIcons name="heart" color={color} size={size} />
+                    ),
+                    tabBarLabel: 'Likes',
+                    tabBarLabelStyle: appStyles.bottomTabLabel,
+                    tabBarActiveTintColor: '#824444',
+                }}
+            />
+            <Tab.Screen
+                name="Chats"
+                component={ChatStack}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialCommunityIcons name="chat" color={color} size={size} />
+                    ),
+                    tabBarLabel: 'Chats',
+                    tabBarLabelStyle: appStyles.bottomTabLabel,
+                    tabBarActiveTintColor: '#824444',
+                }}
+            />
         </Tab.Navigator>
     )
 }
