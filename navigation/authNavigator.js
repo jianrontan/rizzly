@@ -1,12 +1,12 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity } from 'react-native';
+import { Text, View, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { getAuth } from 'firebase/auth';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 import Welcome from '../authentication/welcome';
 import SignIn from '../authentication/signin';
@@ -15,10 +15,12 @@ import ForgotPassword from '../authentication/forgotpassword';
 import { COLORS } from '../constants';
 
 const Stack = createNativeStackNavigator();
+const auth = getAuth();
 
 export default function AuthStack() {
     // State variable appIsReady tracks when app is ready to render
     const [appIsReady, setAppIsReady] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     // Load fonts
     const [fontsLoaded] = useFonts({
@@ -51,6 +53,25 @@ export default function AuthStack() {
             await SplashScreen.hideAsync();
         }
     }, [appIsReady, fontsLoaded]);
+
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user) {
+                setLoading(false);
+            } else {
+                setLoading(false);
+            }
+        });
+        return() => unsubscribe
+    }, []);
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
 
     if (!appIsReady || !fontsLoaded) {
         return null;

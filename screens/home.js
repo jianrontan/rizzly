@@ -1,5 +1,10 @@
+import { useEffect } from 'react';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { getDoc, updateDoc, doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
+import { getAuth } from 'firebase/auth';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
 
 export default function Home() {
   return (

@@ -1,7 +1,6 @@
 import { StyleSheet } from "react-native";
 
 import { COLORS, FONT, SIZES, SHADOWS } from "../../constants";
-import { app } from "../../firebase/firebase";
 
 const appStyles = StyleSheet.create({
     buttonPadding: {
@@ -15,6 +14,13 @@ const appStyles = StyleSheet.create({
         fontFamily: FONT.regular,
         fontSize: SIZES.xSmall,
         paddingBottom: 3,
+    },
+    logoutDrawer: {
+        paddingTop: SIZES.mediumlarge,
+        paddingLeft: SIZES.mediumlarge,
+    },
+    logoutDrawerText: {
+        fontFamily: FONT.medium,
     },
 })
 
