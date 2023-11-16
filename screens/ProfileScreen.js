@@ -11,23 +11,29 @@ import { COLORS, SIZES, FONT } from '../constants';
 export default function ProfileScreen({ navigation }) {
     const auth = getAuth();
     const [name, setName] = useState('');
+    const [error, setError] = useState('');
+
+    // TODO: Age, Gender, Sexual Orientation, Pictures
 
     // Submits users name and navigates user to the main App screen
     const handleSetName = async () => {
-        try {
-            setName('');
-
-            const userId = auth.currentUser.uid;
-            const userDocRef = doc(db, 'profiles', userId);
-            await updateDoc(userDocRef, {
-                name: name,
-                complete: true,
-            });
-            navigation.navigate('App');
-        } catch(e) {
-            console.error("Error adding name: ", e);
+        if (name !== null && name !== '') {
+            try {
+                const userId = auth.currentUser.uid;
+                const userDocRef = doc(db, 'profiles', userId);
+                await updateDoc(userDocRef, {
+                    name: name,
+                    complete: true,
+                });
+                navigation.navigate('App');
+            } catch(e) {
+                console.error("Error adding name: ", e);
+                setError(e.message);
+            }
+        } else {
+            setError('Name cannot be empty');
         }
-    };
+       };       
 
     return (
         <View style={styles.container}>
@@ -38,6 +44,9 @@ export default function ProfileScreen({ navigation }) {
                     onChangeText={setName}
                     placeholder="Enter your name"
                 />
+            </View>
+            <View>
+                {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
             </View>
             <TouchableOpacity activeOpacity={0.69} style={styles.btnContainer} onPress={handleSetName}>
                 <View>
