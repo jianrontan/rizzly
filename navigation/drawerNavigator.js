@@ -12,7 +12,7 @@ import { db } from '../firebase/firebase';
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../drawer/settings';
 import ProfileScreen from '../screens/ProfileScreen';
-import ScreenHeaderBtn from '../components/app/button/ScreenHeaderBtn';
+import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
 
@@ -42,7 +42,7 @@ export default function DrawerStack() {
                 console.warn(error);
             } finally {
                 setAppIsReady(true);
-    
+
                 if (fontsLoaded) {
                     await SplashScreen.hideAsync();
                 }
@@ -62,25 +62,32 @@ export default function DrawerStack() {
     useEffect(() => {
         const userId = auth.currentUser.uid;
         const userDocRef = doc(db, 'profiles', userId);
-    
+
         const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
             // If exists stop loading
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 setProfileComplete(data.complete);
                 setLoading(false);
-            // Else create a new doc for the user
+                // Else create a new doc for the user
             } else {
                 setDoc(userDocRef, {
                     name: null,
+                    age: null,
+                    gender: null,
+                    orientation: {
+                        "male": false,
+                        "female": false,
+                        "nonBinary": false,
+                    },
                     complete: false,
                     id: userId
                 });
                 setLoading(false);
             }
         });
-        return() => unsubscribe();
-    }, []);    
+        return () => unsubscribe();
+    }, []);
 
     // Render loading page
     if (loading) {
@@ -138,7 +145,7 @@ export default function DrawerStack() {
         <NavigationContainer onLayout={onLayoutRootView}>
             <Drawer.Navigator
                 drawerContent={(props) => <CustomDrawerContent {...props} />}
-                initialRouteName={profileComplete? 'App' : 'Profile'}
+                initialRouteName={profileComplete ? 'App' : 'Profile'}
                 backBehavior='initalRoute'
                 screenOptions={({ route }) => ({
                     drawerStyle: {
@@ -170,7 +177,7 @@ export default function DrawerStack() {
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Settings" component={SettingsScreen}/>
+                <Drawer.Screen name="Settings" component={SettingsScreen} />
             </Drawer.Navigator>
         </NavigationContainer>
     )

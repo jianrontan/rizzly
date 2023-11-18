@@ -6,7 +6,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import Home from "../screens/home";
 import ChatStack from "./chatNavigator";
 import LikesScreen from "../screens/LikesScreen";
-import ScreenHeaderBtn from "../components/app/button/ScreenHeaderBtn";
+import ScreenHeaderBtn from "../components/button/ScreenHeaderBtn";
 import { COLORS, FONT, icons } from "../constants";
 import appStyles from "../components/app/app.style"
 
@@ -15,22 +15,22 @@ const Tab = createBottomTabNavigator();
 export default function BottomTabStack({ navigation }) {
     return (
         <Tab.Navigator
-        initialRouteName='Home'
-        screenOptions={{
-            headerLeft: () => (
-                <View style={appStyles.buttonPadding}>
-                    <ScreenHeaderBtn
-                        iconUrl={icons.menu}
-                        dimension="60%"
-                        onPress={() => navigation.openDrawer()}
-                    />
-                </View>
-            ),
-            headerTitle: () => (
-                <Text style={appStyles.headerFont}>App</Text>
-            ),
-            headerTitleAlign: 'center',
-        }}>
+            initialRouteName='Home'
+            screenOptions={{
+                headerLeft: () => (
+                    <View style={appStyles.buttonPadding}>
+                        <ScreenHeaderBtn
+                            iconUrl={icons.menu}
+                            dimension="60%"
+                            onPress={() => navigation.openDrawer()}
+                        />
+                    </View>
+                ),
+                headerTitle: () => (
+                    <Text style={appStyles.headerFont}>App</Text>
+                ),
+                headerTitleAlign: 'center',
+            }}>
             <Tab.Screen
                 name="Home"
                 component={Home}

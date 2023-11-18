@@ -28,6 +28,15 @@ export default {
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to add to your profile.",
+          "cameraPermission": "The app accesses your camera to add photos to your profile."
+        }
+      ]
+    ],
     "extra": {
       "firebase": {
         firebaseApiKey: process.env.FIREBASE_API_KEY,
