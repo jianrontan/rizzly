@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image } from 'react-native';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Platform } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot } from 'firebase/firestore';
 import { db, storage } from '../firebase/firebase';
@@ -8,6 +8,8 @@ import { uploadBytesResumable, ref, getDownloadURL } from 'firebase/storage';
 import { StatusBar } from 'expo-status-bar';
 import * as ImagePicker from 'expo-image-picker';
 import SelectDropdown from 'react-native-select-dropdown';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 import OptionButton from '../components/touchableHighlight/touchableHightlight'
 import { COLORS, SIZES, FONT } from '../constants';
 
@@ -15,7 +17,6 @@ export default function ProfileScreen({ navigation }) {
     const auth = getAuth();
     const userId = auth.currentUser.uid;
     const [name, setName] = useState('');
-    const [age, setAge] = useState('');
     const [gender, setGender] = useState('');
     const [orientation, setOrientation] = useState({
         male: false,
@@ -23,13 +24,17 @@ export default function ProfileScreen({ navigation }) {
         nonBinary: false,
     });
     const [orientationError, setOrientationError] = useState('');
+    const [date, setDate] = useState(new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()));
+    const [birthday, setBirthday] = useState('');
+    const [mode, setMode] = useState('date');
+    const [show, setShow] = useState(false);
     const [image, setImage] = useState([]);
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState('');
 
-    // Submits users name and navigates user to the main App screen
+    // Submits user's details and navigates user to the main App screen
     const handleSubmit = async () => {
-        if (name !== null && name !== '' && age !== null && age !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0) {
+        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '') {
             try {
                 const userId = auth.currentUser.uid;
                 const userDocRef = doc(db, 'profiles', userId);
@@ -39,7 +44,7 @@ export default function ProfileScreen({ navigation }) {
                 }
                 await updateDoc(userDocRef, {
                     name: name,
-                    age: age,
+                    birthday: birthday,
                     gender: gender,
                     orientation: orientation,
                     complete: true,
@@ -54,24 +59,16 @@ export default function ProfileScreen({ navigation }) {
         }
     };
 
-    // TODO: Add birthday instead of age, eventually phone number verification also
-    const handleAge = (text) => {
-        let newText = '';
-        let numbers = '0123456789';
-    
-        for (var i=0; i < text.length; i++) {
-            if(numbers.indexOf(text[i]) > -1 ) {
-                newText = newText + text[i];
-            }
-            else {
+    // TODO: Eventually phone number verification also,
+    // Add some UI, uploading screen possible
+    // Ensure no bugs, e.g. double upload, can upload without filling all the details
+    // Make page cleaner, more readable, format all the buttons etc to look cleaner
+    // After this need an edit profile screen for the user to change their details, need to research on other dating apps to see how this may work
 
-            }
-        }
-        setAge(newText);
-    };
-
+    // List of genders
     const genders = ["Male", "Female", "Non-binary"]
 
+    // Sexual orientation of user
     const handleOrientation = (id, isSelected) => {
         setOrientation(prevState => {
             const newOrientation = {...prevState, [id]: isSelected};
@@ -84,6 +81,27 @@ export default function ProfileScreen({ navigation }) {
         });
     };
 
+    // Handle picking of birthdays
+    const onChangeDate = (event, selectedDate) => {
+        if (event.type === 'set') {
+            const currentDate = selectedDate || date;
+            setBirthday(currentDate);
+            let tempDate = new Date(currentDate);
+            let fDate = tempDate.getDate() + '/' + (tempDate.getMonth() + 1) + '/' + tempDate.getFullYear()
+            setBirthday(fDate)
+            setShow(false);
+        } else {
+            setShow(false);
+        }
+    };
+
+    // Handle showing of the date modal
+    const showMode = (currentMode) => {
+        setShow(true);
+        setMode(currentMode);
+    }
+
+    // Handle image selection
     const handleImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -96,6 +114,7 @@ export default function ProfileScreen({ navigation }) {
         }
     };
 
+    // Handle image uploading
     const uploadImage = async (uri, fileType) => {
         const response = await fetch(uri);
         const blob = await response.blob();
@@ -135,15 +154,19 @@ export default function ProfileScreen({ navigation }) {
                         />
                     </View>
                     <View>
-                        <TextInput
-                            autoFocus={false}
-                            keyboardType="numeric"
-                            value={age}
-                            onChangeText={text => handleAge(text)}
-                            contextMenuHidden={true}
-                            maxLength={2}
-                            placeholder="age"
-                        />
+                        <TouchableOpacity onPress={() => showMode('date')}>
+                            <Text>Pick your birthday</Text>
+                        </TouchableOpacity>
+                        {show && (
+                            <DateTimePicker
+                                id='datePicker'
+                                value={date}
+                                mode={mode}
+                                display='default'
+                                onChange={onChangeDate}
+                                maximumDate={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate())}
+                            />
+                        )}
                     </View>
                     <View>
                         <SelectDropdown
