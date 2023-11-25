@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Button } from 'react-native';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Platform } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot } from 'firebase/firestore';
 import { db, storage } from '../firebase/firebase';
@@ -192,82 +192,84 @@ export default function ProfileScreen({ navigation }) {
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
-            <DraggableFlatList
-                data={image}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => `draggable-item-${item.key}`}
-                onDragEnd={({ data }) => setImage(data)}
-                ListHeaderComponent={
-                    <>
-                    <View style={styles.container}>
-                        {/* Name */}
-                        <View>
-                            <TextInput
-                                autoFocus={false}
-                                value={name}
-                                onChangeText={setName}
-                                placeholder="Enter your name"
-                            />
-                        </View>
-                        {/* Birthday */}
-                        <View>
-                            <TouchableOpacity onPress={() => showMode('date')}>
-                                <Text>{dateText}</Text>
-                            </TouchableOpacity>
-                            {show && (
-                                <DateTimePicker
-                                    id='datePicker'
-                                    value={datePickerValue}
-                                    mode={mode}
-                                    display='default'
-                                    onChange={onChangeDate}
-                                    maximumDate={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate())}
-                                />
-                            )}
-                        </View>
-                        {/* Gender */}
-                        <View>
-                            <SelectDropdown
-                                defaultButtonText='Gender'
-                                data={genders}
-                                onSelect={setGender}
-                            />
-                        </View>
-                        {/* Orientation */}
-                        <View>
-                            {!!orientationError && <Text style={{ color: '#cf0202' }}>{orientationError}</Text>}
-                        </View>
-                        <View>
-                            <>
-                                <OptionButton id="male" text="Male" onPress={handleOrientation}/>
-                                <OptionButton id="female" text="Female" onPress={handleOrientation}/>
-                                <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation}/>
-                            </>
-                        </View>
-                        <View>
-                            <TouchableOpacity onPress={handleImage}>
-                                <Text style={styles.textStyle}>Upload Image</Text>
-                            </TouchableOpacity>
-                        </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.container}>
+
+                    <Text>Set up your profile here</Text>
+                    {/* Name */}
+                    <View>
+                        <TextInput
+                            autoFocus={false}
+                            value={name}
+                            onChangeText={setName}
+                            placeholder="Enter your name"
+                        />
                     </View>
-                    </>
-                }
-                ListFooterComponent={
-                    <>
-                        {/* Submit */}
-                        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-                            {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
-                            <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit} style={styles.btnContainer}>
-                                <View>
-                                    <Text style={styles.textStyle}>Submit</Text>
-                                </View>
-                            </TouchableOpacity>
+                    {/* Birthday */}
+                    <View>
+                        <TouchableOpacity onPress={() => showMode('date')}>
+                            <Text>{dateText}</Text>
+                        </TouchableOpacity>
+                        {show && (
+                            <DateTimePicker
+                                id='datePicker'
+                                value={datePickerValue}
+                                mode={mode}
+                                display='default'
+                                onChange={onChangeDate}
+                                maximumDate={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate())}
+                            />
+                        )}
+                    </View>
+                    {/* Gender */}
+                    <View>
+                        <SelectDropdown
+                            defaultButtonText='Gender'
+                            data={genders}
+                            onSelect={setGender}
+                        />
+                    </View>
+                    {/* Orientation */}
+                    <View>
+                        {!!orientationError && <Text style={{ color: '#cf0202' }}>{orientationError}</Text>}
+                    </View>
+                    <View>
+                        <>
+                            <OptionButton id="male" text="Male" onPress={handleOrientation}/>
+                            <OptionButton id="female" text="Female" onPress={handleOrientation}/>
+                            <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation}/>
+                        </>
+                    </View>
+                    {/* Image */}
+                    <View>
+                        <TouchableOpacity onPress={handleImage}>
+                            <Text style={styles.textStyle}>Upload Image</Text>
+                        </TouchableOpacity>
+                        {/* {image.map((uri, index) => (
+                            <Image key={index} source={{ uri: uri }} style={{ width: 150, height: 200 }}/>
+                        ))} */}
+                        <DraggableFlatList
+                            data={image}
+                            renderItem={renderItem}
+                            keyExtractor={(item, index) => `draggable-item-${item.key}`}
+                            onDragEnd={({ data }) => setImage(data)}
+                        />
+                    </View>
+                    {/* Submit */}
+                    <View>
+                        {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
+                    </View>
+                    <TouchableOpacity activeOpacity={0.69} style={styles.btnContainer} onPress={handleSubmit}>
+                        <View>
+                            <Text style={styles.textStyle}>Submit</Text>
                         </View>
-                    </>
-                }
-            />
-        </SafeAreaView>
-    );
+                    </TouchableOpacity>
+                <StatusBar style="auto" />
+
+            </View>
+        </ScrollView>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({

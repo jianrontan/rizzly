@@ -71,11 +71,11 @@ export default function AuthStack() {
                 <ActivityIndicator size="large" />
             </View>
         );
-    }
+    };
 
     if (!appIsReady || !fontsLoaded) {
         return null;
-    }
+    };
 
     return (
         <NavigationContainer onlayout={onLayoutRootView}>
