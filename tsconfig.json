@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
     "paths": {
-      "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"]
+      "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"],
+      "@firebase/db": ["C:/Users/sooch/OneDrive/Desktop/rizzly - Copy/firebase/firebase.ts"]
     }
   },
   "extends": "expo/tsconfig.base"
 }
+
