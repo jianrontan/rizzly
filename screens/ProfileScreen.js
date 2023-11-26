@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Button } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot } from 'firebase/firestore';
@@ -46,37 +46,14 @@ export default function ProfileScreen({ navigation }) {
 
     // Images
     const [image, setImage] = useState([]);
+    const [uploadImages, setUploadImages] = useState([]);
     const [progress, setProgress] = useState(0);
 
     // Submit
     const [error, setError] = useState('');
 
-    // Submits user's details and navigates user to the main App screen
-    const handleSubmit = async () => {
-        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '') {
-            try {
-                const userId = auth.currentUser.uid;
-                const userDocRef = doc(db, 'profiles', userId);
-
-                for (let uri of image) {
-                    await uploadImage(uri, "image");
-                }
-                await updateDoc(userDocRef, {
-                    name: name,
-                    birthday: birthday,
-                    gender: gender,
-                    orientation: orientation,
-                    complete: true,
-                });
-                navigation.navigate('App');
-            } catch(e) {
-                console.error("Error submitting: ", e);
-                setError(e.message);
-            }
-        } else {
-            setError('Please fill out all the fields.');
-        }
-    };
+    // Gender List
+    const genders = ["Male", "Female", "Non-binary"]
 
     // TODO: Eventually phone number verification also,
     // Make ordering of photos, removing photos
@@ -85,10 +62,7 @@ export default function ProfileScreen({ navigation }) {
     // Make page cleaner, more readable, format all the buttons etc to look cleaner
     // After this need an edit profile screen for the user to change their details, need to research on other dating apps to see how this may work
 
-    // List of genders
-    const genders = ["Male", "Female", "Non-binary"]
-
-    // Sexual orientation of user
+    // ****ORIENTATION****
     const handleOrientation = (id, isSelected) => {
         setOrientation(prevState => {
             const newOrientation = {...prevState, [id]: isSelected};
@@ -101,14 +75,14 @@ export default function ProfileScreen({ navigation }) {
         });
     };
 
-    // Handle picking of birthdays
+    // ****BIRTHDAYS****
     const onChangeDate = (event, selectedDate) => {
+        const currentDate = selectedDate || date;
+        let tempDate = new Date(currentDate);
+        let fDate = `${tempDate.getDate()}/${tempDate.getMonth() + 1}/${tempDate.getFullYear()}`;
+        let textDate = `${tempDate.getDate()}-${tempDate.getMonth() + 1}-${tempDate.getFullYear()}`;
+        setShow(false);
         if (event.type === 'set') {
-            const currentDate = selectedDate || date;
-            let tempDate = new Date(currentDate);
-            let fDate = `${tempDate.getDate()}/${tempDate.getMonth() + 1}/${tempDate.getFullYear()}`;
-            let textDate = `${tempDate.getDate()}-${tempDate.getMonth() + 1}-${tempDate.getFullYear()}`
-            setShow(false);
             setBirthday(fDate);
             setDatePickerValue(currentDate);
             setDateText(textDate);
@@ -123,13 +97,12 @@ export default function ProfileScreen({ navigation }) {
         }
     }, [newDateSet]);
 
-    // Handle showing of the date modal
     const showMode = (currentMode) => {
         setShow(true);
         setMode(currentMode);
     }
 
-    // IMAGE RELATED FUNCTIONS
+    // ****IMAGES****
     // Handle image selection
     const handleImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -139,7 +112,8 @@ export default function ProfileScreen({ navigation }) {
             quality: 0.2,
         });
         if (!result.canceled) {
-            setImage([...image, result.assets[0].uri]);
+            setImage(prevImages => [...prevImages, { key: result.assets[0].uri, uri: result.assets[0].uri }]);
+            setUploadImages([...uploadImages, result.assets[0].uri]);
         }
     };
 
@@ -170,33 +144,75 @@ export default function ProfileScreen({ navigation }) {
 
     const renderItem = ({ item, index, drag, isActive }) => {
         return (
-          <TouchableOpacity
-            style={{
-              height: 100,
-              backgroundColor: isActive ? 'blue' : item.backgroundColor,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            onLongPress={drag}>
-            <Image source={{ uri: item.uri }} style={{ width: 150, height: 200 }}/>
-            <Button title="Remove" onPress={() => removeImage(index)} />
-          </TouchableOpacity>
+            <View
+                style={{
+                height: 200,
+                backgroundColor: isActive ? 'blue' : item.backgroundColor,
+                alignItems: 'center',
+                justifyContent: 'center',
+                }}
+            >
+            <View style={{ marginTop: 50 }}>
+                <TouchableOpacity onLongPress={drag}>
+                    <Image key={item.key} source={{ uri: item.uri }} style={{ width: 150, height: 200 }}/>
+                </TouchableOpacity>
+            </View>
+            <View style={{ borderWidth: 1, fontFamily: FONT.medium, marginTop: 15 }}>
+                <TouchableOpacity onPress={() => removeImage(index)}>
+                    <Text>Remove</Text>
+                </TouchableOpacity>
+            </View>
+          </View>
         );
       };
       
       const removeImage = (index) => {
+        console.log("removeImage called")
         setImage(prevImages => {
           return prevImages.filter((image, i) => i !== index);
         });
-      };      
+        setUploadImages(prevImages => {
+            return prevImages.filter((image, i) => i !== index);
+        });
+      };
+    
+    // SUBMIT //
+    // ****SUBMIT**** user details and navigates user to the main App screen
+    const handleSubmit = async () => {
+        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && uploadImages.length > 0 && birthday !== null && birthday !== '') {
+            try {
+                const userId = auth.currentUser.uid;
+                const userDocRef = doc(db, 'profiles', userId);
+
+                for (let uri of uploadImages) {
+                    await uploadImage(uri, "image");
+                }
+                await updateDoc(userDocRef, {
+                    name: name,
+                    birthday: birthday,
+                    gender: gender,
+                    orientation: orientation,
+                    complete: true,
+                });
+                navigation.navigate('App');
+            } catch(e) {
+                console.error("Error submitting: ", e);
+                setError(e.message);
+            }
+        } else {
+            setError('Please fill out all the fields.');
+        }
+    };      
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={styles.container}>
             <DraggableFlatList
+                showsVerticalScrollIndicator={false}
                 data={image}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => `draggable-item-${item.key}`}
                 onDragEnd={({ data }) => setImage(data)}
+                extraData={[image, uploadImages]}
                 ListHeaderComponent={
                     <>
                     <View style={styles.container}>
@@ -244,10 +260,14 @@ export default function ProfileScreen({ navigation }) {
                                 <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation}/>
                             </>
                         </View>
+                        {/* Image */}
                         <View>
                             <TouchableOpacity onPress={handleImage}>
-                                <Text style={styles.textStyle}>Upload Image</Text>
+                                <Text style={styles.textStyle2}>Upload Image</Text>
                             </TouchableOpacity>
+                            {/* {image.map((uri, index) => (
+                                <Image key={index} source={{ uri: uri }} style={{ width: 300, height: 400 }}/>
+                            ))} */}
                         </View>
                     </View>
                     </>
@@ -255,7 +275,7 @@ export default function ProfileScreen({ navigation }) {
                 ListFooterComponent={
                     <>
                         {/* Submit */}
-                        <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 50 }}>
                             {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
                             <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit} style={styles.btnContainer}>
                                 <View>
@@ -273,7 +293,7 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: '#fff',
+      backgroundColor: 'white',
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -291,5 +311,10 @@ const styles = StyleSheet.create({
       fontFamily: FONT.medium,
       fontSize: SIZES.smallmedium,
       color: COLORS.white,
-    }
+    },
+    textStyle2: {
+      fontFamily: FONT.medium,
+      fontSize: SIZES.smallmedium,
+      color: 'black',
+    },
 });
