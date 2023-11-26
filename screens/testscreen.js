@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Button, Dimensions } from 'react-native';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Button } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSelector, useDispatch } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot } from 'firebase/firestore';
@@ -21,9 +21,6 @@ export default function ProfileScreen({ navigation }) {
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
-
-    // Screen
-    const { width } = Dimensions.get('window')
 
     // Name
     const [name, setName] = useState('');
@@ -117,11 +114,10 @@ export default function ProfileScreen({ navigation }) {
             quality: 0.2,
         });
         if (!result.canceled) {
-            let newImage = { id: Math.random().toString(), uri: result.assets[0].uri };
-            setImage(prevImages => [...prevImages, newImage]);
-            setUploadImages([...uploadImages, newImage.uri]);
+            setImage(prevImages => [...prevImages, { key: String(prevImages.length), uri: result.assets[0].uri }]);
+            setUploadImages([...uploadImages, result.assets[0].uri]);
         }
-    };    
+    };
 
     // Handle image uploading
     const uploadImage = async (uri, fileType) => {
@@ -165,8 +161,8 @@ export default function ProfileScreen({ navigation }) {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <View style={{ flex: 1, marginTop: 35, alignItems: 'center', justifyContent: 'center' }}>
-                    <TouchableOpacity onPress={() => removeImage(item.id)} style={{ borderWidth: 1 }}>
+                <View style={{ borderWidth: 1, fontFamily: FONT.medium, marginTop: 35 }}>
+                    <TouchableOpacity onPress={() => removeImage(index)}>
                         <Text>Remove</Text>
                     </TouchableOpacity>
                 </View>
@@ -174,18 +170,16 @@ export default function ProfileScreen({ navigation }) {
         );
     };
       
-    const removeImage = (id) => {
-        console.log("removeImage called")
-        const { uri } = image.find((img) => img.id === id); // Find the URI of the image to be removed
-    
-        setImage(prevImages => {
-            return prevImages.filter((image) => image.id !== id);
-        });
-        setUploadImages(prevUploadImages => {
-            return prevUploadImages.filter((uploadUri) => uploadUri !== uri);
-        });
-        setRefreshKey(oldKey => oldKey + 1);
-    };    
+    const removeImage = (index) => {
+    console.log("removeImage called")
+    setImage(prevImages => {
+        return prevImages.filter((image, i) => i !== index);
+    });
+    setUploadImages(prevImages => {
+        return prevImages.filter((image, i) => i !== index);
+    });
+    setRefreshKey(oldKey => oldKey + 1)
+    };
     
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen
@@ -218,7 +212,6 @@ export default function ProfileScreen({ navigation }) {
     return (
         <SafeAreaView style={styles.container}>
             <DraggableFlatList
-                style={{ flex: 1, width: width }}
                 showsVerticalScrollIndicator={false}
                 data={image}
                 renderItem={renderItem}
