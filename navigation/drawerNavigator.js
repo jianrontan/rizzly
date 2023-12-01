@@ -12,6 +12,7 @@ import { db } from '../firebase/firebase';
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../drawer/settings';
 import ProfileScreen from '../screens/ProfileScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
@@ -177,6 +178,7 @@ export default function DrawerStack() {
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Profile" component={ProfileScreen} />
+                <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
                 <Drawer.Screen name="Settings" component={SettingsScreen} />
             </Drawer.Navigator>
         </NavigationContainer>

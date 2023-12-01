@@ -50,7 +50,6 @@ export default function ProfileScreen({ navigation }) {
 
     // Images
     const [image, setImage] = useState([]);
-    const [uploadImages, setUploadImages] = useState([]);
     const [progress, setProgress] = useState(0);
     const [refreshKey, setRefreshKey] = useState(0);
 
@@ -61,8 +60,8 @@ export default function ProfileScreen({ navigation }) {
     const genders = ["Male", "Female", "Non-binary"]
 
     // TODO: Eventually phone number verification also,
-    // Make ordering of photos, removing photos
-    // Add some UI, uploading screen possible
+    // Make ordering of photos
+    // Add some UI, uploading screen (loading screen) possible
     // Ensure no bugs, e.g. double upload, can upload without filling all the details
     // Make page cleaner, more readable, format all the buttons etc to look cleaner
     // After this need an edit profile screen for the user to change their details, need to research on other dating apps to see how this may work
@@ -117,9 +116,8 @@ export default function ProfileScreen({ navigation }) {
             quality: 0.2,
         });
         if (!result.canceled) {
-            let newImage = { id: Math.random().toString(), uri: result.assets[0].uri };
+            let newImage = { id: Math.random().toString(), uri: result.assets[0].uri, order: image.length };
             setImage(prevImages => [...prevImages, newImage]);
-            setUploadImages([...uploadImages, newImage.uri]);
         }
     };    
 
@@ -179,10 +177,10 @@ export default function ProfileScreen({ navigation }) {
         const { uri } = image.find((img) => img.id === id); // Find the URI of the image to be removed
     
         setImage(prevImages => {
-            return prevImages.filter((image) => image.id !== id);
-        });
-        setUploadImages(prevUploadImages => {
-            return prevUploadImages.filter((uploadUri) => uploadUri !== uri);
+            return prevImages.filter((image) => image.id !== id).map((img, index) => {
+                img.order = index;
+                return img;
+            });
         });
         setRefreshKey(oldKey => oldKey + 1);
     };    
@@ -190,13 +188,14 @@ export default function ProfileScreen({ navigation }) {
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen
     const handleSubmit = async () => {
-        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && uploadImages.length > 0 && birthday !== null && birthday !== '') {
+        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '') {
             try {
                 const userId = auth.currentUser.uid;
                 const userDocRef = doc(db, 'profiles', userId);
-
-                for (let uri of uploadImages) {
-                    await uploadImage(uri, "image");
+                
+                const sortedImages = [...image].sort((a,b) => a.order - b.order)
+                for (let img of sortedImages) {
+                    await uploadImage(img.uri, "image");
                 }
                 await updateDoc(userDocRef, {
                     name: name,
@@ -223,8 +222,13 @@ export default function ProfileScreen({ navigation }) {
                 data={image}
                 renderItem={renderItem}
                 keyExtractor={(item, index) => `draggable-item-${index}`}
-                onDragEnd={({ data }) => setImage(data)}
-                extraData={[image, uploadImages, refreshKey]}
+                onDragEnd={({ data }) => {
+                    data.forEach((item, index) => {
+                        item.order = index;
+                    });
+                    setImage(data);
+                }}
+                extraData={[image, refreshKey]}
                 ListHeaderComponent={
                     <>
                     <View style={styles.container}>
