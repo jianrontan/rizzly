@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Button, Dimensions } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSelector, useDispatch } from 'react-redux';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot } from 'firebase/firestore';
+import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
 import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { uploadBytesResumable, ref, getDownloadURL } from 'firebase/storage';
@@ -125,25 +125,29 @@ export default function ProfileScreen({ navigation }) {
     const uploadImage = async (uri, fileType) => {
         const response = await fetch(uri);
         const blob = await response.blob();
-
+    
         const storageRef = ref(storage, "profile_pictures/" + userId + "/" + new Date().getTime());
         const uploadTask = uploadBytesResumable(storageRef, blob);
-
-        uploadTask.on("state_changed", 
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-                console.log("Upload is " + progress + "% done")
-                setProgress(progress.toFixed())
-            },
-            (error1) => {
-                console.log(error1)
-            },
-            () => {
-                getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
-                    console.log("File available at: ", downloadURL);
-                })
-            }
-        )
+    
+        return new Promise((resolve, reject) => {
+            uploadTask.on("state_changed", 
+                (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                    console.log("Upload is " + progress + "% done")
+                    setProgress(progress.toFixed())
+                },
+                (error1) => {
+                    console.log(error1)
+                    reject(error1);
+                },
+                () => {
+                    getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                        console.log("File available at: ", downloadURL);
+                        resolve(downloadURL);
+                    })
+                }
+            )
+        });
     }
 
     const renderItem = ({ item, index, drag, isActive }) => {
@@ -174,7 +178,7 @@ export default function ProfileScreen({ navigation }) {
       
     const removeImage = (id) => {
         console.log("removeImage called")
-        const { uri } = image.find((img) => img.id === id); // Find the URI of the image to be removed
+        const { uri } = image.find((img) => img.id === id);
     
         setImage(prevImages => {
             return prevImages.filter((image) => image.id !== id).map((img, index) => {
@@ -194,14 +198,17 @@ export default function ProfileScreen({ navigation }) {
                 const userDocRef = doc(db, 'profiles', userId);
                 
                 const sortedImages = [...image].sort((a,b) => a.order - b.order)
+                const imageURLs = [];
                 for (let img of sortedImages) {
-                    await uploadImage(img.uri, "image");
+                    const url = await uploadImage(img.uri, "image");
+                    imageURLs.push(url);
                 }
                 await updateDoc(userDocRef, {
                     name: name,
                     birthday: birthday,
                     gender: gender,
                     orientation: orientation,
+                    imageURLs: imageURLs,
                     complete: true,
                 });
                 navigation.navigate('App');
@@ -230,7 +237,7 @@ export default function ProfileScreen({ navigation }) {
                 }}
                 extraData={[image, refreshKey]}
                 ListHeaderComponent={
-                    <>
+                    <>  
                     <View style={styles.container}>
                         {/* Name */}
                         <View>
