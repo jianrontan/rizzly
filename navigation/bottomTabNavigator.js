@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import Home from "../screens/home";
+import Home from "../screens/HomeScreen";
 import ChatStack from "./chatNavigator";
 import LikesScreen from "../screens/LikesScreen";
 import ScreenHeaderBtn from "../components/button/ScreenHeaderBtn";
