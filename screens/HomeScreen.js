@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image } from 'react-native';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { parse, isDate } from 'date-fns';
 import { db } from '../firebase/firebase';
 
@@ -9,59 +9,55 @@ const HomeScreen = () => {
   const [currentUserOrientation, setCurrentUserOrientation] = useState('');
 
   useEffect(() => {
-    const usersCollection = collection(db, 'profiles');
+    const fetchData = async () => {
+      try {
+        const usersCollection = collection(db, 'profiles');
+        const snapshot = await getDocs(usersCollection);
+        const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-    // Set up a real-time snapshot listener
-    const unsubscribe = onSnapshot(usersCollection, (snapshot) => {
-      const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const currentUser = usersData[0];
+        if (currentUser && currentUser.orientation) {
+          const { male, female, nonBinary } = currentUser.orientation;
 
-      // Assuming you have a single user and want to get the orientation from that user
-      // You may need to adjust this logic based on your actual data structure
-      const currentUser = usersData[0];
-      if (currentUser && currentUser.orientation) {
-        const { male, female, nonBinary } = currentUser.orientation;
-
-        // Determine the currentUserOrientation based on the fetched data
-        if (male) {
-          setCurrentUserOrientation('male');
-        } else if (female) {
-          setCurrentUserOrientation('female');
-        } else if (nonBinary) {
-          setCurrentUserOrientation('nonBinary');
-        } else {
-          // Handle other cases or set a default orientation
-          setCurrentUserOrientation('default');
+          if (male) setCurrentUserOrientation('male');
+          else if (female) setCurrentUserOrientation('female');
+          else if (nonBinary) setCurrentUserOrientation('nonBinary');
+          else setCurrentUserOrientation('default');
         }
+
+        // Filter users based on both gender and orientation
+        const filteredUsers = usersData.filter((user) => {
+          const userGender = user.gender?.toLowerCase?.(); // Ensure user.gender is defined before calling toLowerCase
+          const userOrientation = user.orientation?.toLowerCase?.(); // Ensure user.orientation is defined before calling toLowerCase
+
+          if (currentUserOrientation === 'default') {
+            return true; // Display all users if no specific orientation is set
+          }
+
+          if (currentUserOrientation === 'male') {
+            return userGender === 'male';
+          } else if (currentUserOrientation === 'female') {
+            return userGender === 'female';
+          } else if (currentUserOrientation === 'nonbinary') {
+            return userGender === 'nonbinary';
+          } else if (currentUserOrientation === 'maleandfemale') {
+            return userGender === 'male' || userGender === 'female';
+          } else if (currentUserOrientation === 'femaleandnonbinary') {
+            return userGender === 'female' || userGender === 'nonbinary';
+          } else if (currentUserOrientation === 'maleandnonbinary') {
+            return userGender === 'male' || userGender === 'nonbinary';
+          } else {
+            return true; // Display all users if no specific criteria match
+          }
+        });
+
+        setUsers(filteredUsers);
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
-      
-      // Filter users based on orientation
-      const filteredUsers = usersData.filter((user) => {
-        const isMale = user.orientation.male === true;
-        const isFemale = user.orientation.female === true;
-        const isNonBinary = user.orientation.nonBinary === true;
+    };
 
-        if (currentUserOrientation === 'male') {
-          return isMale && user.gender === 'male';
-        } else if (currentUserOrientation === 'female') {
-          return isFemale && user.gender === 'female';
-        } else if (currentUserOrientation === 'nonBinary') {
-          return isNonBinary;
-        } else if (currentUserOrientation === 'maleAndfemale') {
-          return isMale || isFemale;
-        } else if (currentUserOrientation === 'maleAndnonBinary'){
-          return isMale || isNonBinary;
-        } else if (currentUserOrientation === 'femaleAndnonBinary') {
-          return isFemale || isNonBinary; 
-        } else {
-          return true; 
-        }
-      });
-
-      setUsers(filteredUsers);
-    });
-
-    // Clean up the listener when the component unmounts
-    return () => unsubscribe();
+    fetchData(); // Call the fetchData function when the component mounts
   }, [currentUserOrientation]);
 
   const calculateAge = (birthday) => {
@@ -69,7 +65,6 @@ const HomeScreen = () => {
     const birthDate = parse(birthday, 'MM/dd/yyyy', new Date());
 
     if (!isDate(birthDate) || isNaN(birthDate.getTime())) {
-      // Handle invalid date
       return 'Invalid Date';
     }
 
@@ -90,19 +85,19 @@ const HomeScreen = () => {
           <Text>Name: {user.name}</Text>
           <Text>Age: {calculateAge(user.birthday)}</Text>
           <Text>Gender: {user.gender}</Text>
-          {/* Display the image only if imageURL is available */}
           <Text>Image: </Text>
           {user.imageURLs && user.imageURLs.length > 0 && (
-            <Image 
-              source={{ uri: user.imageURLs[0] }} 
+            <Image
+              source={{ uri: user.imageURLs[0] }}
               onLoad={() => console.log('Image loaded')}
               onError={(error) => console.log('Error loading image: ', error)}
+              style={{ width: 100, height: 100 }}
             />
           )}
-          {/* Add other user information */}
         </View>
       ))}
     </View>
   );
 };
+
 export default HomeScreen;
