@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
+import { View, Text, Image, Button } from 'react-native';
+import { collection, getDocs, updateDoc, arrayUnion, doc } from 'firebase/firestore';
 import { parse, isDate } from 'date-fns';
 import { db } from '../firebase/firebase';
 
@@ -78,6 +78,28 @@ const HomeScreen = () => {
     return age;
   };
 
+  const handleLikeClick = async (likedUserId) => {
+    try {
+      const currentUserDocRef = doc(db, 'profiles', users[0].id);
+      const likedUserDocRef = doc(db, 'profiles', likedUserId);
+
+      // Update likedBy field in the liked user's document
+      await updateDoc(likedUserDocRef, {
+        likedBy: arrayUnion(users[0].id),
+      });
+
+      // Update likes field in the current user's document
+      await updateDoc(currentUserDocRef, {
+        likes: arrayUnion(likedUserId),
+      });
+
+      // Remove the liked user from the state
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
+    } catch (error) {
+      console.error('Error adding like:', error);
+    }
+  };
+
   return (
     <View>
       {users.map((user) => (
@@ -94,6 +116,10 @@ const HomeScreen = () => {
               style={{ width: 100, height: 100 }}
             />
           )}
+          <Button
+            title="Like"
+            onPress={() => handleLikeClick(user.id)}
+          />
         </View>
       ))}
     </View>
