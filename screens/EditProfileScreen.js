@@ -41,26 +41,33 @@ export default function EditProfileScreen({ navigation }) {
     const [error, setError] = useState('');
 
     // Get user's data
-    useEffect(() => {
-        const getFirestoreData = async () => {
-            const docRef = doc(db, 'profiles', userId);
-            const docSnap = await getDoc(docRef);
-
+    const getFirestoreData = () => {
+        const docRef = doc(db, 'profiles', userId);
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
                 setUserData(holdData);
                 setOrientation(holdData.orientation);
-                const initialImages = holdData.imageURLs.map((url, index) => ({
-                    id: Math.random().toString(),
-                    uri: url,
-                    order: index
-                }));
-                setImage(initialImages);
+                if (holdData.imageURLs) {
+                    const initialImages = holdData.imageURLs.map((url, index) => ({
+                        id: Math.random().toString(),
+                        uri: url,
+                        order: index
+                    }));
+                    setImage(initialImages);
+                } else {
+                    setImage([]);
+                }
             } else {
                 console.log('No such document!');
             }
-        };
-
+        });
+    
+        // Clean up the listener when the component unmounts
+        return () => unsubscribe();
+    };
+    
+    useEffect(() => {
         getFirestoreData();
     }, []);
 
