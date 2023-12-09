@@ -53,7 +53,7 @@ const MatchesScreen = ({ navigation }) => {
         title="Go to Chat Room"
         onPress={() => {
           // Navigate to the ChatRoomScreen
-          navigation.navigate('ChatRoomScreen', {
+          navigation.navigate('ChatRoom', {
             userId: matches[0]?.id, // Pass the user ID to ChatRoomScreen (adjust as needed)
             userName: matches[0]?.name, // Pass the user name to ChatRoomScreen (adjust as needed)
           });
