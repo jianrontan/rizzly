@@ -1,51 +1,58 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Button } from 'react-native';
-import { collection, getDocs, doc } from 'firebase/firestore';
+import { View, Text } from 'react-native';
+import { collection, getDoc, doc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 
-const LikesScreen = ({ navigation }) => {
-  const [likedUsers, setLikedUsers] = useState([]);
-  const { user } = getAuth();
-  const [currentUserId, setCurrentUserId] = useState(user?.uid || null);
+// ... (imports remain the same)
+
+const LikesScreen = () => {
+  const [likedUsersData, setLikedUsersData] = useState([]);
+  const auth = getAuth();
+  const [currentUserId, setCurrentUserId] = useState(auth.currentUser?.uid || null);
 
   useEffect(() => {
-    const fetchLikedUsers = async () => {
+    const fetchLikedUsersData = async () => {
       try {
+        if (!currentUserId) {
+          console.log('No user logged in ');
+          return;
+        }
+
         const currentUserDocRef = doc(db, 'profiles', currentUserId);
-        const currentUserDocSnapshot = await getDocs(currentUserDocRef);
+        const currentUserDocSnapshot = await getDoc(currentUserDocRef);
         const currentUserData = currentUserDocSnapshot.data();
 
-        if (currentUserData && currentUserData.likes) {
-          const likedUsersIds = currentUserData.likes;
-          const likedUsersPromises = likedUsersIds.map(async (userId) => {
+        if (currentUserData && currentUserData.likedBy && currentUserData.likedBy.length > 0) {
+          const likedUsersIds = currentUserData.likedBy || [];
+          const likedUsersDataPromises = likedUsersIds.map(async (userId) => {
             const likedUserDocRef = doc(db, 'profiles', userId);
-            const likedUserDocSnapshot = await getDocs(likedUserDocRef);
-            return likedUserDocSnapshot.data();
+            const likedUserDocSnapshot = await getDoc(likedUserDocRef);
+            const likedUserData = likedUserDocSnapshot.data();
+
+            return likedUserData?.name || 'N/A';
           });
 
-          const likedUsersData = await Promise.all(likedUsersPromises);
-          setLikedUsers(likedUsersData.filter(Boolean)); // Filter out null values
+          const likedUsersData = await Promise.all(likedUsersDataPromises);
+          setLikedUsersData(likedUsersData);
         } else {
-          setLikedUsers([]);
+          setLikedUsersData([]);
         }
       } catch (error) {
-        console.error('Error fetching liked users:', error);
+        console.error('Error fetching liked users data:', error);
       }
     };
 
-    if (currentUserId) {
-      fetchLikedUsers();
-    }
+    fetchLikedUsersData();
   }, [currentUserId]);
+
 
   return (
     <View>
-      {likedUsers.length > 0 ? (
-        likedUsers.map((likedUser) => (
-          <View key={likedUser.id}>
-            <Text>Name: {likedUser.name}</Text>
-            {/* Add other user profile details here */}
+      {likedUsersData.length > 0 ? (
+        likedUsersData.map((username, index) => (
+          <View key={index}>
+            <Text>Username: {username}</Text>
           </View>
         ))
       ) : (

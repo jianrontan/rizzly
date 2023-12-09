@@ -1,40 +1,60 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, Button } from 'react-native';
 import { collection, getDocs, updateDoc, arrayUnion, doc } from 'firebase/firestore';
-import { parse, isDate } from 'date-fns';
+import { parse, isDate, set } from 'date-fns';
 import { db } from '../firebase/firebase';
+import { auth } from '../firebase/firebase'
 
 const HomeScreen = () => {
   const [users, setUsers] = useState([]);
   const [currentUserOrientation, setCurrentUserOrientation] = useState('');
-
+ 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Check if a user is logged in
+        const user = auth.currentUser;
+        if (!user) {
+          // If no user is logged in, you may want to handle this case
+          console.log('No user logged in');
+          return;
+        }
+
         const usersCollection = collection(db, 'profiles');
         const snapshot = await getDocs(usersCollection);
         const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        const currentUser = usersData[0];
-        if (currentUser && currentUser.orientation) {
-          const { male, female, nonBinary } = currentUser.orientation;
-
-          if (male) setCurrentUserOrientation('male');
-          else if (female) setCurrentUserOrientation('female');
-          else if (nonBinary) setCurrentUserOrientation('nonBinary');
-          else setCurrentUserOrientation('default');
+        // Default to 'default' if no users or no orientation for the first user
+        let userOrientation = 'default';
+ 
+        if (usersData.length > 0) {
+          const currentUser = usersData[0];
+          if (currentUser.orientation) {
+            const { male, female, nonBinary } = currentUser.orientation;
+            if (male && !female && !nonBinary) userOrientation = 'male';
+            else if (female && !male && !nonBinary) userOrientation = 'female';
+            else if (nonBinary && !male && !female) userOrientation = 'nonBinary';
+            else if (male && female && !nonBinary) userOrientation = 'maleandfemale';
+            else if (!male && female && nonBinary) userOrientation = 'femaleandnonbinary';
+            else if (male && !female && nonBinary) userOrientation = 'maleandnonbinary';
+            else userOrientation = 'maleandfemaleandnonbinary';
+          }
         }
-
+ 
+        setCurrentUserOrientation(userOrientation);
         // Filter users based on both gender and orientation
         const filteredUsers = usersData.filter((user) => {
           const userGender = user.gender?.toLowerCase?.(); // Ensure user.gender is defined before calling toLowerCase
-          const userOrientation = user.orientation?.toLowerCase?.(); // Ensure user.orientation is defined before calling toLowerCase
-
-          if (currentUserOrientation === 'default') {
-            return true; // Display all users if no specific orientation is set
+          const currentUserOrientation = user.orientation?.toLowerCase?.(); // Ensure user.orientation is defined before calling toLowerCase
+          
+          // Exclude the current user
+          const isCurrentUser = user.id === auth.currentUser?.uid;
+        
+          if (isCurrentUser) {
+            return false; // Skip the current user
           }
-
-          if (currentUserOrientation === 'male') {
+        
+          else if (currentUserOrientation === 'male') {
             return userGender === 'male';
           } else if (currentUserOrientation === 'female') {
             return userGender === 'female';
@@ -47,7 +67,7 @@ const HomeScreen = () => {
           } else if (currentUserOrientation === 'maleandnonbinary') {
             return userGender === 'male' || userGender === 'nonbinary';
           } else {
-            return true; // Display all users if no specific criteria match
+            return userGender === 'male' || userGender === 'nonbinary' || userGender === 'female';
           }
         });
 
@@ -58,7 +78,7 @@ const HomeScreen = () => {
     };
 
     fetchData(); // Call the fetchData function when the component mounts
-  }, [currentUserOrientation]);
+  }, []);
 
   const calculateAge = (birthday) => {
     const today = new Date();
