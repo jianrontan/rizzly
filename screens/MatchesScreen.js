@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from 'react-native';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
-import ChatRoomScreen from './ChatRoomScreen'; // Import ChatRoomScreen
+import ChatRoomScreen from '../screens/ChatRoomScreen'; // Import ChatRoomScreen
 
 const MatchesScreen = ({ navigation }) => {
+  const [currentUser, setCurrentUser] = useState(null); // State for current user
   const [matches, setMatches] = useState([]);
 
   useEffect(() => {
@@ -14,24 +15,20 @@ const MatchesScreen = ({ navigation }) => {
         const snapshot = await getDocs(usersCollection);
         const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        const currentUser = usersData[0];
+        const user = usersData[0]; // Assuming the current user is the first user
 
         // Filter liked users who also liked the current user
-        const matchedUsers = usersData.filter((user) => {
-          if (user.likes && user.likedBy) {
-            // Check if the current user is in the likedBy array of the liked user
-            const likedByCurrentUser = user.likedBy.includes(currentUser.id);
-
-            // Check if the liked user is in the likes array of the current user
-            const currentUserLikesLikedUser = currentUser.likes.includes(user.id);
-
-            return likedByCurrentUser && currentUserLikesLikedUser;
+        const matchedUsers = usersData.filter((otherUser) => {
+          if (otherUser.likes && otherUser.likedBy) {
+            const likedByCurrentUser = otherUser.likedBy.includes(user.id);
+            const currentUserLikesOtherUser = user.likes.includes(otherUser.id);
+            return likedByCurrentUser && currentUserLikesOtherUser;
           }
-
           return false;
         });
 
         setMatches(matchedUsers);
+        setCurrentUser(user); // Set the current user
       } catch (error) {
         console.error('Error fetching matches:', error);
       }
@@ -47,18 +44,17 @@ const MatchesScreen = ({ navigation }) => {
         <View key={match.id}>
           <Text>Name: {match.name}</Text>
           {/* Display other details of the matched user as needed */}
+          <Button
+            title="Go to Chat Room"
+            onPress={() => {
+              navigation.navigate('ChatRoom', {
+                matchedUser: match,
+                currentUser: currentUser,
+              });
+            }}
+          />
         </View>
       ))}
-      <Button
-        title="Go to Chat Room"
-        onPress={() => {
-          // Navigate to the ChatRoomScreen
-          navigation.navigate('ChatRoom', {
-            userId: matches[0]?.id, // Pass the user ID to ChatRoomScreen (adjust as needed)
-            userName: matches[0]?.name, // Pass the user name to ChatRoomScreen (adjust as needed)
-          });
-        }}
-      />
     </View>
   );
 };
