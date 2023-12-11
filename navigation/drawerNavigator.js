@@ -1,9 +1,9 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation } from '@react-navigation/native';
+import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
@@ -23,6 +23,20 @@ const auth = getAuth();
 export default function DrawerStack() {
     const [profileComplete, setProfileComplete] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const backAction = () => {
+            // Replace 'App' with the actual route name of your home screen
+            if (navigationRef.isReady()) {
+                navigationRef.navigate('App');
+            }
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+        return () => backHandler.remove();
+    }, []);
 
     // State variable appIsReady tracks when app is ready to render
     const [appIsReady, setAppIsReady] = useState(false);
@@ -143,7 +157,7 @@ export default function DrawerStack() {
     }
 
     return (
-        <NavigationContainer onLayout={onLayoutRootView}>
+        <NavigationContainer ref={(ref) => { navigationRef = ref; }} onLayout={onLayoutRootView}>
             <Drawer.Navigator
                 drawerContent={(props) => <CustomDrawerContent {...props} />}
                 initialRouteName={profileComplete ? 'App' : 'Profile'}
@@ -184,3 +198,5 @@ export default function DrawerStack() {
         </NavigationContainer>
     )
 };
+
+let navigationRef = React.createRef();

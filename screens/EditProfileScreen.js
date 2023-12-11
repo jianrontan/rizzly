@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Button, Dimensions } from 'react-native';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Button, Dimensions, BackHandler } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSelector, useDispatch } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -13,10 +14,12 @@ import * as ImagePicker from 'expo-image-picker';
 import SelectDropdown from 'react-native-select-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import OptionButton from '../components/touchableHighlight/touchableHightlight'
+import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import { COLORS, SIZES, FONT } from '../constants';
 
 export default function EditProfileScreen({ navigation }) {
+
+    // All data
     const [userData, setUserData] = useState(null);
 
     // Authentication
@@ -28,17 +31,26 @@ export default function EditProfileScreen({ navigation }) {
 
     // Orientation
     const [orientation, setOrientation] = useState(null);
+    const [initialOrientation, setInitialOrientation] = useState(null);
     const [orientationError, setOrientationError] = useState('');
     const defaultOrientation = { male: false, female: false, nonBinary: false };
     const actualOrientation = orientation || defaultOrientation;
 
     // Images
     const [image, setImage] = useState([]);
+    const [initialImage, setInitialImage] = useState([]);
+    const [removedImage, setRemovedImage] = useState([]);
     const [progress, setProgress] = useState(0);
     const [refreshKey, setRefreshKey] = useState(0);
 
     // Update
     const [error, setError] = useState('');
+
+    // Changes
+    const [isLoading, setIsLoading] = useState(true);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    // Changes > Redux
+    const dispatch = useDispatch();
 
     // Get user's data
     const getFirestoreData = () => {
@@ -48,6 +60,7 @@ export default function EditProfileScreen({ navigation }) {
                 const holdData = docSnap.data();
                 setUserData(holdData);
                 setOrientation(holdData.orientation);
+                setInitialOrientation(holdData.orientation);
                 if (holdData.imageURLs) {
                     const initialImages = holdData.imageURLs.map((url, index) => ({
                         id: Math.random().toString(),
@@ -55,18 +68,21 @@ export default function EditProfileScreen({ navigation }) {
                         order: index
                     }));
                     setImage(initialImages);
+                    setInitialImage(initialImages);
                 } else {
                     setImage([]);
+                    setInitialImage([]);
                 }
+                setIsLoading(false);
             } else {
                 console.log('No such document!');
             }
         });
-    
+
         // Clean up the listener when the component unmounts
         return () => unsubscribe();
     };
-    
+
     useEffect(() => {
         getFirestoreData();
     }, []);
@@ -93,7 +109,12 @@ export default function EditProfileScreen({ navigation }) {
             quality: 0.2,
         });
         if (!result.canceled) {
-            let newImage = { id: Math.random().toString(), uri: result.assets[0].uri, order: image.length, isNew: true };
+            let newImage = {
+                id: Math.random().toString(),
+                uri: result.assets[0].uri,
+                order: image.length,
+                isNew: true, // Assume all picked images are new and local
+            };
             setImage(prevImages => [...prevImages, newImage]);
         }
     };
@@ -102,29 +123,30 @@ export default function EditProfileScreen({ navigation }) {
         const response = await fetch(uri);
         const blob = await response.blob();
 
-        const storageRef = ref(storage, "profile_pictures/" + userId + "/" + new Date().getTime());
+        const storageRef = ref(storage, `profile_pictures/${userId}/${Date.now()}`);
         const uploadTask = uploadBytesResumable(storageRef, blob);
 
         return new Promise((resolve, reject) => {
-            uploadTask.on("state_changed",
+            uploadTask.on(
+                "state_changed",
                 (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-                    console.log("Upload is " + progress + "% done")
-                    setProgress(progress.toFixed())
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log(`Upload is ${progress}% done`);
+                    setProgress(progress.toFixed());
                 },
-                (error1) => {
-                    console.log(error1)
-                    reject(error1);
+                (error) => {
+                    console.log(error);
+                    reject(error);
                 },
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                        console.log("File available at: ", downloadURL);
+                        console.log(`File available at: ${downloadURL}`);
                         resolve({ url: downloadURL, id: id });
-                    })
+                    });
                 }
-            )
+            );
         });
-    }
+    };
 
     const renderItem = ({ item, index, drag, isActive }) => {
         return (
@@ -153,59 +175,88 @@ export default function EditProfileScreen({ navigation }) {
     };
 
     const removeImage = (id) => {
-        console.log("removeImage called")
         const imgIndex = image.findIndex((img) => img.id === id);
         if (imgIndex !== -1) {
-            const { uri } = image[imgIndex];
-            const desertRef = ref(storage, uri);
-            deleteObject(desertRef).then(() => {
-                console.log("File deleted successfully");
-            }).catch((error) => {
-                console.error("Error deleting file: ", error);
-            });
-    
-            setImage(prevImages => {
-                return prevImages.filter((image) => image.id !== id).map((img, index) => {
-                    img.order = index;
-                    return img;
-                });
-            });
-            setRefreshKey(oldKey => oldKey + 1);
+            const { uri, isNew } = image[imgIndex];
+            if (!isNew) {
+                setRemovedImage((oldArray) => [...oldArray, uri]);
+            }
+            setImage((prevImages) => prevImages.filter((img) => img.id !== id));
+            setRefreshKey((oldKey) => oldKey + 1);
         }
     };
+
 
     // SUBMIT
     const handleSubmit = async () => {
         try {
-            const userId = auth.currentUser.uid;
             const userDocRef = doc(db, 'profiles', userId);
-            
-            const sortedImages = [...image].sort((a,b) => a.order - b.order)
+            const sortedImages = [...image].sort((a, b) => a.order - b.order);
             const imageURLs = [];
+
             for (let img of sortedImages) {
-                let url;
                 if (img.isNew) {
                     const uploadResult = await uploadImage(img.uri, img.order, img.id);
-                    url = uploadResult.url;
-                    const imgIndex = image.findIndex(i => i.id === uploadResult.id);
-                    if (imgIndex !== -1) {
-                        image[imgIndex].isNew = false;
-                    }
+                    imageURLs.push(uploadResult.url);
                 } else {
-                    url = img.uri;
+                    imageURLs.push(img.uri);
                 }
-                imageURLs.push(url);
             }
+
+            for (let url of removedImage) {
+                const deleteRef = ref(storage, url);
+                await deleteObject(deleteRef);
+            };
+
             await updateDoc(userDocRef, {
                 orientation: orientation,
                 imageURLs: imageURLs,
             });
             navigation.navigate('App');
-        } catch(e) {
+        } catch (e) {
             console.error("Error submitting: ", e);
             setError(e.message);
         }
-    };    
+    };
+
+    // CHANGES
+    useEffect(() => {
+        if (!isLoading) {
+            if (orientation !== initialOrientation || image !== initialImage) {
+                setHasUnsavedChanges(true);
+                console.log("edit profile screen changed hasUnsavedChanges to true")
+            } else {
+                setHasUnsavedChanges(false);
+            }
+        }
+    }, [orientation, image, isLoading]);
+
+    // Hardware back button
+    useFocusEffect(
+        useCallback(() => {
+            const backAction = () => {
+                if (hasUnsavedChanges) {
+                    Alert.alert("Discard changes?", "You have unsaved changes. Are you sure you want to discard them?", [
+                        { text: "Don't leave", style: 'cancel', onPress: () => { } },
+                        {
+                            text: 'Discard',
+                            style: 'destructive',
+                            onPress: () => {
+                                setOrientation(initialOrientation);
+                                setImage(initialImage);
+                                navigation.navigate('App')
+                            },
+                        },
+                    ]);
+                    return true;
+                }
+            };
+    
+            const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+    
+            return () => backHandler.remove();
+        }, [hasUnsavedChanges, initialOrientation, initialImage, navigation])
+    );
 
     return (
         <SafeAreaView style={styles.container}>

@@ -69,7 +69,7 @@ export default function ProfileScreen({ navigation }) {
     // ****ORIENTATION****
     const handleOrientation = (id, isSelected) => {
         setOrientation(prevState => {
-            const newOrientation = {...prevState, [id]: isSelected};
+            const newOrientation = { ...prevState, [id]: isSelected };
             if (Object.values(newOrientation).every(option => !option)) {
                 setOrientationError('Please select at least one orientation.');
             } else {
@@ -96,8 +96,8 @@ export default function ProfileScreen({ navigation }) {
 
     useEffect(() => {
         if (newDateSet) {
-          setShow(false);
-          setNewDateSet(false);
+            setShow(false);
+            setNewDateSet(false);
         }
     }, [newDateSet]);
 
@@ -119,18 +119,18 @@ export default function ProfileScreen({ navigation }) {
             let newImage = { id: Math.random().toString(), uri: result.assets[0].uri, order: image.length };
             setImage(prevImages => [...prevImages, newImage]);
         }
-    };    
+    };
 
     // Handle image uploading
     const uploadImage = async (uri, fileType) => {
         const response = await fetch(uri);
         const blob = await response.blob();
-    
+
         const storageRef = ref(storage, "profile_pictures/" + userId + "/" + new Date().getTime());
         const uploadTask = uploadBytesResumable(storageRef, blob);
-    
+
         return new Promise((resolve, reject) => {
-            uploadTask.on("state_changed", 
+            uploadTask.on("state_changed",
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
                     console.log("Upload is " + progress + "% done")
@@ -155,15 +155,15 @@ export default function ProfileScreen({ navigation }) {
             <GestureHandlerRootView>
                 <View
                     style={{
-                    height: 200,
-                    backgroundColor: isActive ? 'transparent' : item.backgroundColor,
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                        height: 200,
+                        backgroundColor: isActive ? 'transparent' : item.backgroundColor,
+                        alignItems: 'center',
+                        justifyContent: 'center',
                     }}
                 >
                     <View style={{ marginTop: 50 }}>
                         <TouchableOpacity onLongPress={drag}>
-                            <Image key={item.key} source={{ uri: item.uri }} style={{ width: 150, height: 200 }}/>
+                            <Image key={item.key} source={{ uri: item.uri }} style={{ width: 150, height: 200 }} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -175,11 +175,11 @@ export default function ProfileScreen({ navigation }) {
             </GestureHandlerRootView>
         );
     };
-      
+
     const removeImage = (id) => {
         console.log("removeImage called")
         const { uri } = image.find((img) => img.id === id);
-    
+
         setImage(prevImages => {
             return prevImages.filter((image) => image.id !== id).map((img, index) => {
                 img.order = index;
@@ -187,8 +187,8 @@ export default function ProfileScreen({ navigation }) {
             });
         });
         setRefreshKey(oldKey => oldKey + 1);
-    };    
-    
+    };
+
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen
     const handleSubmit = async () => {
@@ -196,8 +196,8 @@ export default function ProfileScreen({ navigation }) {
             try {
                 const userId = auth.currentUser.uid;
                 const userDocRef = doc(db, 'profiles', userId);
-                
-                const sortedImages = [...image].sort((a,b) => a.order - b.order)
+
+                const sortedImages = [...image].sort((a, b) => a.order - b.order)
                 const imageURLs = [];
                 for (let img of sortedImages) {
                     const url = await uploadImage(img.uri, "image");
@@ -212,14 +212,14 @@ export default function ProfileScreen({ navigation }) {
                     complete: true,
                 });
                 navigation.navigate('App');
-            } catch(e) {
+            } catch (e) {
                 console.error("Error submitting: ", e);
                 setError(e.message);
             }
         } else {
             setError('Please fill out all the fields.');
         }
-    };      
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -237,62 +237,59 @@ export default function ProfileScreen({ navigation }) {
                 }}
                 extraData={[image, refreshKey]}
                 ListHeaderComponent={
-                    <>  
-                    <View style={styles.container}>
-                        {/* Name */}
-                        <View>
-                            <TextInput
-                                autoFocus={false}
-                                value={name}
-                                onChangeText={setName}
-                                placeholder="Enter your name"
-                            />
-                        </View>
-                        {/* Birthday */}
-                        <View>
-                            <TouchableOpacity onPress={() => showMode('date')}>
-                                <Text>{dateText}</Text>
-                            </TouchableOpacity>
-                            {show && (
-                                <DateTimePicker
-                                    id='datePicker'
-                                    value={datePickerValue}
-                                    mode={mode}
-                                    display='default'
-                                    onChange={onChangeDate}
-                                    maximumDate={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate())}
+                    <>
+                        <View style={styles.container}>
+                            {/* Name */}
+                            <View>
+                                <TextInput
+                                    autoFocus={false}
+                                    value={name}
+                                    onChangeText={setName}
+                                    placeholder="Enter your name"
                                 />
-                            )}
+                            </View>
+                            {/* Birthday */}
+                            <View>
+                                <TouchableOpacity onPress={() => showMode('date')}>
+                                    <Text>{dateText}</Text>
+                                </TouchableOpacity>
+                                {show && (
+                                    <DateTimePicker
+                                        id='datePicker'
+                                        value={datePickerValue}
+                                        mode={mode}
+                                        display='default'
+                                        onChange={onChangeDate}
+                                        maximumDate={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate())}
+                                    />
+                                )}
+                            </View>
+                            {/* Gender */}
+                            <View>
+                                <SelectDropdown
+                                    defaultButtonText='Gender'
+                                    data={genders}
+                                    onSelect={setGender}
+                                />
+                            </View>
+                            {/* Orientation */}
+                            <View>
+                                {!!orientationError && <Text style={{ color: '#cf0202' }}>{orientationError}</Text>}
+                            </View>
+                            <View>
+                                <>
+                                    <OptionButton id="male" text="Male" onPress={handleOrientation} />
+                                    <OptionButton id="female" text="Female" onPress={handleOrientation} />
+                                    <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation} />
+                                </>
+                            </View>
+                            {/* Image */}
+                            <View>
+                                <TouchableOpacity onPress={handleImage}>
+                                    <Text style={styles.textStyle2}>Upload Image</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        {/* Gender */}
-                        <View>
-                            <SelectDropdown
-                                defaultButtonText='Gender'
-                                data={genders}
-                                onSelect={setGender}
-                            />
-                        </View>
-                        {/* Orientation */}
-                        <View>
-                            {!!orientationError && <Text style={{ color: '#cf0202' }}>{orientationError}</Text>}
-                        </View>
-                        <View>
-                            <>
-                                <OptionButton id="male" text="Male" onPress={handleOrientation}/>
-                                <OptionButton id="female" text="Female" onPress={handleOrientation}/>
-                                <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation}/>
-                            </>
-                        </View>
-                        {/* Image */}
-                        <View>
-                            <TouchableOpacity onPress={handleImage}>
-                                <Text style={styles.textStyle2}>Upload Image</Text>
-                            </TouchableOpacity>
-                            {/* {image.map((uri, index) => (
-                                <Image key={index} source={{ uri: uri }} style={{ width: 300, height: 400 }}/>
-                            ))} */}
-                        </View>
-                    </View>
                     </>
                 }
                 ListFooterComponent={
@@ -315,10 +312,10 @@ export default function ProfileScreen({ navigation }) {
 
 const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      backgroundColor: 'white',
-      alignItems: 'center',
-      justifyContent: 'center',
+        flex: 1,
+        backgroundColor: 'white',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     btnContainer: {
         width: 200,
@@ -331,13 +328,13 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     textStyle: {
-      fontFamily: FONT.medium,
-      fontSize: SIZES.smallmedium,
-      color: COLORS.white,
+        fontFamily: FONT.medium,
+        fontSize: SIZES.smallmedium,
+        color: COLORS.white,
     },
     textStyle2: {
-      fontFamily: FONT.medium,
-      fontSize: SIZES.smallmedium,
-      color: 'black',
+        fontFamily: FONT.medium,
+        fontSize: SIZES.smallmedium,
+        color: 'black',
     },
 });
