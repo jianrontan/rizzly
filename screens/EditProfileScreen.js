@@ -212,6 +212,8 @@ export default function EditProfileScreen({ navigation }) {
                 orientation: orientation,
                 imageURLs: imageURLs,
             });
+            setHasUnsavedChanges(false);
+            console.log("edit profile screen changed hasUnsavedChanges to false")
             navigation.navigate('App');
         } catch (e) {
             console.error("Error submitting: ", e);
@@ -227,6 +229,7 @@ export default function EditProfileScreen({ navigation }) {
                 console.log("edit profile screen changed hasUnsavedChanges to true")
             } else {
                 setHasUnsavedChanges(false);
+                console.log("edit profile screen changed hasUnsavedChanges to false")
             }
         }
     }, [orientation, image, isLoading]);
