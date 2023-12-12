@@ -1,10 +1,11 @@
-import { SET_CURRENT_ORIENTATION, SET_INITIAL_ORIENTATION, SET_CURRENT_IMAGE, SET_INITIAL_IMAGE } from "./actions";
+import { SET_CURRENT_ORIENTATION, SET_INITIAL_ORIENTATION, SET_CURRENT_IMAGE, SET_INITIAL_IMAGE, SET_HAS_UNSAVED_CHANGES_EXPORT } from "./actions";
 
 const editProfileState = {
   currentOrientationVal: null,
   initialOrientationVal: null,
   currentImageVal: [],
   initialImageVal: [],
+  hasUnsavedChangesExportVal: false,
 }
 
 export function editProfileReducer(state = editProfileState, action) {
@@ -28,6 +29,11 @@ export function editProfileReducer(state = editProfileState, action) {
       return {
         ...state,
         initialImageVal: action.payload
+      }
+    case SET_HAS_UNSAVED_CHANGES_EXPORT:
+      return {
+        ...state,
+        hasUnsavedChangesExportVal: action.payload
       }
     default:
       return state;

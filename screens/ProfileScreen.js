@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Button, Dimensions } from 'react-native';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, TextInput, Image, Button, Dimensions, BackHandler } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSelector, useDispatch } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -221,6 +221,17 @@ export default function ProfileScreen({ navigation }) {
         }
     };
 
+    useEffect(() => {
+        const backAction = () => true;
+
+        const backHandler = BackHandler.addEventListener(
+            "hardwareBackPress",
+            backAction
+        );
+
+        return () => backHandler.remove();
+    }, []);
+
     return (
         <SafeAreaView style={styles.container}>
             <DraggableFlatList
@@ -240,6 +251,9 @@ export default function ProfileScreen({ navigation }) {
                     <>
                         <View style={styles.container}>
                             {/* Name */}
+                            <View style={{ paddingTop: 42, paddingBottom: 15 }}>
+                                <Text style={{ fontFamily: FONT.bold, fontSize: SIZES.mediumlarge }}>Profile Set Up</Text>
+                            </View>
                             <View>
                                 <TextInput
                                     autoFocus={false}

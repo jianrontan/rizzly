@@ -1,6 +1,7 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Button, Dimensions, BackHandler } from 'react-native';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Button, Dimensions, BackHandler, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useIsDrawerOpen } from '@react-navigation/drawer';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSelector, useDispatch } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -14,6 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import SelectDropdown from 'react-native-select-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+import { setInitialOrientation, setCurrentOrientation, setInitialImage, setCurrentImage, setHasUnsavedChangesExport } from '../redux/actions';
 import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import { COLORS, SIZES, FONT } from '../constants';
 
@@ -21,6 +23,30 @@ export default function EditProfileScreen({ navigation }) {
 
     // All data
     const [userData, setUserData] = useState(null);
+
+    // REVERT BACK TO LOCAL STATE BUT FOR NOW IT WORKS //
+    // Redux data
+    const currentOrientationVal = useSelector(state => state.editProfileReducer.currentOrientationVal)
+    const initialOrientationVal = useSelector(state => state.editProfileReducer.initialOrientationVal)
+    const currentImageVal = useSelector(state => state.editProfileReducer.currentImageVal)
+    const initialImageVal = useSelector(state => state.editProfileReducer.initialImageVal)
+    const currentOrientationRef = useRef(null);
+    const initialOrientationRef = useRef(null);
+    const currentImageRef = useRef([]);
+    const initialImageRef = useRef([]);
+    // Redux data > latest
+    useEffect(() => {
+        currentOrientationRef.current = currentOrientationVal;
+    }, [currentOrientationVal]);
+    useEffect(() => {
+        initialOrientationRef.current = initialOrientationVal;
+    }, [initialOrientationVal]);
+    useEffect(() => {
+        currentImageRef.current = currentImageVal;
+    }, [currentImageVal]);
+    useEffect(() => {
+        initialImageRef.current = initialImageVal;
+    }, [initialImageVal]);
 
     // Authentication
     const auth = getAuth();
@@ -31,14 +57,12 @@ export default function EditProfileScreen({ navigation }) {
 
     // Orientation
     const [orientation, setOrientation] = useState(null);
-    const [initialOrientation, setInitialOrientation] = useState(null);
     const [orientationError, setOrientationError] = useState('');
     const defaultOrientation = { male: false, female: false, nonBinary: false };
     const actualOrientation = orientation || defaultOrientation;
 
     // Images
     const [image, setImage] = useState([]);
-    const [initialImage, setInitialImage] = useState([]);
     const [removedImage, setRemovedImage] = useState([]);
     const [progress, setProgress] = useState(0);
     const [refreshKey, setRefreshKey] = useState(0);
@@ -59,23 +83,26 @@ export default function EditProfileScreen({ navigation }) {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
                 setUserData(holdData);
+                dispatch(setInitialOrientation(holdData.orientation));
+                dispatch(setCurrentOrientation(holdData.orientation));
                 setOrientation(holdData.orientation);
-                setInitialOrientation(holdData.orientation);
                 if (holdData.imageURLs) {
                     const initialImages = holdData.imageURLs.map((url, index) => ({
                         id: Math.random().toString(),
                         uri: url,
                         order: index
                     }));
+                    dispatch(setInitialImage(initialImages));
+                    dispatch(setCurrentImage(initialImages));
                     setImage(initialImages);
-                    setInitialImage(initialImages);
                 } else {
                     setImage([]);
-                    setInitialImage([]);
+                    dispatch(setInitialImage([]));
                 }
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
+                setIsLoading(false);
             }
         });
 
@@ -83,13 +110,25 @@ export default function EditProfileScreen({ navigation }) {
         return () => unsubscribe();
     };
 
-    useEffect(() => {
-        getFirestoreData();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            setIsLoading(true);
+            getFirestoreData();
+        }, [])
+    );
 
     // ORIENTATION
     const handleOrientation = (id, isSelected) => {
         setOrientation(prevState => {
+            const newOrientation = { ...prevState, [id]: isSelected };
+            if (Object.values(newOrientation).every(option => !option)) {
+                setOrientationError('Please select at least one orientation.');
+            } else {
+                setOrientationError('');
+            }
+            return newOrientation;
+        });
+        setCurrentOrientation(prevState => {
             const newOrientation = { ...prevState, [id]: isSelected };
             if (Object.values(newOrientation).every(option => !option)) {
                 setOrientationError('Please select at least one orientation.');
@@ -116,6 +155,7 @@ export default function EditProfileScreen({ navigation }) {
                 isNew: true, // Assume all picked images are new and local
             };
             setImage(prevImages => [...prevImages, newImage]);
+            setCurrentImage(prevImages => [...prevImages, newImage]);
         }
     };
 
@@ -182,6 +222,7 @@ export default function EditProfileScreen({ navigation }) {
                 setRemovedImage((oldArray) => [...oldArray, uri]);
             }
             setImage((prevImages) => prevImages.filter((img) => img.id !== id));
+            setCurrentImage((prevImages) => prevImages.filter((img) => img.id !== id));
             setRefreshKey((oldKey) => oldKey + 1);
         }
     };
@@ -224,11 +265,13 @@ export default function EditProfileScreen({ navigation }) {
     // CHANGES
     useEffect(() => {
         if (!isLoading) {
-            if (orientation !== initialOrientation || image !== initialImage) {
+            if (orientation !== initialOrientationRef.current || image !== initialImageRef.current) {
                 setHasUnsavedChanges(true);
+                dispatch(setHasUnsavedChangesExport(true));
                 console.log("edit profile screen changed hasUnsavedChanges to true")
             } else {
                 setHasUnsavedChanges(false);
+                dispatch(setHasUnsavedChangesExport(false));
                 console.log("edit profile screen changed hasUnsavedChanges to false")
             }
         }
@@ -245,8 +288,8 @@ export default function EditProfileScreen({ navigation }) {
                             text: 'Discard',
                             style: 'destructive',
                             onPress: () => {
-                                setOrientation(initialOrientation);
-                                setImage(initialImage);
+                                setOrientation(initialOrientationVal)
+                                setImage(initialImageVal)
                                 navigation.navigate('App')
                             },
                         },
@@ -254,30 +297,40 @@ export default function EditProfileScreen({ navigation }) {
                     return true;
                 }
             };
-    
+
             const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-    
+
             return () => backHandler.remove();
-        }, [hasUnsavedChanges, initialOrientation, initialImage, navigation])
+        }, [hasUnsavedChanges, initialOrientationVal, initialImageVal, navigation])
     );
 
+    if (isLoading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
+
     return (
-        <SafeAreaView style={styles.container}>
-            <DraggableFlatList
-                style={{ flex: 1, width: width }}
-                showsVerticalScrollIndicator={false}
-                data={image}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => `draggable-item-${index}`}
-                onDragEnd={({ data }) => {
-                    data.forEach((item, index) => {
-                        item.order = index;
-                    });
-                    setImage(data);
-                }}
-                extraData={[image, refreshKey]}
-                ListHeaderComponent={
-                    <>
+        <GestureHandlerRootView style={styles.container}>
+            <SafeAreaView>
+                <DraggableFlatList
+                    style={{ flex: 1, width: width }}
+                    showsVerticalScrollIndicator={false}
+                    data={image}
+                    renderItem={renderItem}
+                    keyExtractor={(item, index) => `draggable-item-${index}`}
+                    onDragEnd={({ data }) => {
+                        const newData = [...data].map((item, index) => ({
+                            ...item,
+                            order: index,
+                        }));
+                        setImage(newData);
+                        dispatch(setCurrentImage(newData));
+                    }}
+                    extraData={[image, refreshKey]}
+                    ListHeaderComponent={() =>
                         <View style={styles.container}>
                             {/* Orientation */}
                             <View>
@@ -297,11 +350,9 @@ export default function EditProfileScreen({ navigation }) {
                                 </TouchableOpacity>
                             </View>
                         </View>
-                    </>
-                }
-                ListFooterComponent={
-                    <>
-                        {/* Submit */}
+                    }
+                    ListFooterComponent={() =>
+                        // Submit
                         <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 50 }}>
                             {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
                             <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit} style={styles.btnContainer}>
@@ -310,10 +361,10 @@ export default function EditProfileScreen({ navigation }) {
                                 </View>
                             </TouchableOpacity>
                         </View>
-                    </>
-                }
-            />
-        </SafeAreaView>
+                    }
+                />
+            </SafeAreaView>
+        </GestureHandlerRootView>
     );
 }
 

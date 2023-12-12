@@ -13,6 +13,7 @@ import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../drawer/settings';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
@@ -157,7 +158,10 @@ export default function DrawerStack() {
     }
 
     return (
-        <NavigationContainer ref={(ref) => { navigationRef = ref; }} onLayout={onLayoutRootView}>
+        <NavigationContainer
+            ref={(ref) => { navigationRef = ref; }}
+            onLayout={onLayoutRootView}
+        >
             <Drawer.Navigator
                 drawerContent={(props) => <CustomDrawerContent {...props} />}
                 initialRouteName={profileComplete ? 'App' : 'Profile'}
@@ -175,11 +179,12 @@ export default function DrawerStack() {
                     headerShadowVisible: 'true',
                     headerTitleStyle: appStyles.headerFont,
                     drawerActiveTintColor: 'gray',
+                    swipeEdgeWidth: 0,
                     headerLeft: () => {
                         const navigation = useNavigation();
                         return (
                             <View style={appStyles.buttonPadding}>
-                                <ScreenHeaderBtn
+                                <DrawerBackBtn
                                     iconUrl={icons.left}
                                     dimension='60%'
                                     title='goBack'
@@ -191,7 +196,7 @@ export default function DrawerStack() {
                 })}
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Profile" component={ProfileScreen} />
+                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
                 <Drawer.Screen name="Settings" component={SettingsScreen} />
             </Drawer.Navigator>
