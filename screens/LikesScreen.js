@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { collection, getDoc, doc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-
-// ... (imports remain the same)
 
 const LikesScreen = () => {
   const [likedUsersData, setLikedUsersData] = useState([]);
@@ -30,7 +28,13 @@ const LikesScreen = () => {
             const likedUserDocSnapshot = await getDoc(likedUserDocRef);
             const likedUserData = likedUserDocSnapshot.data();
 
-            return likedUserData?.name || 'N/A';
+            // Get the first image URL from the liked user's imageURLs
+            const firstImageURL = likedUserData?.imageURLs?.[0];
+
+            return {
+              name: likedUserData?.name || 'N/A',
+              imageURL: firstImageURL || 'N/A',
+            };
           });
 
           const likedUsersData = await Promise.all(likedUsersDataPromises);
@@ -50,9 +54,13 @@ const LikesScreen = () => {
   return (
     <View>
       {likedUsersData.length > 0 ? (
-        likedUsersData.map((username, index) => (
+        likedUsersData.map((user, index) => (
           <View key={index}>
-            <Text>Username: {username}</Text>
+            <Text>Username: {user.name}</Text>
+            <Image
+              source={{ uri: user.imageURL }}
+              style={{ width: 100, height: 100 }} // Add your desired styling here
+            />
           </View>
         ))
       ) : (

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image, Button } from 'react-native';
 import { collection, getDocs, updateDoc, arrayUnion, doc } from 'firebase/firestore';
 import { parse, isDate } from 'date-fns';
-import { db } from '../firebase/firebase';
+import { db, auth } from '../firebase/firebase';
 
 const HomeScreen = () => {
   const [users, setUsers] = useState([]);
@@ -80,13 +80,16 @@ const HomeScreen = () => {
 
   const handleLikeClick = async (likedUserId) => {
     try {
-      const currentUserDocRef = doc(db, 'profiles', users[0].id);
+      // Reference to the clicked user's document
       const likedUserDocRef = doc(db, 'profiles', likedUserId);
 
-      // Update likedBy field in the liked user's document
+      // Update likedBy field in the clicked user's document
       await updateDoc(likedUserDocRef, {
-        likedBy: arrayUnion(users[0].id),
+        likedBy: arrayUnion(auth.currentUser.uid),
       });
+
+      // Reference to the current user's document
+      const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
       // Update likes field in the current user's document
       await updateDoc(currentUserDocRef, {
