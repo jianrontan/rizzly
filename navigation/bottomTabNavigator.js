@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import Home from "../screens/home";
+import HomeScreen from "../screens/HomeScreen";
 import ChatStack from "./chatNavigator";
 import LikesScreen from "../screens/LikesScreen";
 import ScreenHeaderBtn from "../components/button/ScreenHeaderBtn";
@@ -33,7 +33,7 @@ export default function BottomTabStack({ navigation }) {
             }}>
             <Tab.Screen
                 name="Home"
-                component={Home}
+                component={HomeScreen}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="home" color={color} size={size} />

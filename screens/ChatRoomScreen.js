@@ -1,28 +1,104 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { GiftedChat } from 'react-native-gifted-chat';
+import React, { useEffect, useState } from 'react';
+import { GiftedChat, Bubble } from 'react-native-gifted-chat';
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore';
+import { db, auth } from '../firebase/firebase';
 
-function ChatRoomScreen({ route }) {
-  const { userId, userName } = route.params;
+const ChatRoom = ({ route }) => {
+  const { chatRoomID, userId, userName } = route.params;
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    // Fetch initial chat messages from your server/database
-    // Update the 'messages' state with the fetched messages
-  }, []);
+    const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
+    const messagesQuery = query(messagesCollection, orderBy('createdAt'));
 
-  const onSend = useCallback((newMessages = []) => {
-    setMessages((prevMessages) => GiftedChat.append(prevMessages, newMessages));
-    
-    // Send the new messages to your server/database
-  }, []);
+    const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+      const newMessages = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          _id: doc.id,
+          text: data.content,
+          createdAt: data.createdAt ? data.createdAt.toDate() : null,
+          user: {
+            _id: data.senderId,
+            name: data.user.name,
+          },
+        };
+      });
+
+      // Reverse the order of messages before setting the state
+      setMessages(newMessages.reverse());
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [chatRoomID]);
+
+  const onSend = async (newMessages = []) => {
+    const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
+
+    newMessages.forEach(async (message) => {
+      await addDoc(messagesCollection, {
+        content: message.text,
+        createdAt: serverTimestamp(),
+        senderId: auth.currentUser.uid,
+        user: {
+          name: auth.currentUser.displayName,
+        },
+        // Add the current timestamp when the message is sent
+        timestamp: new Date(),
+      });
+    });
+  };
 
   return (
     <GiftedChat
       messages={messages}
-      onSend={onSend}
-      user={{ _id: userId, name: userName }}
+      onSend={(newMessages) => onSend(newMessages)}
+      user={{
+        _id: auth.currentUser.uid,
+      }}
+      renderBubble={(props) => {
+        if (props.currentMessage.user._id === auth.currentUser.uid) {
+          return <BubbleRight {...props} />;
+        }
+        return <BubbleLeft {...props} />;
+      }}
     />
   );
-}
+};
 
-export default ChatRoomScreen;
+const BubbleRight = (props) => {
+  return (
+    <Bubble
+      {...props}
+      wrapperStyle={{
+        right: {
+          backgroundColor: 'blue',
+        },
+      }}
+    />
+  );
+};
+
+const BubbleLeft = (props) => {
+  return (
+    <Bubble
+      {...props}
+      wrapperStyle={{
+        left: {
+          backgroundColor: 'green',
+        },
+      }}
+    />
+  );
+};
+
+export default ChatRoom;
