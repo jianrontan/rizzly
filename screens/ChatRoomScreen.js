@@ -32,7 +32,8 @@ const ChatRoom = ({ route }) => {
         };
       });
 
-      setMessages(newMessages);
+      // Reverse the order of messages before setting the state
+      setMessages(newMessages.reverse());
     });
 
     return () => {

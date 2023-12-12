@@ -1,6 +1,5 @@
-// MatchesScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
 
@@ -41,23 +40,42 @@ const MatchesScreen = ({ navigation }) => {
     <View>
       <Text>Matches Screen</Text>
       {matches.map((match) => (
-        <View key={match.id}>
-          <Text>Name: {match.name}</Text>
-          <Button
-            title={`Chat with ${match.name}`}
-            onPress={() => {
-              const chatRoomID = [auth.currentUser.uid, match.id].sort().join('_');
-              navigation.navigate('ChatRoom', {
-                chatRoomID,
-                userId: match.id,
-                userName: match.name,
-              });
-            }}
+        <TouchableOpacity
+          key={match.id}
+          style={styles.matchContainer}
+          onPress={() => {
+            const chatRoomID = [auth.currentUser.uid, match.id].sort().join('_');
+            navigation.navigate('ChatRoom', {
+              chatRoomID,
+              userId: match.id,
+              userName: match.name,
+            });
+          }}
+        >
+          {/* Display the circular avatar */}
+          <Image
+            source={{ uri: match.imageURLs && match.imageURLs.length > 0 ? match.imageURLs[0] : null }}
+            style={styles.avatar}
           />
-        </View>
+          <Text>Name: {match.name}</Text>
+        </TouchableOpacity>
       ))}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  matchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25, // Make it half of width and height to create a circular shape
+    marginRight: 10,
+  },
+});
 
 export default MatchesScreen;

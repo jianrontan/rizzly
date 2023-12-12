@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Button } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { collection, getDocs, updateDoc, arrayUnion, doc } from 'firebase/firestore';
 import { parse, isDate } from 'date-fns';
 import { db, auth } from '../firebase/firebase';
@@ -7,6 +7,7 @@ import { db, auth } from '../firebase/firebase';
 const HomeScreen = () => {
   const [users, setUsers] = useState([]);
   const [currentUserOrientation, setCurrentUserOrientation] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,11 +28,11 @@ const HomeScreen = () => {
 
         // Filter users based on both gender and orientation
         const filteredUsers = usersData.filter((user) => {
-          const userGender = user.gender?.toLowerCase?.(); // Ensure user.gender is defined before calling toLowerCase
-          const userOrientation = user.orientation?.toLowerCase?.(); // Ensure user.orientation is defined before calling toLowerCase
+          const userGender = user.gender?.toLowerCase?.();
+          const userOrientation = user.orientation?.toLowerCase?.();
 
           if (currentUserOrientation === 'default') {
-            return true; // Display all users if no specific orientation is set
+            return true;
           }
 
           if (currentUserOrientation === 'male') {
@@ -47,7 +48,7 @@ const HomeScreen = () => {
           } else if (currentUserOrientation === 'maleandnonbinary') {
             return userGender === 'male' || userGender === 'nonbinary';
           } else {
-            return true; // Display all users if no specific criteria match
+            return true;
           }
         });
 
@@ -57,7 +58,7 @@ const HomeScreen = () => {
       }
     };
 
-    fetchData(); // Call the fetchData function when the component mounts
+    fetchData();
   }, [currentUserOrientation]);
 
   const calculateAge = (birthday) => {
@@ -80,53 +81,103 @@ const HomeScreen = () => {
 
   const handleLikeClick = async (likedUserId) => {
     try {
-      // Reference to the clicked user's document
       const likedUserDocRef = doc(db, 'profiles', likedUserId);
 
-      // Update likedBy field in the clicked user's document
       await updateDoc(likedUserDocRef, {
         likedBy: arrayUnion(auth.currentUser.uid),
       });
 
-      // Reference to the current user's document
       const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
-      // Update likes field in the current user's document
       await updateDoc(currentUserDocRef, {
         likes: arrayUnion(likedUserId),
       });
 
-      // Remove the liked user from the state
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
+      // Show the next user
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % users.length);
     } catch (error) {
       console.error('Error adding like:', error);
     }
   };
 
+  // Access the current user directly
+  const user = users[currentIndex];
+
   return (
-    <View>
-      {users.map((user) => (
-        <View key={user.id}>
-          <Text>Name: {user.name}</Text>
-          <Text>Age: {calculateAge(user.birthday)}</Text>
-          <Text>Gender: {user.gender}</Text>
-          <Text>Image: </Text>
-          {user.imageURLs && user.imageURLs.length > 0 && (
-            <Image
-              source={{ uri: user.imageURLs[0] }}
-              onLoad={() => console.log('Image loaded')}
-              onError={(error) => console.log('Error loading image: ', error)}
-              style={{ width: 100, height: 100 }}
-            />
-          )}
-          <Button
-            title="Like"
-            onPress={() => handleLikeClick(user.id)}
+    <View style={styles.container}>
+      {user && (
+        <View key={user.id} style={styles.userContainer}>
+          <Image
+            source={{ uri: user.imageURLs && user.imageURLs.length > 0 ? user.imageURLs[0] : null }}
+            onLoad={() => console.log('Image loaded')}
+            onError={(error) => console.log('Error loading image: ', error)}
+            style={styles.backgroundImage}
           />
+          <View style={styles.userInfoContainer}>
+            <Text style={styles.userName}>{user.name}</Text>
+            <Text style={styles.userDetails}>{calculateAge(user.birthday)}</Text>
+            <Text style={styles.userDetails}>{user.gender}</Text>
+          </View>
+          <TouchableOpacity style={styles.likeButton} onPress={() => handleLikeClick(user.id)}>
+            <Text style={styles.likeButtonText}>✔ Like</Text>
+          </TouchableOpacity>
         </View>
-      ))}
+      )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  userContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 200, // Set an appropriate height, adjust as needed
+    marginBottom: 20,
+  },
+  backgroundImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+    position: 'absolute',
+    borderRadius: 10,
+  },
+  userInfoContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 10,
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+  },
+  userName: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  userDetails: {
+    color: 'white',
+    fontSize: 16,
+  },
+  likeButton: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: 'green',
+    padding: 10,
+    borderRadius: 20,
+  },
+  likeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
 
 export default HomeScreen;
