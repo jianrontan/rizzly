@@ -1,8 +1,8 @@
+// MatchesScreen.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, Button } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
-import ChatRoomScreen from './ChatRoomScreen'; // Import ChatRoomScreen
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db, auth } from '../firebase/firebase';
 
 const MatchesScreen = ({ navigation }) => {
   const [matches, setMatches] = useState([]);
@@ -11,25 +11,22 @@ const MatchesScreen = ({ navigation }) => {
     const fetchMatches = async () => {
       try {
         const usersCollection = collection(db, 'profiles');
-        const snapshot = await getDocs(usersCollection);
-        const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const currentUser = auth.currentUser;
 
-        const currentUser = usersData[0];
+        // Query for documents where the 'likes' array contains the current user's ID
+        const likesQuery = query(usersCollection, where('likes', 'array-contains', currentUser.uid));
+        const likesSnapshot = await getDocs(likesQuery);
+        const likesUsers = likesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        // Filter liked users who also liked the current user
-        const matchedUsers = usersData.filter((user) => {
-          if (user.likes && user.likedBy) {
-            // Check if the current user is in the likedBy array of the liked user
-            const likedByCurrentUser = user.likedBy.includes(currentUser.id);
+        // Query for documents where the 'likedBy' array contains the current user's ID
+        const likedByQuery = query(usersCollection, where('likedBy', 'array-contains', currentUser.uid));
+        const likedBySnapshot = await getDocs(likedByQuery);
+        const likedByUsers = likedBySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-            // Check if the liked user is in the likes array of the current user
-            const currentUserLikesLikedUser = currentUser.likes.includes(user.id);
-
-            return likedByCurrentUser && currentUserLikesLikedUser;
-          }
-
-          return false;
-        });
+        // Combine the results locally
+        const matchedUsers = likesUsers.filter((likeUser) =>
+          likedByUsers.some((likedByUser) => likedByUser.id === likeUser.id)
+        );
 
         setMatches(matchedUsers);
       } catch (error) {
@@ -37,7 +34,7 @@ const MatchesScreen = ({ navigation }) => {
       }
     };
 
-    fetchMatches(); // Call the fetchMatches function when the component mounts
+    fetchMatches();
   }, []);
 
   return (
@@ -46,19 +43,19 @@ const MatchesScreen = ({ navigation }) => {
       {matches.map((match) => (
         <View key={match.id}>
           <Text>Name: {match.name}</Text>
-          {/* Display other details of the matched user as needed */}
+          <Button
+            title={`Chat with ${match.name}`}
+            onPress={() => {
+              const chatRoomID = [auth.currentUser.uid, match.id].sort().join('_');
+              navigation.navigate('ChatRoom', {
+                chatRoomID,
+                userId: match.id,
+                userName: match.name,
+              });
+            }}
+          />
         </View>
       ))}
-      <Button
-        title="Go to Chat Room"
-        onPress={() => {
-          // Navigate to the ChatRoomScreen
-          navigation.navigate('ChatRoomScreen', {
-            userId: matches[0]?.id, // Pass the user ID to ChatRoomScreen (adjust as needed)
-            userName: matches[0]?.name, // Pass the user name to ChatRoomScreen (adjust as needed)
-          });
-        }}
-      />
     </View>
   );
 };
