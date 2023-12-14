@@ -25,7 +25,10 @@ const HomeScreen = () => {
         // Fetch all profiles
         const usersCollection = collection(db, 'profiles');
         const snapshot = await getDocs(usersCollection);
-        const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const usersData = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return { id: doc.id, ...data, imageURLs: data.imageURLs || [] };
+        });
 
         // Filter users based on both gender and orientation
         const filteredUsers = usersData.filter((user) => {
