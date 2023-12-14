@@ -244,10 +244,17 @@ export default function EditProfileScreen({ navigation }) {
                 }
             }
 
+            let successfullyRemovedImages = [];
             for (let url of removedImage) {
-                const deleteRef = ref(storage, url);
-                await deleteObject(deleteRef);
+                try {
+                    const deleteRef = ref(storage, url);
+                    await deleteObject(deleteRef);
+                    successfullyRemovedImages.push(url);
+                } catch (error) {
+                    console.error("Error deleting image: ", error);
+                }
             };
+            setRemovedImage(prevState => prevState.filter(url => !successfullyRemovedImages.includes(url)));
 
             await updateDoc(userDocRef, {
                 orientation: orientation,
