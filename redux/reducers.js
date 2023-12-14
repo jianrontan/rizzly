@@ -1,15 +1,41 @@
-import { SET_BREAK_CONTINUE } from "./actions";
+import { SET_CURRENT_ORIENTATION, SET_INITIAL_ORIENTATION, SET_CURRENT_IMAGE, SET_INITIAL_IMAGE, SET_HAS_UNSAVED_CHANGES_EXPORT } from "./actions";
 
-const settingsState = {
-  continueVal: false,
+const editProfileState = {
+  currentOrientationVal: null,
+  initialOrientationVal: null,
+  currentImageVal: [],
+  initialImageVal: [],
+  hasUnsavedChangesExportVal: false,
 }
 
-export function settingsReducer(state = settingsState, action) {
+export function editProfileReducer(state = editProfileState, action) {
   switch (action.type) {
-    case SET_BREAK_CONTINUE:
+    case SET_CURRENT_ORIENTATION:
       return {
         ...state,
-        continueVal: action.payload
+        currentOrientationVal: action.payload
       };
+    case SET_INITIAL_ORIENTATION:
+      return {
+        ...state,
+        initialOrientationVal: action.payload
+      };
+    case SET_CURRENT_IMAGE:
+      return {
+        ...state,
+        currentImageVal: action.payload
+      }
+    case SET_INITIAL_IMAGE:
+      return {
+        ...state,
+        initialImageVal: action.payload
+      }
+    case SET_HAS_UNSAVED_CHANGES_EXPORT:
+      return {
+        ...state,
+        hasUnsavedChangesExportVal: action.payload
+      }
+    default:
+      return state;
   }
 }

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation } from '@react-navigation/native';
+import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
@@ -13,6 +13,7 @@ import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../drawer/settings';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
@@ -23,6 +24,20 @@ const auth = getAuth();
 export default function DrawerStack() {
     const [profileComplete, setProfileComplete] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const backAction = () => {
+            // Replace 'App' with the actual route name of your home screen
+            if (navigationRef.isReady()) {
+                navigationRef.navigate('App');
+            }
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+        return () => backHandler.remove();
+    }, []);
 
     // State variable appIsReady tracks when app is ready to render
     const [appIsReady, setAppIsReady] = useState(false);
@@ -143,7 +158,10 @@ export default function DrawerStack() {
     }
 
     return (
-        <NavigationContainer onLayout={onLayoutRootView}>
+        <NavigationContainer
+            ref={(ref) => { navigationRef = ref; }}
+            onLayout={onLayoutRootView}
+        >
             <Drawer.Navigator
                 drawerContent={(props) => <CustomDrawerContent {...props} />}
                 initialRouteName={profileComplete ? 'App' : 'Profile'}
@@ -161,11 +179,12 @@ export default function DrawerStack() {
                     headerShadowVisible: 'true',
                     headerTitleStyle: appStyles.headerFont,
                     drawerActiveTintColor: 'gray',
+                    swipeEdgeWidth: 0,
                     headerLeft: () => {
                         const navigation = useNavigation();
                         return (
                             <View style={appStyles.buttonPadding}>
-                                <ScreenHeaderBtn
+                                <DrawerBackBtn
                                     iconUrl={icons.left}
                                     dimension='60%'
                                     title='goBack'
@@ -177,10 +196,12 @@ export default function DrawerStack() {
                 })}
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Profile" component={ProfileScreen} />
+                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
                 <Drawer.Screen name="Settings" component={SettingsScreen} />
             </Drawer.Navigator>
         </NavigationContainer>
     )
 };
+
+let navigationRef = React.createRef();
