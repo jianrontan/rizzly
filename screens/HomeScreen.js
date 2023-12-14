@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { collection, getDocs, updateDoc, arrayUnion, doc } from 'firebase/firestore';
+import Swiper from 'react-native-swiper';
+import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
 import { parse, isDate } from 'date-fns';
 import { db, auth } from '../firebase/firebase';
 
@@ -12,43 +13,44 @@ const HomeScreen = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Fetch the authenticated user's profile
+        const userDoc = doc(db, 'profiles', auth.currentUser.uid);
+        const userSnapshot = await getDoc(userDoc);
+        const currentUserData = userSnapshot.exists() ? { id: userSnapshot.id, ...userSnapshot.data() } : null;
+
+        if (currentUserData && currentUserData.orientation) {
+          setCurrentUserOrientation(currentUserData.orientation);
+        }
+
+        // Fetch all profiles
         const usersCollection = collection(db, 'profiles');
         const snapshot = await getDocs(usersCollection);
         const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        const currentUser = usersData[0];
-        if (currentUser && currentUser.orientation) {
-          const { male, female, nonBinary } = currentUser.orientation;
-
-          if (male) setCurrentUserOrientation('male');
-          else if (female) setCurrentUserOrientation('female');
-          else if (nonBinary) setCurrentUserOrientation('nonBinary');
-          else setCurrentUserOrientation('default');
-        }
-
         // Filter users based on both gender and orientation
         const filteredUsers = usersData.filter((user) => {
-          const userGender = user.gender?.toLowerCase?.();
-          const userOrientation = user.orientation?.toLowerCase?.();
+          const userGender = user.gender?.toLowerCase?.(); // Ensure user.gender is defined before calling toLowerCase
+          const userOrientation = user.orientation?.toLowerCase?.(); // Ensure user.orientation is defined before calling toLowerCase
 
           if (currentUserOrientation === 'default') {
-            return true;
+            return true; // Display all users if no specific orientation is set
           }
 
+          // Modify the logic to compare with the authenticated user's orientation
           if (currentUserOrientation === 'male') {
-            return userGender === 'male';
+            return userOrientation === 'male';
           } else if (currentUserOrientation === 'female') {
-            return userGender === 'female';
+            return userOrientation === 'female';
           } else if (currentUserOrientation === 'nonbinary') {
-            return userGender === 'nonbinary';
+            return userOrientation === 'nonbinary';
           } else if (currentUserOrientation === 'maleandfemale') {
-            return userGender === 'male' || userGender === 'female';
+            return userOrientation === 'male' || userOrientation === 'female';
           } else if (currentUserOrientation === 'femaleandnonbinary') {
-            return userGender === 'female' || userGender === 'nonbinary';
+            return userOrientation === 'female' || userOrientation === 'nonbinary';
           } else if (currentUserOrientation === 'maleandnonbinary') {
-            return userGender === 'male' || userGender === 'nonbinary';
+            return userOrientation === 'male' || userOrientation === 'nonbinary';
           } else {
-            return true;
+            return true; // Display all users if no specific criteria match
           }
         });
 
@@ -58,7 +60,7 @@ const HomeScreen = () => {
       }
     };
 
-    fetchData();
+    fetchData(); // Call the fetchData function when the component mounts
   }, [currentUserOrientation]);
 
   const calculateAge = (birthday) => {
@@ -93,35 +95,45 @@ const HomeScreen = () => {
         likes: arrayUnion(likedUserId),
       });
 
-      // Show the next user
       setCurrentIndex((prevIndex) => (prevIndex + 1) % users.length);
     } catch (error) {
       console.error('Error adding like:', error);
     }
   };
 
-  // Access the current user directly
-  const user = users[currentIndex];
-
   return (
     <View style={styles.container}>
-      {user && (
-        <View key={user.id} style={styles.userContainer}>
-          <Image
-            source={{ uri: user.imageURLs && user.imageURLs.length > 0 ? user.imageURLs[0] : null }}
-            onLoad={() => console.log('Image loaded')}
-            onError={(error) => console.log('Error loading image: ', error)}
-            style={styles.backgroundImage}
-          />
-          <View style={styles.userInfoContainer}>
-            <Text style={styles.userName}>{user.name}</Text>
-            <Text style={styles.userDetails}>{calculateAge(user.birthday)}</Text>
-            <Text style={styles.userDetails}>{user.gender}</Text>
+      <Swiper
+        style={styles.swiper}
+        index={currentIndex}
+        onIndexChanged={(index) => setCurrentIndex(index)}
+      >
+        {users.map((user) => (
+          <View key={user.id} style={styles.swiperItem}>
+            {user.imageURLs.map((imageUrl, index) => (
+              <Image
+                key={index}
+                source={{ uri: imageUrl }}
+                onLoad={() => console.log('Image loaded')}
+                onError={(error) => console.log('Error loading image: ', error)}
+                style={styles.image}
+              />
+            ))}
+            <View style={styles.userInfoContainer}>
+              <Text style={styles.userName}>{user.name}</Text>
+              <Text style={styles.userDetails}>{user.gender}</Text>
+              <Text style={styles.userDetails}>Age: {calculateAge(user.birthday)}</Text>
+            </View>
           </View>
-          <TouchableOpacity style={styles.likeButton} onPress={() => handleLikeClick(user.id)}>
-            <Text style={styles.likeButtonText}>✔ Like</Text>
-          </TouchableOpacity>
-        </View>
+        ))}
+      </Swiper>
+      {users[currentIndex] && (
+        <TouchableOpacity
+          style={styles.likeButton}
+          onPress={() => handleLikeClick(users[currentIndex].id)}
+        >
+          <Text style={styles.likeButtonText}>✔ Like</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -130,21 +142,16 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  userContainer: {
-    position: 'relative',
-    width: '100%',
-    height: 200, // Set an appropriate height, adjust as needed
-    marginBottom: 20,
+  swiper: {
+    height: 200,
   },
-  backgroundImage: {
+  swiperItem: {
+    flex: 1,
+  },
+  image: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
-    position: 'absolute',
-    borderRadius: 10,
   },
   userInfoContainer: {
     position: 'absolute',
@@ -167,8 +174,8 @@ const styles = StyleSheet.create({
   },
   likeButton: {
     position: 'absolute',
-    bottom: 10,
-    right: 10,
+    bottom: 20,
+    right: 20,
     backgroundColor: 'green',
     padding: 10,
     borderRadius: 20,
