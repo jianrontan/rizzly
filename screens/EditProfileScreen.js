@@ -234,7 +234,7 @@ export default function EditProfileScreen({ navigation }) {
             const userDocRef = doc(db, 'profiles', userId);
             const sortedImages = [...image].sort((a, b) => a.order - b.order);
             const imageURLs = [];
-
+    
             for (let img of sortedImages) {
                 if (img.isNew) {
                     const uploadResult = await uploadImage(img.uri, img.order, img.id);
@@ -243,12 +243,19 @@ export default function EditProfileScreen({ navigation }) {
                     imageURLs.push(img.uri);
                 }
             }
-
+    
+            let successfullyRemovedImages = [];
             for (let url of removedImage) {
-                const deleteRef = ref(storage, url);
-                await deleteObject(deleteRef);
+                try {
+                    const deleteRef = ref(storage, url);
+                    await deleteObject(deleteRef);
+                    successfullyRemovedImages.push(url);
+                } catch (error) {
+                    console.error("Error deleting image: ", error);
+                }
             };
-
+            setRemovedImage(prevState => prevState.filter(url => !successfullyRemovedImages.includes(url)));
+    
             await updateDoc(userDocRef, {
                 orientation: orientation,
                 imageURLs: imageURLs,
@@ -261,6 +268,7 @@ export default function EditProfileScreen({ navigation }) {
             setError(e.message);
         }
     };
+    
 
     // CHANGES
     useEffect(() => {
