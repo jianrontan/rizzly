@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler } from 'react-native';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
 import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
@@ -75,34 +75,45 @@ export default function DrawerStack() {
     }, [appIsReady, fontsLoaded]);
 
     // Get the data from Firebase
-    useEffect(() => {
-        const userId = auth.currentUser.uid;
-        const userDocRef = doc(db, 'profiles', userId);
+    const unsubscribe = useRef();;
 
-        const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
-            // If exists stop loading
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                setProfileComplete(data.complete);
-                setLoading(false);
-                // Else create a new doc for the user
-            } else {
-                setDoc(userDocRef, {
-                    name: null,
-                    age: null,
-                    gender: null,
-                    orientation: {
-                        "male": false,
-                        "female": false,
-                        "nonBinary": false,
-                    },
-                    complete: false,
-                    id: userId
-                });
-                setLoading(false);
+    useEffect(() => {
+        if (auth.currentUser) {
+            const userId = auth.currentUser.uid;
+            const userDocRef = doc(db, 'profiles', userId);
+
+            unsubscribe.current = onSnapshot(userDocRef, (docSnap) => {
+                // If exists stop loading
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setProfileComplete(data.complete);
+                    setLoading(false);
+                    // Else create a new doc for the user
+                } else {
+                    setDoc(userDocRef, {
+                        name: null,
+                        age: null,
+                        gender: null,
+                        orientation: {
+                            "male": false,
+                            "female": false,
+                            "nonBinary": false,
+                        },
+                        complete: false,
+                        id: userId
+                    });
+                    setLoading(false);
+                }
+            });
+        } else {
+            console.log("User is not logged in.")
+        }
+
+        return () => {
+            if (unsubscribe.current) {
+                unsubscribe.current();
             }
-        });
-        return () => unsubscribe();
+        };
     }, []);
 
     // Render loading page
@@ -115,13 +126,20 @@ export default function DrawerStack() {
     }
 
     const logoutConfirmation = async () => {
-        try {
-            await auth.signOut();
-            console.log('User signed out!');
-        } catch (error) {
-            console.error('Error signing out: ', error);
+        if (auth.currentUser) {
+            try {
+                if (unsubscribe.current) {
+                    unsubscribe.current();
+                }
+                await auth.signOut();
+                console.log('User signed out!');
+            } catch (error) {
+                console.error('Error signing out: ', error);
+            }
+        } else {
+            console.log("User is not logged in.")
         }
-    };
+    };    
 
     function CustomDrawerContent(props) {
         return (
