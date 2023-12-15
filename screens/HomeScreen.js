@@ -1,7 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import Swiper from 'react-native-swiper';
-import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
+
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  arrayUnion,
+  doc,
+  getDoc,
+} from 'firebase/firestore';
+
 import { parse, isDate } from 'date-fns';
 import { db, auth } from '../firebase/firebase';
 
@@ -16,7 +31,9 @@ const HomeScreen = () => {
         // Fetch the authenticated user's profile
         const userDoc = doc(db, 'profiles', auth.currentUser.uid);
         const userSnapshot = await getDoc(userDoc);
-        const currentUserData = userSnapshot.exists() ? { id: userSnapshot.id, ...userSnapshot.data() } : null;
+        const currentUserData = userSnapshot.exists()
+          ? { id: userSnapshot.id, ...userSnapshot.data() }
+          : null;
 
         if (currentUserData && currentUserData.orientation) {
           setCurrentUserOrientation(currentUserData.orientation);
@@ -25,7 +42,10 @@ const HomeScreen = () => {
         // Fetch all profiles
         const usersCollection = collection(db, 'profiles');
         const snapshot = await getDocs(usersCollection);
-        const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const usersData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
         // Filter users based on both gender and orientation
         const filteredUsers = usersData.filter((user) => {
@@ -102,52 +122,62 @@ const HomeScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Swiper
-        style={styles.swiper}
-        index={currentIndex}
-        onIndexChanged={(index) => setCurrentIndex(index)}
-      >
-        {users.map((user) => (
-          <View key={user.id} style={styles.swiperItem}>
-            {user.imageURLs.map((imageUrl, index) => (
-              <Image
-                key={index}
-                source={{ uri: imageUrl }}
-                onLoad={() => console.log('Image loaded')}
-                onError={(error) => console.log('Error loading image: ', error)}
-                style={styles.image}
-              />
-            ))}
-            <View style={styles.userInfoContainer}>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userDetails}>{user.gender}</Text>
-              <Text style={styles.userDetails}>Age: {calculateAge(user.birthday)}</Text>
-            </View>
+    <ScrollView
+      contentContainerStyle={styles.scrollViewContainer}
+      horizontal
+      pagingEnabled
+      showsHorizontalScrollIndicator={false}
+      onScroll={(event) => {
+        const offset = event.nativeEvent.contentOffset.x;
+        const index = Math.round(offset / styles.scrollViewContainer.width);
+        setCurrentIndex(index);
+      }}
+    >
+      {users.map((user) => (
+        <View key={user.id} style={styles.scrollViewItem}>
+          {user.imageURLs.length > 1 ? (
+            <ScrollView
+              style={styles.photoScrollView}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+            >
+              {user.imageURLs.map((imageUrl, index) => (
+                <View key={index} style={styles.photoContainer}>
+                  <Image
+                    source={{ uri: imageUrl }}
+                    onLoad={() => console.log('Image loaded')}
+                    onError={(error) => console.log('Error loading image: ', error)}
+                    style={styles.photo}
+                  />
+                </View>
+              ))}
+            </ScrollView>
+          ) : (
+            <Image
+              source={{ uri: user.imageURLs[0] }}
+              onLoad={() => console.log('Image loaded')}
+              onError={(error) => console.log('Error loading image: ', error)}
+              style={styles.image}
+            />
+          )}
+          <View style={styles.userInfoContainer}>
+            <Text style={styles.userName}>{user.name}</Text>
+            <Text style={styles.userDetails}>{user.gender}</Text>
+            <Text style={styles.userDetails}>Age: {calculateAge(user.birthday)}</Text>
           </View>
-        ))}
-      </Swiper>
-      {users[currentIndex] && (
-        <TouchableOpacity
-          style={styles.likeButton}
-          onPress={() => handleLikeClick(users[currentIndex].id)}
-        >
-          <Text style={styles.likeButtonText}>✔ Like</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+        </View>
+      ))}
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  scrollViewContainer: {
+    flexDirection: 'row',
   },
-  swiper: {
-    height: 200,
-  },
-  swiperItem: {
-    flex: 1,
+  scrollViewItem: {
+    width: '100%',
   },
   image: {
     width: '100%',
@@ -184,6 +214,16 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  photoScrollView: {
+    height: '100%',
+  },
+  photoContainer: {
+    flex: 1,
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
   },
 });
 
