@@ -15,7 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import SelectDropdown from 'react-native-select-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { setInitialOrientation, setCurrentOrientation, setInitialImage, setCurrentImage, setHasUnsavedChangesExport } from '../redux/actions';
+import { setHasUnsavedChangesExport } from '../redux/actions';
 import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import { COLORS, SIZES, FONT } from '../constants';
 
@@ -23,30 +23,6 @@ export default function EditProfileScreen({ navigation }) {
 
     // All data
     const [userData, setUserData] = useState(null);
-
-    // REVERT BACK TO LOCAL STATE BUT FOR NOW IT WORKS //
-    // Redux data
-    const currentOrientationVal = useSelector(state => state.editProfileReducer.currentOrientationVal)
-    const initialOrientationVal = useSelector(state => state.editProfileReducer.initialOrientationVal)
-    const currentImageVal = useSelector(state => state.editProfileReducer.currentImageVal)
-    const initialImageVal = useSelector(state => state.editProfileReducer.initialImageVal)
-    const currentOrientationRef = useRef(null);
-    const initialOrientationRef = useRef(null);
-    const currentImageRef = useRef([]);
-    const initialImageRef = useRef([]);
-    // Redux data > latest
-    useEffect(() => {
-        currentOrientationRef.current = currentOrientationVal;
-    }, [currentOrientationVal]);
-    useEffect(() => {
-        initialOrientationRef.current = initialOrientationVal;
-    }, [initialOrientationVal]);
-    useEffect(() => {
-        currentImageRef.current = currentImageVal;
-    }, [currentImageVal]);
-    useEffect(() => {
-        initialImageRef.current = initialImageVal;
-    }, [initialImageVal]);
 
     // Authentication
     const auth = getAuth();
@@ -57,12 +33,14 @@ export default function EditProfileScreen({ navigation }) {
 
     // Orientation
     const [orientation, setOrientation] = useState(null);
+    const [startOrientation, setStartOrientation] = useState(null);
     const [orientationError, setOrientationError] = useState('');
     const defaultOrientation = { male: false, female: false, nonBinary: false };
     const actualOrientation = orientation || defaultOrientation;
 
     // Images
     const [image, setImage] = useState([]);
+    const [startImage, setStartImage] = useState([]);
     const [removedImage, setRemovedImage] = useState([]);
     const [progress, setProgress] = useState(0);
     const [refreshKey, setRefreshKey] = useState(0);
@@ -83,21 +61,19 @@ export default function EditProfileScreen({ navigation }) {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
                 setUserData(holdData);
-                dispatch(setInitialOrientation(holdData.orientation));
-                dispatch(setCurrentOrientation(holdData.orientation));
                 setOrientation(holdData.orientation);
+                setStartOrientation(holdData.orientation);
                 if (holdData.imageURLs) {
                     const initialImages = holdData.imageURLs.map((url, index) => ({
                         id: Math.random().toString(),
                         uri: url,
                         order: index
                     }));
-                    dispatch(setInitialImage(initialImages));
-                    dispatch(setCurrentImage(initialImages));
                     setImage(initialImages);
+                    setStartImage(initialImages);
                 } else {
                     setImage([]);
-                    dispatch(setInitialImage([]));
+                    setStartImage([]);
                 }
                 setIsLoading(false);
             } else {
@@ -128,15 +104,6 @@ export default function EditProfileScreen({ navigation }) {
             }
             return newOrientation;
         });
-        setCurrentOrientation(prevState => {
-            const newOrientation = { ...prevState, [id]: isSelected };
-            if (Object.values(newOrientation).every(option => !option)) {
-                setOrientationError('Please select at least one orientation.');
-            } else {
-                setOrientationError('');
-            }
-            return newOrientation;
-        });
     };
 
     // IMAGES
@@ -155,7 +122,6 @@ export default function EditProfileScreen({ navigation }) {
                 isNew: true, // Assume all picked images are new and local
             };
             setImage(prevImages => [...prevImages, newImage]);
-            setCurrentImage(prevImages => [...prevImages, newImage]);
         }
     };
 
@@ -222,7 +188,6 @@ export default function EditProfileScreen({ navigation }) {
                 setRemovedImage((oldArray) => [...oldArray, uri]);
             }
             setImage((prevImages) => prevImages.filter((img) => img.id !== id));
-            setCurrentImage((prevImages) => prevImages.filter((img) => img.id !== id));
             setRefreshKey((oldKey) => oldKey + 1);
         }
     };
@@ -273,7 +238,7 @@ export default function EditProfileScreen({ navigation }) {
     // CHANGES
     useEffect(() => {
         if (!isLoading) {
-            if (orientation !== initialOrientationRef.current || image !== initialImageRef.current) {
+            if (orientation !== startOrientation || image !== startImage) {
                 setHasUnsavedChanges(true);
                 dispatch(setHasUnsavedChangesExport(true));
                 console.log("edit profile screen changed hasUnsavedChanges to true")
@@ -296,8 +261,6 @@ export default function EditProfileScreen({ navigation }) {
                             text: 'Discard',
                             style: 'destructive',
                             onPress: () => {
-                                setOrientation(initialOrientationVal)
-                                setImage(initialImageVal)
                                 navigation.navigate('App')
                             },
                         },
@@ -309,7 +272,7 @@ export default function EditProfileScreen({ navigation }) {
             const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
 
             return () => backHandler.remove();
-        }, [hasUnsavedChanges, initialOrientationVal, initialImageVal, navigation])
+        }, [hasUnsavedChanges, startOrientation, startImage, navigation])
     );
 
     if (isLoading) {
@@ -335,7 +298,6 @@ export default function EditProfileScreen({ navigation }) {
                             order: index,
                         }));
                         setImage(newData);
-                        dispatch(setCurrentImage(newData));
                     }}
                     extraData={[image, refreshKey]}
                     ListHeaderComponent={() =>

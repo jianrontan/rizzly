@@ -12,7 +12,6 @@ const DrawerBackBtn = ({ iconUrl, dimension, onPress }) => {
 	const dispatch = useDispatch();
 
 	const hasUnsavedChangesExportVal = useSelector(state => state.editProfileReducer.hasUnsavedChangesExportVal);
-
 	const hasUnsavedChangesExportRef = useRef(false);
 
 	useEffect(() => {
