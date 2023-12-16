@@ -13,7 +13,7 @@ import * as ImagePicker from 'expo-image-picker';
 import SelectDropdown from 'react-native-select-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import OptionButton from '../components/touchableHighlight/touchableHightlight'
+import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import { COLORS, SIZES, FONT } from '../constants';
 
 export default function ProfileScreen({ navigation }) {
