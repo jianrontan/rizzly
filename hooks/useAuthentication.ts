@@ -6,6 +6,7 @@ const auth = getAuth(app);
 
 export function useAuthentication() {
   const [user, setUser] = React.useState<User>();
+  const [loading, setLoading] = React.useState(true);  // Add a loading state
 
   React.useEffect(() => {
     const unsubscribeFromAuthStatusChanged = onAuthStateChanged(auth, (user) => {
@@ -14,12 +15,14 @@ export function useAuthentication() {
       } else {
         setUser(undefined);
       }
+      setLoading(false);  // Set loading to false after receiving the user's authentication state
     });
 
     return unsubscribeFromAuthStatusChanged;
   }, []);
 
   return {
-    user
+    user,
+    loading,  // Return the loading state
   };
 }

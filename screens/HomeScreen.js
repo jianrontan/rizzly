@@ -20,76 +20,78 @@ import { db, auth } from '../firebase/firebase';
 import { useAuthentication } from '../hooks/useAuthentication';
 
 const HomeScreen = () => {
-  const { user } = useAuthentication();
+  const { user, loading } = useAuthentication();
   const [users, setUsers] = useState([]);
   const [currentUserOrientation, setCurrentUserOrientation] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    if (user) {
-      const userId = user.uid;
-      const fetchData = async () => {
-        try {
-          // Fetch the authenticated user's profile
-          const userDoc = doc(db, 'profiles', userId);
-          const userSnapshot = await getDoc(userDoc);
-          const currentUserData = userSnapshot.exists()
-            ? { id: userSnapshot.id, ...userSnapshot.data() }
-            : null;
+    if (!loading) {
+      if (user) {
+        const userId = user.uid;
+        const fetchData = async () => {
+          try {
+            // Fetch the authenticated user's profile
+            const userDoc = doc(db, 'profiles', userId);
+            const userSnapshot = await getDoc(userDoc);
+            const currentUserData = userSnapshot.exists()
+              ? { id: userSnapshot.id, ...userSnapshot.data() }
+              : null;
 
-          if (currentUserData && currentUserData.orientation) {
-            setCurrentUserOrientation(currentUserData.orientation);
+            if (currentUserData && currentUserData.orientation) {
+              setCurrentUserOrientation(currentUserData.orientation);
+            }
+
+            // Fetch all profiles
+            const usersCollection = collection(db, 'profiles');
+            const snapshot = await getDocs(usersCollection);
+            const usersData = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+
+            // Filter usersData to only include profiles that contain all the required fields
+            const completeUsersData = usersData.filter(user =>
+              user.imageURLs && user.name && user.gender && user.birthday
+            );
+
+            // Filter users based on both gender and orientation
+            const filteredUsers = completeUsersData.filter((user) => {
+              const userGender = user.gender?.toLowerCase?.(); // Ensure user.gender is defined before calling toLowerCase
+              const userOrientation = user.orientation?.toLowerCase?.(); // Ensure user.orientation is defined before calling toLowerCase
+
+              if (currentUserOrientation === 'default') {
+                return true; // Display all users if no specific orientation is set
+              }
+
+              // Modify the logic to compare with the authenticated user's orientation
+              if (currentUserOrientation === 'male') {
+                return userOrientation === 'male';
+              } else if (currentUserOrientation === 'female') {
+                return userOrientation === 'female';
+              } else if (currentUserOrientation === 'nonbinary') {
+                return userOrientation === 'nonbinary';
+              } else if (currentUserOrientation === 'maleandfemale') {
+                return userOrientation === 'male' || userOrientation === 'female';
+              } else if (currentUserOrientation === 'femaleandnonbinary') {
+                return userOrientation === 'female' || userOrientation === 'nonbinary';
+              } else if (currentUserOrientation === 'maleandnonbinary') {
+                return userOrientation === 'male' || userOrientation === 'nonbinary';
+              } else {
+                return true; // Display all users if no specific criteria match
+              }
+            });
+
+            setUsers(filteredUsers);
+          } catch (error) {
+            console.error('Error fetching data:', error);
           }
+        };
 
-          // Fetch all profiles
-          const usersCollection = collection(db, 'profiles');
-          const snapshot = await getDocs(usersCollection);
-          const usersData = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          }));
-
-          // Filter usersData to only include profiles that contain all the required fields
-          const completeUsersData = usersData.filter(user =>
-            user.imageURLs && user.name && user.gender && user.birthday
-          );
-
-          // Filter users based on both gender and orientation
-          const filteredUsers = completeUsersData.filter((user) => {
-            const userGender = user.gender?.toLowerCase?.(); // Ensure user.gender is defined before calling toLowerCase
-            const userOrientation = user.orientation?.toLowerCase?.(); // Ensure user.orientation is defined before calling toLowerCase
-
-            if (currentUserOrientation === 'default') {
-              return true; // Display all users if no specific orientation is set
-            }
-
-            // Modify the logic to compare with the authenticated user's orientation
-            if (currentUserOrientation === 'male') {
-              return userOrientation === 'male';
-            } else if (currentUserOrientation === 'female') {
-              return userOrientation === 'female';
-            } else if (currentUserOrientation === 'nonbinary') {
-              return userOrientation === 'nonbinary';
-            } else if (currentUserOrientation === 'maleandfemale') {
-              return userOrientation === 'male' || userOrientation === 'female';
-            } else if (currentUserOrientation === 'femaleandnonbinary') {
-              return userOrientation === 'female' || userOrientation === 'nonbinary';
-            } else if (currentUserOrientation === 'maleandnonbinary') {
-              return userOrientation === 'male' || userOrientation === 'nonbinary';
-            } else {
-              return true; // Display all users if no specific criteria match
-            }
-          });
-
-          setUsers(filteredUsers);
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
-      };
-
-      fetchData(); // Call the fetchData function when the component mounts
-    } else {
-      console.log("User is not logged in.")
+        fetchData(); // Call the fetchData function when the component mounts
+      } else {
+        console.log("User is not logged in.")
+      }
     }
   }, [user, currentUserOrientation]);
 
