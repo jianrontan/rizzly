@@ -63,24 +63,6 @@ const HomeScreen = () => {
     fetchData(); // Call the fetchData function when the component mounts
   }, [currentUserOrientation]);
 
-  const calculateAge = (birthday) => {
-    const today = new Date();
-    const birthDate = parse(birthday, 'MM/dd/yyyy', new Date());
-
-    if (!isDate(birthDate) || isNaN(birthDate.getTime())) {
-      return 'Invalid Date';
-    }
-
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-
-    return age;
-  };
-
   const handleLikeClick = async (likedUserId) => {
     try {
       const likedUserDocRef = doc(db, 'profiles', likedUserId);
@@ -95,7 +77,6 @@ const HomeScreen = () => {
         likes: arrayUnion(likedUserId),
       });
 
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % users.length);
     } catch (error) {
       console.error('Error adding like:', error);
     }
@@ -106,6 +87,7 @@ const HomeScreen = () => {
       <Swiper
         style={styles.swiper}
         index={currentIndex}
+        key={users.map((user) => user.id).join('-')}
         onIndexChanged={(index) => setCurrentIndex(index)}
       >
         {users.map((user) => (
@@ -122,7 +104,7 @@ const HomeScreen = () => {
             <View style={styles.userInfoContainer}>
               <Text style={styles.userName}>{user.name}</Text>
               <Text style={styles.userDetails}>{user.gender}</Text>
-              <Text style={styles.userDetails}>Age: {calculateAge(user.birthday)}</Text>
+              <Text style={styles.userAge}>Age: {user.age}</Text>
             </View>
           </View>
         ))}
@@ -185,6 +167,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+
+  userAge: {
+    color:'white', 
+    fontSize: 16,
+  }
 });
 
 export default HomeScreen;

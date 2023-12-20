@@ -48,6 +48,9 @@ export default function ProfileScreen({ navigation }) {
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
 
+    //Age 
+    const [age, setAge] = useState(null);
+
     // Images
     const [image, setImage] = useState([]);
     const [progress, setProgress] = useState(0);
@@ -105,6 +108,19 @@ export default function ProfileScreen({ navigation }) {
         setShow(true);
         setMode(currentMode);
     }
+    //***AGE ***
+    const calculateAge = (birthday) => {
+        const today = new Date();
+        const birthDate = new Date(birthday);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+    
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+    
+        return age;
+      };
 
     // ****IMAGES****
     // Handle image selection
@@ -203,6 +219,9 @@ export default function ProfileScreen({ navigation }) {
                     const url = await uploadImage(img.uri, "image");
                     imageURLs.push(url);
                 }
+     
+                const userAge = calculateAge(birthday);
+     
                 await updateDoc(userDocRef, {
                     name: name,
                     birthday: birthday,
@@ -210,7 +229,9 @@ export default function ProfileScreen({ navigation }) {
                     orientation: orientation,
                     imageURLs: imageURLs,
                     complete: true,
+                    age: userAge,
                 });
+                setAge(userAge);
                 navigation.navigate('App');
             } catch(e) {
                 console.error("Error submitting: ", e);
@@ -219,7 +240,8 @@ export default function ProfileScreen({ navigation }) {
         } else {
             setError('Please fill out all the fields.');
         }
-    };      
+     };
+          
 
     return (
         <SafeAreaView style={styles.container}>
@@ -282,6 +304,10 @@ export default function ProfileScreen({ navigation }) {
                                 <OptionButton id="female" text="Female" onPress={handleOrientation}/>
                                 <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation}/>
                             </>
+                        </View>
+                        {/* Age */}
+                        <View> 
+                            <Text>Age: {age}</Text>
                         </View>
                         {/* Image */}
                         <View>
