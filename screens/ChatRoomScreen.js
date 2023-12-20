@@ -64,6 +64,7 @@ const ChatRoom = ({ route }) => {
       user={{
         _id: auth.currentUser.uid,
       }}
+      inverted={false} // Set the inverted prop to false
       renderBubble={(props) => {
         if (props.currentMessage.user._id === auth.currentUser.uid) {
           return <BubbleRight {...props} />;
