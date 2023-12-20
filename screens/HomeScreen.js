@@ -82,39 +82,30 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Swiper
-        style={styles.swiper}
-        index={currentIndex}
-        key={users.map((user) => user.id).join('-')}
-        onIndexChanged={(index) => setCurrentIndex(index)}
-      >
-        {users.map((user) => (
-          <View key={user.id} style={styles.swiperItem}>
-            {user.imageURLs.map((imageUrl, index) => (
+      {users.map((user, userIndex) => (
+        <View key={`${user.id}-${userIndex}`} style={styles.swiperItem}>
+          <Swiper
+            style={styles.swiper}
+            index={0} // Start from the first image
+            loop={false}
+          >
+            {user.imageURLs.map((imageUrl, imageIndex) => (
               <Image
-                key={index}
+                key={imageIndex}
                 source={{ uri: imageUrl }}
                 onLoad={() => console.log('Image loaded')}
                 onError={(error) => console.log('Error loading image: ', error)}
                 style={styles.image}
               />
             ))}
-            <View style={styles.userInfoContainer}>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userDetails}>{user.gender}</Text>
-              <Text style={styles.userAge}>Age: {user.age}</Text>
-            </View>
+          </Swiper>
+          <View style={styles.userInfoContainer}>
+            <Text style={styles.userName}>{user.name}</Text>
+            <Text style={styles.userDetails}>{user.gender}</Text>
+            <Text style={styles.userAge}>Age: {user.age}</Text>
           </View>
-        ))}
-      </Swiper>
-      {users[currentIndex] && (
-        <TouchableOpacity
-          style={styles.likeButton}
-          onPress={() => handleLikeClick(users[currentIndex].id)}
-        >
-          <Text style={styles.likeButtonText}>✔ Like</Text>
-        </TouchableOpacity>
-      )}
+        </View>
+      ))}
     </View>
   );
 };
