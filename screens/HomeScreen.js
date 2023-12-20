@@ -13,27 +13,27 @@ const HomeScreen = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch the authenticated user's profile
-        const userDoc = doc(db, 'profiles', auth.currentUser.uid);
-        const userSnapshot = await getDoc(userDoc);
-        const currentUserData = userSnapshot.exists() ? { id: userSnapshot.id, ...userSnapshot.data() } : null;
-
-        if (currentUserData && currentUserData.orientation) {
-          setCurrentUserOrientation(currentUserData.orientation);
-        }
-
-        // Fetch all profiles
         const usersCollection = collection(db, 'profiles');
         const snapshot = await getDocs(usersCollection);
         const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
+        const currentUser = usersData[0];
+        if (currentUser && currentUser.orientation) {
+          const { male, female, nonBinary } = currentUser.orientation;
+
+          if (male) setCurrentUserOrientation('male');
+          else if (female) setCurrentUserOrientation('female');
+          else if (nonBinary) setCurrentUserOrientation('nonBinary');
+          else setCurrentUserOrientation('default');
+        }
+
         // Filter users based on both gender and orientation
         const filteredUsers = usersData.filter((user) => {
-          const userGender = user.gender?.toLowerCase?.();
-          const userOrientation = user.orientation?.toLowerCase?.();
+          const userGender = user.gender?.toLowerCase?.(); // Ensure user.gender is defined before calling toLowerCase
+          const userOrientation = user.orientation?.toLowerCase?.(); // Ensure user.orientation is defined before calling toLowerCase
 
           if (currentUserOrientation === 'default') {
-            return true;
+            return true; // Display all users if no specific orientation is set
           }
 
           if (currentUserOrientation === 'male') {
@@ -49,11 +49,9 @@ const HomeScreen = () => {
           } else if (currentUserOrientation === 'maleandnonbinary') {
             return userGender === 'male' || userGender === 'nonbinary';
           } else {
-            return true;
+            return true; // Display all users if no specific criteria match
           }
         });
-
-
         setUsers(filteredUsers);
       } catch (error) {
         console.error('Error fetching data:', error);
