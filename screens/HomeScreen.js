@@ -84,29 +84,30 @@ const HomeScreen = () => {
     }
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index}) => (
     <View style={styles.swiperItem}>
       <Swiper
-        style={styles.swiper}
-        index={0}
-        loop={false}
-      >
-        {item.imageURLs.map((imageUrl, imageIndex) => (
-          <View key={imageIndex}>
-            <Image
-              source={{ uri: imageUrl }}
-              onLoad={() => console.log('Image loaded')}
-              onError={(error) => console.log('Error loading image: ', error)}
-              style={styles.image}
-            />
-            <View style={styles.userInfoContainer}>
-              <Text style={styles.userName}>{item.name}</Text>
-              <Text style={styles.userDetails}>{item.gender}</Text>
-              <Text style={styles.userAge}>Age: {item.age}</Text>
-            </View>
-          </View>
-        ))}
-      </Swiper>
+ style={[styles.swiper, { height: '70%' }]}
+ index={0}
+ loop={false}
+>
+ {item.imageURLs.map((imageUrl, imageIndex) => (
+ <View key={imageIndex}>
+  <Image
+    source={{ uri: imageUrl }}
+    onLoad={() => console.log('Image loaded')}
+    onError={(error) => console.log('Error loading image: ', error)}
+    style={styles.image}
+  />
+  <View style={styles.userInfoContainer}>
+    <Text style={styles.userName}>{item.name}</Text>
+    <Text style={styles.userDetails}>{item.gender}</Text>
+    <Text style={styles.userAge}>Age: {item.age}</Text>
+  </View>
+ </View>
+ ))}
+</Swiper>
+
     </View>
   );
   
@@ -128,24 +129,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-
+  swiper:{
+    height: '70%',
+  },
   swiperItem: {
     flex: 1,
-  },
-  swiper: {
-    height: '100%', // Adjusted to take 80% of the screen
+    height:'auto',
   },
   image: {
     width: '100%',
-    height: '80%', // Adjusted to take 100% of the swiper
+    height: '70%', // Adjusted to take 100% of the swiper
   },
   userInfoContainer: {
-    height: '20%', // Adjusted to take 20% of the screen
+    height: '30%', // Adjusted to take 20% of the screen
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 8,
+    padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
   },
