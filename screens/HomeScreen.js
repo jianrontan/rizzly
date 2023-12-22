@@ -1,14 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, FlatList, SafeAreaView } from 'react-native';
 import Swiper from 'react-native-swiper';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
-import { parse, isDate } from 'date-fns';
 import { db, auth } from '../firebase/firebase';
 
 const HomeScreen = () => {
   const [users, setUsers] = useState([]);
-  const [currentUserOrientation, setCurrentUserOrientation] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentUserData, setCurrentUserData] = useState(null);
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+        const currentUserDoc = await getDoc(currentUserDocRef);
+
+        if (currentUserDoc.exists()) {
+          setCurrentUserData(currentUserDoc.data());
+        }
+      } catch (error) {
+        console.error('Error fetching current user data:', error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,49 +32,38 @@ const HomeScreen = () => {
         const snapshot = await getDocs(usersCollection);
         const usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-        const currentUser = usersData[0];
-        if (currentUser && currentUser.orientation) {
-          const { male, female, nonBinary } = currentUser.orientation;
-
-          if (male) setCurrentUserOrientation('male');
-          else if (female) setCurrentUserOrientation('female');
-          else if (nonBinary) setCurrentUserOrientation('nonBinary');
-          else setCurrentUserOrientation('default');
-        }
-
-        // Filter users based on both gender and orientation
+        // Filter users based on gender and current user's orientation
         const filteredUsers = usersData.filter((user) => {
-          const userGender = user.gender?.toLowerCase?.(); // Ensure user.gender is defined before calling toLowerCase
-          const userOrientation = user.orientation?.toLowerCase?.(); // Ensure user.orientation is defined before calling toLowerCase
+          const userGender = user.gender?.toLowerCase?.();
 
-          if (currentUserOrientation === 'default') {
-            return true; // Display all users if no specific orientation is set
+          if (currentUserData && currentUserData.orientation) {
+            const { male, female, nonBinary } = currentUserData.orientation;
+
+            if (userGender === 'female' && female) {
+              return true;
+            } else if (userGender === 'male' && male) {
+              return true;
+            } else if (userGender === 'nonbinary' && nonBinary) {
+              return true;
+            } else {
+              return false;
+            }
           }
 
-          if (currentUserOrientation === 'male') {
-            return userGender === 'male';
-          } else if (currentUserOrientation === 'female') {
-            return userGender === 'female';
-          } else if (currentUserOrientation === 'nonbinary') {
-            return userGender === 'nonbinary';
-          } else if (currentUserOrientation === 'maleandfemale') {
-            return userGender === 'male' || userGender === 'female';
-          } else if (currentUserOrientation === 'femaleandnonbinary') {
-            return userGender === 'female' || userGender === 'nonbinary';
-          } else if (currentUserOrientation === 'maleandnonbinary') {
-            return userGender === 'male' || userGender === 'nonbinary';
-          } else {
-            return true; // Display all users if no specific criteria match
-          }
+          return true;
         });
-        setUsers(filteredUsers);
+
+        // Exclude the current user from the filtered list
+        const filteredUsersWithoutCurrentUser = filteredUsers.filter(user => user.id !== auth.currentUser.uid);
+
+        setUsers(filteredUsersWithoutCurrentUser);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
 
-    fetchData(); // Call the fetchData function when the component mounts
-  }, [currentUserOrientation]);
+    fetchData();
+  }, [currentUserData]);
 
   const handleLikeClick = async (likedUserId) => {
     try {
@@ -80,33 +84,43 @@ const HomeScreen = () => {
     }
   };
 
-  return (
-    <View style={styles.container}>
-      {users.map((user, userIndex) => (
-        <View key={`${user.id}-${userIndex}`} style={styles.swiperItem}>
-          <Swiper
-            style={styles.swiper}
-            index={0} // Start from the first image
-            loop={false}
-          >
-            {user.imageURLs.map((imageUrl, imageIndex) => (
-              <Image
-                key={imageIndex}
-                source={{ uri: imageUrl }}
-                onLoad={() => console.log('Image loaded')}
-                onError={(error) => console.log('Error loading image: ', error)}
-                style={styles.image}
-              />
-            ))}
-          </Swiper>
-          <View style={styles.userInfoContainer}>
-            <Text style={styles.userName}>{user.name}</Text>
-            <Text style={styles.userDetails}>{user.gender}</Text>
-            <Text style={styles.userAge}>Age: {user.age}</Text>
+  const renderItem = ({ item }) => (
+    <View style={styles.swiperItem}>
+      <Swiper
+        style={styles.swiper}
+        index={0}
+        loop={false}
+      >
+        {item.imageURLs.map((imageUrl, imageIndex) => (
+          <View key={imageIndex}>
+            <Image
+              source={{ uri: imageUrl }}
+              onLoad={() => console.log('Image loaded')}
+              onError={(error) => console.log('Error loading image: ', error)}
+              style={styles.image}
+            />
+            <View style={styles.userInfoContainer}>
+              <Text style={styles.userName}>{item.name}</Text>
+              <Text style={styles.userDetails}>{item.gender}</Text>
+              <Text style={styles.userAge}>Age: {item.age}</Text>
+            </View>
           </View>
-        </View>
-      ))}
+        ))}
+      </Swiper>
     </View>
+  );
+  
+  
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={users}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        pagingEnabled={true}
+      />
+    </SafeAreaView>
   );
 };
 
@@ -114,23 +128,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  swiper: {
-    height: 200,
-  },
+
   swiperItem: {
     flex: 1,
   },
+  swiper: {
+    height: '100%', // Adjusted to take 80% of the screen
+  },
   image: {
     width: '100%',
-    height: '100%',
+    height: '80%', // Adjusted to take 100% of the swiper
   },
   userInfoContainer: {
-    position: 'absolute',
+    height: '20%', // Adjusted to take 20% of the screen
     bottom: 0,
     left: 0,
     right: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    padding: 10,
+    padding: 8,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
   },
@@ -143,24 +158,10 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
   },
-  likeButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: 'green',
-    padding: 10,
-    borderRadius: 20,
-  },
-  likeButtonText: {
+  userAge: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
   },
-
-  userAge: {
-    color:'white', 
-    fontSize: 16,
-  }
 });
 
 export default HomeScreen;
