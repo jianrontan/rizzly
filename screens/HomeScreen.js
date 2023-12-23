@@ -13,6 +13,7 @@ const HomeScreen = () => {
   const [users, setUsers] = useState([]);
   const [currentUserData, setCurrentUserData] = useState(null);
   const [swipedUpUsers, setSwipedUpUsers] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -74,17 +75,22 @@ const HomeScreen = () => {
   const handleLikeClick = async (likedUserId) => {
     try {
       const likedUserDocRef = doc(db, 'profiles', likedUserId);
-
+  
       await updateDoc(likedUserDocRef, {
         likedBy: arrayUnion(auth.currentUser.uid),
       });
-
+  
       const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
-
+  
       await updateDoc(currentUserDocRef, {
         likes: arrayUnion(likedUserId),
       });
-
+  
+      // Remove the liked user from the users array
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
+  
+      // Move to the next card
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % users.length);
     } catch (error) {
       console.error('Error adding like:', error);
     }
@@ -93,14 +99,15 @@ const HomeScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <SwipeCards
+        keyExtractor={(card) => card.userId} // Add this line
         cards={users.flatMap((user) =>
-          user.imageURLs.map((imageUrl) => ({
-            image: imageUrl,
-            name: user.name,
-            details: `${user.gender}, Age: ${user.age}`,
-            userId: user.id,
-          }))
-        )}
+        user.imageURLs.map((imageUrl) => ({
+          image: imageUrl,
+          name: user.name,
+          details: `${user.gender}, Age: ${user.age}`,
+          userId: user.id,
+        }))
+      )}
         renderCard={(card) => (
           <View style={styles.cardContainer}>
             <Image
