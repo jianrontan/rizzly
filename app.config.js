@@ -35,7 +35,8 @@ export default {
           "photosPermission": "The app accesses your photos to add to your profile.",
           "cameraPermission": "The app accesses your camera to add photos to your profile."
         }
-      ]
+      ],
+      "expo-router" 
     ],
     "extra": {
       "firebase": {

@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, SafeAreaView, TouchableOpacity, Dimensio
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
 import SwipeCards from 'react-native-swipe-cards-deck';
+import ViewPropTypes from 'deprecated-react-native-prop-types';
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
@@ -91,63 +92,62 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {users.map((user, index) => (
-        <View key={index} style={styles.swiperItem}>
-          <SwipeCards
-            cards={user.imageURLs.map((imageUrl) => ({
-              image: imageUrl,
-              name: user.name,
-              details: `${user.gender}, Age: ${user.age}`,
-            }))}
-            renderCard={(card) => (
-              <View style={styles.cardContainer}>
-                <Image
-                  source={{ uri: card.image }}
-                  onLoad={() => console.log('Image loaded')}
-                  onError={(error) => console.log('Error loading image: ', error)}
-                  style={styles.image}
-                />
-                <View style={styles.userInfoContainer}>
-                  <Text style={styles.userName}>{card.name}</Text>
-                  <Text style={styles.userDetails}>{card.details}</Text>
-                  <TouchableOpacity onPress={() => handleLikeClick(card.id)}>
-                    <Text style={styles.likeButton}>Like</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-            containerStyle={styles.swipeCardsContainer}
-            renderNoMoreCards={() => (
-              <View style={styles.noMoreUsers}>
-                <Text style={styles.noMoreUsersText}>No more users left</Text>
-              </View>
-            )}
-            stackSize={3}
-            animateOverlayLabelsOpacity
-            animateCardOpacity
-            smoothTransition
-            stackSeparation={15}
-            overlayLabels={{
-              top: {
-                title: 'DISLIKE',
-                style: {
-                  label: {
-                    backgroundColor: 'red',
-                    borderColor: 'black',
-                    color: 'white',
-                    borderWidth: 1,
-                  },
-                  wrapper: {
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  },
-                },
+      <SwipeCards
+        cards={users.flatMap((user) =>
+          user.imageURLs.map((imageUrl) => ({
+            image: imageUrl,
+            name: user.name,
+            details: `${user.gender}, Age: ${user.age}`,
+            userId: user.id,
+          }))
+        )}
+        renderCard={(card) => (
+          <View style={styles.cardContainer}>
+            <Image
+              source={{ uri: card.image }}
+              onLoad={() => console.log('Image loaded')}
+              onError={(error) => console.log('Error loading image: ', error)}
+              style={styles.image}
+            />
+            <View style={styles.userInfoContainer}>
+              <Text style={styles.userName}>{card.name}</Text>
+              <Text style={styles.userDetails}>{card.details}</Text>
+              <TouchableOpacity onPress={() => handleLikeClick(card.userId)}>
+                <Text style={styles.likeButton}>Like</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+        containerStyle={styles.swipeCardsContainer}
+        renderNoMoreCards={() => (
+          <View style={styles.noMoreUsers}>
+            <Text style={styles.noMoreUsersText}>No more users left</Text>
+          </View>
+        )}
+        stackSize={3}
+        animateOverlayLabelsOpacity
+        animateCardOpacity
+        smoothTransition
+        stackSeparation={15}
+        overlayLabels={{
+          top: {
+            title: 'DISLIKE',
+            style: {
+              label: {
+                backgroundColor: 'red',
+                borderColor: 'black',
+                color: 'white',
+                borderWidth: 1,
               },
-            }}
-          />
-        </View>
-      ))}
+              wrapper: {
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+              },
+            },
+          },
+        }}
+      />
     </SafeAreaView>
   );
 };
@@ -175,11 +175,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: 'white', // Set the background color of the cards
-    width: Dimensions.get('window').width,
-    height: Dimensions.get('window').height,
+    width: cardWidth,
+    height: cardHeight,
   },
   image: {
     flex: 1,
+    resizeMode: 'cover',
   },
   userInfoContainer: {
     position: 'absolute',
