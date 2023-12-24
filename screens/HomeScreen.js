@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, SafeAreaView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, SafeAreaView, TouchableOpacity, Dimensions, FlatList } from 'react-native';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
-import SwipeCards from 'react-native-swipe-cards-deck';
 import ViewPropTypes from 'deprecated-react-native-prop-types';
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
-const cardHeight = height;
+const cardHeight = height - 170 ;
 
 const HomeScreen = () => {
   const [users, setUsers] = useState([]);
   const [currentUserData, setCurrentUserData] = useState(null);
   const [swipedUpUsers, setSwipedUpUsers] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(0); 
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -98,63 +97,28 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <SwipeCards
-        keyExtractor={(card) => card.userId} // Add this line
-        cards={users.flatMap((user) =>
-        user.imageURLs.map((imageUrl) => ({
-          image: imageUrl,
-          name: user.name,
-          details: `${user.gender}, Age: ${user.age}`,
-          userId: user.id,
-        }))
-      )}
-        renderCard={(card) => (
-          <View style={styles.cardContainer}>
-            <Image
-              source={{ uri: card.image }}
-              onLoad={() => console.log('Image loaded')}
-              onError={(error) => console.log('Error loading image: ', error)}
-              style={styles.image}
-            />
-            <View style={styles.userInfoContainer}>
-              <Text style={styles.userName}>{card.name}</Text>
-              <Text style={styles.userDetails}>{card.details}</Text>
-              <TouchableOpacity onPress={() => handleLikeClick(card.userId)}>
-                <Text style={styles.likeButton}>Like</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-        containerStyle={styles.swipeCardsContainer}
-        renderNoMoreCards={() => (
-          <View style={styles.noMoreUsers}>
-            <Text style={styles.noMoreUsersText}>No more users left</Text>
-          </View>
-        )}
-        stackSize={3}
-        animateOverlayLabelsOpacity
-        animateCardOpacity
-        smoothTransition
-        stackSeparation={15}
-        overlayLabels={{
-          top: {
-            title: 'DISLIKE',
-            style: {
-              label: {
-                backgroundColor: 'red',
-                borderColor: 'black',
-                color: 'white',
-                borderWidth: 1,
-              },
-              wrapper: {
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-              },
-            },
-          },
-        }}
-      />
+      <FlatList
+ data={users}
+ keyExtractor={(user) => user.id}
+ renderItem={({ item: user }) => (
+  <View style={styles.cardContainer}>
+    <Image
+      source={{ uri: user.imageURLs[0] }} // Assuming there's at least one image per user
+      onLoad={() => console.log('Image loaded')}
+      onError={(error) => console.log('Error loading image: ', error)}
+      style={styles.image}
+    />
+    <View style={styles.userInfoContainer}>
+      <Text style={styles.userName}>{user.name}</Text>
+      <Text style={styles.userDetails}>{`${user.gender}, Age: ${user.age}`}</Text>
+      <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
+        <Text style={styles.likeButton}>Like</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+ )}
+ pagingEnabled
+/>
     </SafeAreaView>
   );
 };
