@@ -1,138 +1,189 @@
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
-  FlatList,
-  Dimensions,
+ View,
+ Text,
+ Image,
+ StyleSheet,
+ SafeAreaView,
+ TouchableOpacity,
+ FlatList,
+ Dimensions,
 } from 'react-native';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
-
+import { Swipeable } from 'react-native-gesture-handler';
+import NoMoreUserScreen from './NoMoreUserScreen';
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
 const cardHeight = height - 170 ;
 
 const HomeScreen = () => {
-  const [users, setUsers] = useState([]);
-  const [currentUserData, setCurrentUserData] = useState(null);
-  const [swipedUpUsers, setSwipedUpUsers] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+ const [users, setUsers] = useState([]);
+ const [currentUserData, setCurrentUserData] = useState(null);
+ const [swipedUpUsers, setSwipedUpUsers] = useState([]);
+ const [scrollOffset, setScrollOffset] = useState(0);
+ const [previousIndex, setPreviousIndex] = useState(0);
 
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
-        const currentUserDoc = await getDoc(currentUserDocRef);
-
-        if (currentUserDoc.exists()) {
-          setCurrentUserData(currentUserDoc.data());
-        }
-      } catch (error) {
-        console.error('Error fetching current user data:', error);
-      }
-    };
-
-    fetchCurrentUser();
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const usersCollection = collection(db, 'profiles');
-        const snapshot = await getDocs(usersCollection);
-        let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-        // Filter users based on gender and current user's orientation
-        let filteredUsers = usersData.filter((user) => {
-          const userGender = user.gender?.toLowerCase?.();
-
-          if (currentUserData && currentUserData.orientation) {
-            const { male, female, nonBinary } = currentUserData.orientation;
-
-            if (userGender === 'female' && female) {
-              return true;
-            } else if (userGender === 'male' && male) {
-              return true;
-            } else if (userGender === 'nonbinary' && nonBinary) {
-              return true;
-            } else {
-              return false;
-            }
-          }
-
-          return true;
-        });
-
-        // Exclude the current user and swiped up users from the list
-        filteredUsers = filteredUsers.filter(
-          (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id)
-        );
-
-        setUsers(filteredUsers);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
-
-    fetchData();
-  }, [currentUserData, swipedUpUsers]);
-
-  const handleLikeClick = async (likedUserId) => {
+ useEffect(() => {
+  const fetchCurrentUser = async () => {
     try {
-      const likedUserDocRef = doc(db, 'profiles', likedUserId);
-
-      await updateDoc(likedUserDocRef, {
-        likedBy: arrayUnion(auth.currentUser.uid),
-      });
-
       const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+      const currentUserDoc = await getDoc(currentUserDocRef);
 
-      await updateDoc(currentUserDocRef, {
-        likes: arrayUnion(likedUserId),
-      });
-
-      // Remove the liked user from the users array
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
-
-      // Move to the next card
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % users.length);
+      if (currentUserDoc.exists()) {
+        setCurrentUserData(currentUserDoc.data());
+      }
     } catch (error) {
-      console.error('Error adding like:', error);
+      console.error('Error fetching current user data:', error);
     }
   };
 
-  const renderItem = ({ item: user }) => (
-    <View style={styles.cardContainer}>
-      <Swiper
-        style={[styles.swiper]}
-        index={0}
-        loop={false}
-      >
-        {user.imageURLs.map((imageUrl, imageIndex) => (
-          <View key={imageIndex} style={{ flex: 1 }}>
-            <Image
-              source={{ uri: imageUrl }}
-              onLoad={() => console.log('Image loaded')}
-              onError={(error) => console.log('Error loading image: ', error)}
-              style={styles.image}
-            />
-            <View style={styles.userInfoContainer}>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userDetails}>{`${user.gender}, Age: ${user.age}`}</Text>
-              <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
-                <Text style={styles.likeButton}>Like</Text>
-              </TouchableOpacity>
+  fetchCurrentUser();
+ }, []);
+
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const usersCollection = collection(db, 'profiles');
+      const snapshot = await getDocs(usersCollection);
+      let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      // Filter users based on gender and current user's orientation
+      let filteredUsers = usersData.filter((user) => {
+        const userGender = user.gender?.toLowerCase?.();
+
+        if (currentUserData && currentUserData.orientation) {
+          const { male, female, nonBinary } = currentUserData.orientation;
+
+          if (userGender === 'female' && female) {
+            return true;
+          } else if (userGender === 'male' && male) {
+            return true;
+          } else if (userGender === 'nonbinary' && nonBinary) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      // Exclude the current user and swiped up users from the list
+      filteredUsers = filteredUsers.filter(
+        (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id)
+      );
+
+      setUsers([...filteredUsers, { id: 'no-more-users' }]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  fetchData();
+ }, [currentUserData, swipedUpUsers]);
+
+ const handleLikeClick = async (likedUserId) => {
+  try {
+    const likedUserDocRef = doc(db, 'profiles', likedUserId);
+
+    await updateDoc(likedUserDocRef, {
+      likedBy: arrayUnion(auth.currentUser.uid),
+    });
+
+    const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+
+    await updateDoc(currentUserDocRef, {
+      likes: arrayUnion(likedUserId),
+    });
+
+    // Remove the liked user from the users array
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
+
+    // Move to the next card
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % users.length);
+  } catch (error) {
+    console.error('Error adding like:', error);
+  }
+ };
+
+ const handleDislikeClick = async (dislikedUserId) => {
+  try {
+    const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+
+    await updateDoc(currentUserDocRef, {
+      dislikes: arrayUnion(dislikedUserId),
+    });
+
+    // Add the disliked user to the swipedUpUsers array
+    setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, dislikedUserId]);
+  } catch (error) {
+    console.error('Error adding dislike:', error);
+  }
+ };
+
+ const handleScroll = (event) => {
+  const offsetY = event.nativeEvent.contentOffset.y;
+
+  // Calculate the current index based on the scroll offset
+  const currentIndex = Math.round(offsetY / cardHeight);
+
+  // If the current index is greater than the previous index, it means the user has swiped to the next user
+  if (currentIndex > previousIndex) {
+    const dislikedUserId = users[previousIndex]?.id;
+
+    if (dislikedUserId) {
+      handleDislikeClick(dislikedUserId);
+    }
+  }
+
+  // Update the previous index and scroll offset
+  setPreviousIndex(currentIndex);
+  setScrollOffset(offsetY);
+ };
+ 
+  const renderItem = ({ item: user }) => {
+    if (user.id === 'no-more-users') {
+      return (
+        <View style={{ width: cardWidth, height: cardHeight }}>
+          <NoMoreUserScreen />
+        </View>
+      );
+    }
+    return (
+    <Swipeable
+      onSwipeableRightComplete={() => handleDislikeClick(user.id)}
+    >
+      <View style={styles.cardContainer}>
+        <Swiper
+          style={[styles.swiper]}
+          index={0}
+          loop={false}
+        >
+          {user.imageURLs.map((imageUrl, imageIndex) => (
+            <View key={imageIndex} style={{ flex: 1 }}>
+              <Image
+                source={{ uri: imageUrl }}
+                onLoad={() => console.log('Image loaded')}
+                onError={(error) => console.log('Error loading image: ', error)}
+                style={styles.image}
+              />
+              <View style={styles.userInfoContainer}>
+                <Text style={styles.userName}>{user.name}</Text>
+                <Text style={styles.userDetails}>{`${user.gender}, Age: ${user.age}`}</Text>
+                <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
+                  <Text style={styles.likeButton}>Like</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        ))}
-      </Swiper>
-    </View>
-  );
+          ))}
+        </Swiper>
+      </View>
+    </Swipeable>
+    );
+   };
+   
  
   return (
     <SafeAreaView style={styles.container}>
@@ -141,7 +192,10 @@ const HomeScreen = () => {
         keyExtractor={(user) => user.id}
         renderItem={renderItem}
         pagingEnabled
+        onScroll={handleScroll}
+        scrollEventThrottle={16} // Adjust this value according to your needs
       />
+
     </SafeAreaView>
   );
  };
