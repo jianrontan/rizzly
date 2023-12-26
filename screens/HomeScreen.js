@@ -9,7 +9,7 @@ import {
  FlatList,
  Dimensions,
 } from 'react-native';
-import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -48,14 +48,14 @@ const HomeScreen = () => {
       const usersCollection = collection(db, 'profiles');
       const snapshot = await getDocs(usersCollection);
       let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
+ 
       // Filter users based on gender and current user's orientation
       let filteredUsers = usersData.filter((user) => {
         const userGender = user.gender?.toLowerCase?.();
-
+ 
         if (currentUserData && currentUserData.orientation) {
           const { male, female, nonBinary } = currentUserData.orientation;
-
+ 
           if (userGender === 'female' && female) {
             return true;
           } else if (userGender === 'male' && male) {
@@ -66,23 +66,25 @@ const HomeScreen = () => {
             return false;
           }
         }
-
+ 
         return true;
       });
-
+ 
       // Exclude the current user and swiped up users from the list
       filteredUsers = filteredUsers.filter(
         (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id)
       );
-
-      setUsers([...filteredUsers ]);
+ 
+      // Always include the "No More Users" item at the end of the users array
+      setUsers([...filteredUsers, { id: 'no-more-users' }]);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
   };
-
+ 
   fetchData();
  }, [currentUserData, swipedUpUsers]);
+ 
 
  const handleLikeClick = async (likedUserId) => {
   try {
@@ -110,18 +112,30 @@ const HomeScreen = () => {
 
  const handleDislikeClick = async (dislikedUserId) => {
   try {
-    const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
-
-    await updateDoc(currentUserDocRef, {
-      dislikes: arrayUnion(dislikedUserId),
-    });
-
-    // Add the disliked user to the swipedUpUsers array
-    setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, dislikedUserId]);
+   const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+ 
+   // Add the disliked user to the current user's document
+   await updateDoc(currentUserDocRef, {
+     dislikes: arrayUnion(dislikedUserId),
+   });
+ 
+   // Add the disliked user to the swipedUpUsers array
+   setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, dislikedUserId]);
+ 
+   // After 10 seconds, remove the disliked user from the current user's document
+   setTimeout(async () => {
+     await updateDoc(currentUserDocRef, {
+       dislikes: arrayRemove(dislikedUserId),
+     });
+ 
+     // Also remove the disliked user from the swipedUpUsers array
+     setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== dislikedUserId));
+   }, 10000);
   } catch (error) {
-    console.error('Error adding dislike:', error);
+   console.error('Error adding dislike:', error);
   }
  };
+ 
 
  const handleScroll = (event) => {
   const offsetY = event.nativeEvent.contentOffset.y;
