@@ -24,6 +24,7 @@ const HomeScreen = () => {
  const [swipedUpUsers, setSwipedUpUsers] = useState([]);
  const [scrollOffset, setScrollOffset] = useState(0);
  const [previousIndex, setPreviousIndex] = useState(0);
+ const [fetchedUsers, setFetchedUsers] = useState([]);
 
  useEffect(() => {
   const fetchCurrentUser = async () => {
@@ -76,7 +77,7 @@ const HomeScreen = () => {
       );
  
       // Always include the "No More Users" item at the end of the users array
-      setUsers([...filteredUsers, { id: 'no-more-users' }]);
+      setUsers([...filteredUsers ]);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -85,30 +86,26 @@ const HomeScreen = () => {
   fetchData();
  }, [currentUserData, swipedUpUsers]);
  
-
  const handleLikeClick = async (likedUserId) => {
   try {
     const likedUserDocRef = doc(db, 'profiles', likedUserId);
-
+ 
     await updateDoc(likedUserDocRef, {
       likedBy: arrayUnion(auth.currentUser.uid),
     });
-
+ 
     const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
-
+ 
     await updateDoc(currentUserDocRef, {
       likes: arrayUnion(likedUserId),
     });
-
+ 
     // Remove the liked user from the users array
     setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
-
-    // Move to the next card
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % users.length);
   } catch (error) {
     console.error('Error adding like:', error);
   }
- };
+ }; 
 
  const handleDislikeClick = async (dislikedUserId) => {
   try {
@@ -199,7 +196,7 @@ const HomeScreen = () => {
    };
    
  
-  return (
+   return (
     <SafeAreaView style={styles.container}>
       <FlatList
         data={users}
@@ -208,14 +205,16 @@ const HomeScreen = () => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
         onEndReached={() => {
-          if (!users.some(user => user.id === 'no-more-users')) {
+          if (users[users.length - 1]?.id !== 'no-more-users') {
             setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
           }
-        }} 
+         }}             
         onEndReachedThreshold={0} // Adjust this value according to your needs
+        pagingEnabled // Add this line
       />
     </SafeAreaView>
-  );
+   );
+   
  };
 
  const styles = StyleSheet.create({
