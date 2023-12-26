@@ -139,7 +139,7 @@ export default function DrawerStack() {
         } else {
             console.log("User is not logged in.")
         }
-    };    
+    };
 
     function CustomDrawerContent(props) {
         return (
@@ -214,7 +214,7 @@ export default function DrawerStack() {
                 })}
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
+                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
                 <Drawer.Screen name="Settings" component={SettingsScreen} />
             </Drawer.Navigator>

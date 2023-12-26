@@ -48,10 +48,16 @@ export default function ProfileScreen({ navigation }) {
     const [mode, setMode] = useState('date');
     const [show, setShow] = useState(false);
 
+    //Age 
+    const [age, setAge] = useState(null);
+
     // Images
     const [image, setImage] = useState([]);
     const [progress, setProgress] = useState(0);
     const [refreshKey, setRefreshKey] = useState(0);
+
+    // Bio
+    const [bio, setBio] = useState('');
 
     // Submit
     const [error, setError] = useState('');
@@ -59,12 +65,9 @@ export default function ProfileScreen({ navigation }) {
     // Gender List
     const genders = ["Male", "Female", "Non-binary"]
 
-    // TODO: Eventually phone number verification also,
-    // Make ordering of photos
-    // Add some UI, uploading screen (loading screen) possible
+    // TODO: Add in Bio paragraph and prompts, eventually phone number verification.
     // Ensure no bugs, e.g. double upload, can upload without filling all the details
     // Make page cleaner, more readable, format all the buttons etc to look cleaner
-    // After this need an edit profile screen for the user to change their details, need to research on other dating apps to see how this may work
 
     // ****ORIENTATION****
     const handleOrientation = (id, isSelected) => {
@@ -77,6 +80,21 @@ export default function ProfileScreen({ navigation }) {
             }
             return newOrientation;
         });
+    };
+
+    //***AGE ***
+    const calculateAge = (birthday) => {
+        const today = new Date();
+        const [day, month, year] = birthday.split("/");
+        const birthDate = new Date(year, month - 1, day); // months are 0-based in JavaScript
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        return age;
     };
 
     // ****BIRTHDAYS****
@@ -97,9 +115,11 @@ export default function ProfileScreen({ navigation }) {
     useEffect(() => {
         if (newDateSet) {
             setShow(false);
+            const userAge = calculateAge(birthday);
+            setAge(userAge)
             setNewDateSet(false);
         }
-    }, [newDateSet]);
+    }, [newDateSet, birthday]);
 
     const showMode = (currentMode) => {
         setShow(true);
@@ -192,7 +212,7 @@ export default function ProfileScreen({ navigation }) {
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen
     const handleSubmit = async () => {
-        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '') {
+        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '' && bio !== null && bio !== '') {
             try {
                 const userId = auth.currentUser.uid;
                 const userDocRef = doc(db, 'profiles', userId);
@@ -209,6 +229,7 @@ export default function ProfileScreen({ navigation }) {
                     gender: gender,
                     orientation: orientation,
                     imageURLs: imageURLs,
+                    bio: bio,
                     complete: true,
                 });
                 navigation.navigate('App');
@@ -221,6 +242,7 @@ export default function ProfileScreen({ navigation }) {
         }
     };
 
+    // BACK BUTTON HANDLER
     useEffect(() => {
         const backAction = () => true;
 
@@ -278,6 +300,10 @@ export default function ProfileScreen({ navigation }) {
                                     />
                                 )}
                             </View>
+                            {/* Age */}
+                            <View>
+                                <Text>Age: {age}</Text>
+                            </View>
                             {/* Gender */}
                             <View>
                                 <SelectDropdown
@@ -288,14 +314,14 @@ export default function ProfileScreen({ navigation }) {
                             </View>
                             {/* Orientation */}
                             <View>
-                                {!!orientationError && <Text style={{ color: '#cf0202' }}>{orientationError}</Text>}
-                            </View>
-                            <View>
                                 <>
                                     <OptionButton id="male" text="Male" onPress={handleOrientation} />
                                     <OptionButton id="female" text="Female" onPress={handleOrientation} />
                                     <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation} />
                                 </>
+                            </View>
+                            <View>
+                                {!!orientationError && <Text style={{ color: '#cf0202' }}>{orientationError}</Text>}
                             </View>
                             {/* Image */}
                             <View>
@@ -308,8 +334,26 @@ export default function ProfileScreen({ navigation }) {
                 }
                 ListFooterComponent={
                     <>
-                        {/* Submit */}
-                        <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 50 }}>
+                        <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 20 }}>
+                            {/* Bio */}
+                            <View style={{ paddingBottom: 20 }}>
+                                <Text>Bio:</Text>
+                                <TextInput
+                                    autoFocus={false}
+                                    value={bio}
+                                    onChangeText={setBio}
+                                    maxLength={100}
+                                    multiline={true}
+                                    placeholder="Write about yourself..."
+                                    style={{
+                                        backgroundColor: "#f0f0f0",
+                                        paddingVertical: 4,
+                                        paddingHorizontal: 10,
+                                        width: 205.5,
+                                    }}
+                                />
+                            </View>
+                            {/* Submit */}
                             {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
                             <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit} style={styles.btnContainer}>
                                 <View>
