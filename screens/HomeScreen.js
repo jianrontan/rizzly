@@ -75,7 +75,7 @@ const HomeScreen = () => {
         (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id)
       );
 
-      setUsers([...filteredUsers, { id: 'no-more-users' }]);
+      setUsers([...filteredUsers ]);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -191,11 +191,15 @@ const HomeScreen = () => {
         data={users}
         keyExtractor={(user) => user.id}
         renderItem={renderItem}
-        pagingEnabled
         onScroll={handleScroll}
-        scrollEventThrottle={16} // Adjust this value according to your needs
+        scrollEventThrottle={16}
+        onEndReached={() => {
+          if (!users.some(user => user.id === 'no-more-users')) {
+            setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+          }
+        }} 
+        onEndReachedThreshold={0} // Adjust this value according to your needs
       />
-
     </SafeAreaView>
   );
  };
