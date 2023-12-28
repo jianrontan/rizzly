@@ -12,6 +12,7 @@ import { db } from '../firebase/firebase';
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../drawer/settings';
 import ProfileScreen from '../screens/ProfileScreen';
+import SelfieCapture from '../screens/SelfieCapture';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
@@ -198,6 +199,7 @@ export default function DrawerStack() {
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
+                <Drawer.Screen name="SelfieCapture" component={SelfieCapture} />
                 <Drawer.Screen name="Settings" component={SettingsScreen} />
             </Drawer.Navigator>
         </NavigationContainer>
