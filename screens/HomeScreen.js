@@ -154,15 +154,18 @@ const HomeScreen = () => {
   setScrollOffset(offsetY);
  };
  
-  const renderItem = ({ item: user }) => {
-    if (user.id === 'no-more-users') {
-      return (
-        <View style={{ width: cardWidth, height: cardHeight }}>
-          <NoMoreUserScreen />
-        </View>
-      );
-    }
+ const renderItem = ({ item: user }) => {
+  if (user.id === 'no-more-users') {
     return (
+      <View style={{ width: cardWidth, height: cardHeight }}>
+        <NoMoreUserScreen />
+      </View>
+    );
+  }
+
+  const allImages = user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
+
+  return (
     <Swipeable
       onSwipeableRightComplete={() => handleDislikeClick(user.id)}
     >
@@ -172,7 +175,7 @@ const HomeScreen = () => {
           index={0}
           loop={false}
         >
-          {user.imageURLs.map((imageUrl, imageIndex) => (
+          {allImages.map((imageUrl, imageIndex) => (
             <View key={imageIndex} style={{ flex: 1 }}>
               <Image
                 source={{ uri: imageUrl }}
@@ -183,6 +186,7 @@ const HomeScreen = () => {
               <View style={styles.userInfoContainer}>
                 <Text style={styles.userName}>{user.name}</Text>
                 <Text style={styles.userDetails}>{`${user.gender}, Age: ${user.age}`}</Text>
+                <Text style={styles.userDetails}>Number of retakes: {user.retakes} </Text>
                 <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
                   <Text style={styles.likeButton}>Like</Text>
                 </TouchableOpacity>
@@ -192,10 +196,9 @@ const HomeScreen = () => {
         </Swiper>
       </View>
     </Swipeable>
-    );
-   };
-   
- 
+  );
+};
+
    return (
     <SafeAreaView style={styles.container}>
       <FlatList
