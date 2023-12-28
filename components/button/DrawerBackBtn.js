@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Alert } from 'react-native'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, CommonActions } from '@react-navigation/native'
 import { useSelector, useDispatch } from 'react-redux'
 import { TouchableOpacity, Image } from 'react-native'
 
@@ -27,7 +27,12 @@ const DrawerBackBtn = ({ iconUrl, dimension, onPress }) => {
 					style: 'destructive',
 					onPress: () => {
 						dispatch(setHasUnsavedChangesExport(false));
-						navigation.navigate('App');
+						navigation.dispatch(
+							CommonActions.reset({
+								index: 0,
+								routes: [{ name: 'App' }],
+							})
+						);
 					},
 				},
 			]);

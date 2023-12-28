@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Button, Dimensions, BackHandler, ActivityIndicator } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, CommonActions } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useDispatch } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -15,11 +15,17 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { setHasUnsavedChangesExport } from '../redux/actions';
 import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import { COLORS, SIZES, FONT } from '../constants';
+import { useAnimatedStyle } from 'react-native-reanimated';
 
 export default function EditProfileScreen({ navigation }) {
 
     // All data
     const [userData, setUserData] = useState(null);
+
+    // Error Fixing State
+    const [discardChangesKey, setDiscardChangesKey] = useState(0);
+    const [listKey, setListKey] = useState(Math.random().toString());
+    const [spaceAdded, setSpaceAdded] = useState(false);
 
     // Authentication
     const auth = getAuth();
@@ -75,9 +81,23 @@ export default function EditProfileScreen({ navigation }) {
                     }));
                     setImage(initialImages);
                     setStartImage(initialImages);
+                    setRefreshKey(oldKey => oldKey + 1);
+                    setDiscardChangesKey(oldKey => oldKey + 1);
+                    setListKey(Math.random().toString());
+                    setBio(prevBio => prevBio + " ");
+                    setTimeout(() => {
+                        setBio(prevBio => prevBio.trim());
+                    }, 500);
                 } else {
                     setImage([]);
                     setStartImage([]);
+                    setRefreshKey(oldKey => oldKey + 1);
+                    setDiscardChangesKey(oldKey => oldKey + 1);
+                    setListKey(Math.random().toString());
+                    setBio(prevBio => prevBio + " ");
+                    setTimeout(() => {
+                        setBio(prevBio => prevBio.trim());
+                    }, 500);
                 }
                 setIsLoading(false);
             } else {
@@ -196,10 +216,15 @@ export default function EditProfileScreen({ navigation }) {
         }
     };
 
-    // BIO
-
     // SUBMIT
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const handleSubmit = async () => {
+        // if (!hasUnsavedChanges) {
+        //     navigation.navigate('App');
+        //     return;
+        // }
+        setIsSubmitting(true);
         try {
             const userDocRef = doc(db, 'profiles', userId);
             const sortedImages = [...image].sort((a, b) => a.order - b.order);
@@ -238,22 +263,39 @@ export default function EditProfileScreen({ navigation }) {
             console.error("Error submitting: ", e);
             setError(e.message);
         }
+        setIsSubmitting(false);
     };
 
     // CHANGES
+    const arraysEqual = (a, b) => {
+        if (a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) {
+            if (a[i].uri !== b[i].uri) return false;
+        }
+        return true;
+    };
+
     useEffect(() => {
         if (!isLoading) {
-            if (orientation !== startOrientation || image !== startImage || bio !== startBio) {
-                setHasUnsavedChanges(true);
-                dispatch(setHasUnsavedChangesExport(true));
-                console.log("edit profile screen changed hasUnsavedChanges to true")
-            } else {
+            if (
+                JSON.stringify(orientation) == JSON.stringify(startOrientation) &&
+                bio == startBio &&
+                arraysEqual(image, startImage)  
+            ) {
                 setHasUnsavedChanges(false);
                 dispatch(setHasUnsavedChangesExport(false));
+                console.log("orientation no change: ", orientation)
+                console.log("startOrientation no change: ", startOrientation)
                 console.log("edit profile screen changed hasUnsavedChanges to false")
+            } else {
+                setHasUnsavedChanges(true);
+                dispatch(setHasUnsavedChangesExport(true));
+                console.log("orientation changed: ", orientation)
+                console.log("startOrientation changed: ", startOrientation)
+                console.log("edit profile screen changed hasUnsavedChanges to true")
             }
         }
-    }, [orientation, image, isLoading]);
+    }, [orientation, image, isLoading, bio]);
 
     // Hardware back button
     useFocusEffect(
@@ -266,7 +308,12 @@ export default function EditProfileScreen({ navigation }) {
                             text: 'Discard',
                             style: 'destructive',
                             onPress: () => {
-                                navigation.navigate('App')
+                                navigation.dispatch(
+                                    CommonActions.reset({
+                                        index: 0,
+                                        routes: [{ name: 'App' }],
+                                    })
+                                );
                             },
                         },
                     ]);
@@ -280,7 +327,7 @@ export default function EditProfileScreen({ navigation }) {
         }, [hasUnsavedChanges, startOrientation, startImage, navigation])
     );
 
-    if (isLoading) {
+    if (isLoading || isSubmitting) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                 <ActivityIndicator size="large" />
@@ -291,74 +338,77 @@ export default function EditProfileScreen({ navigation }) {
     return (
         <GestureHandlerRootView style={styles.container}>
             <SafeAreaView>
-                <DraggableFlatList
-                    style={{ flex: 1, width: width }}
-                    showsVerticalScrollIndicator={false}
-                    data={image}
-                    renderItem={renderItem}
-                    keyExtractor={(item, index) => `draggable-item-${index}`}
-                    onDragEnd={({ data }) => {
-                        const newData = [...data].map((item, index) => ({
-                            ...item,
-                            order: index,
-                        }));
-                        setImage(newData);
-                    }}
-                    extraData={[image, refreshKey]}
-                    ListHeaderComponent={
-                        <>
-                            <View style={styles.container}>
-                                {/* Orientation */}
-                                <View>
-                                    {!!orientationError && <Text style={{ color: '#cf0202' }}>{orientationError}</Text>}
+                {!isLoading && (
+                    <DraggableFlatList
+                        key={[discardChangesKey, listKey]}
+                        style={{ flex: 1, width: width }}
+                        showsVerticalScrollIndicator={false}
+                        data={image}
+                        renderItem={renderItem}
+                        keyExtractor={(item, index) => `draggable-item-${index}`}
+                        onDragEnd={({ data }) => {
+                            const newData = [...data].map((item, index) => ({
+                                ...item,
+                                order: index,
+                            }));
+                            setImage(newData);
+                        }}
+                        extraData={refreshKey}
+                        ListHeaderComponent={
+                            <>
+                                <View style={styles.container}>
+                                    {/* Orientation */}
+                                    <View>
+                                        {!!orientationError && <Text style={{ color: '#cf0202' }}>{orientationError}</Text>}
+                                    </View>
+                                    <View>
+                                        <>
+                                            <OptionButton id="male" text="Male" onPress={handleOrientation} selected={actualOrientation.male} />
+                                            <OptionButton id="female" text="Female" onPress={handleOrientation} selected={actualOrientation.female} />
+                                            <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation} selected={actualOrientation.nonBinary} />
+                                        </>
+                                    </View>
+                                    {/* Image */}
+                                    <View>
+                                        <TouchableOpacity onPress={handleImage}>
+                                            <Text style={styles.textStyle2}>Upload Image</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
-                                <View>
-                                    <>
-                                        <OptionButton id="male" text="Male" onPress={handleOrientation} selected={actualOrientation.male} />
-                                        <OptionButton id="female" text="Female" onPress={handleOrientation} selected={actualOrientation.female} />
-                                        <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation} selected={actualOrientation.nonBinary} />
-                                    </>
-                                </View>
-                                {/* Image */}
-                                <View>
-                                    <TouchableOpacity onPress={handleImage}>
-                                        <Text style={styles.textStyle2}>Upload Image</Text>
+                            </>
+                        }
+                        ListFooterComponent={
+                            <>
+                                <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 50 }}>
+                                    {/* Bio */}
+                                    <View style={{ paddingBottom: 20 }}>
+                                        <Text>Bio:</Text>
+                                        <TextInput
+                                            autoFocus={false}
+                                            value={bio}
+                                            onChangeText={setBio}
+                                            maxLength={100}
+                                            multiline={true}
+                                            placeholder="Write about yourself..."
+                                            style={{
+                                                backgroundColor: "#f0f0f0",
+                                                paddingVertical: 4,
+                                                paddingHorizontal: 10,
+                                                width: 205.5,
+                                            }}
+                                        />
+                                    </View>
+                                    {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
+                                    <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit} style={styles.btnContainer}>
+                                        <View>
+                                            <Text style={styles.textStyle}>Submit</Text>
+                                        </View>
                                     </TouchableOpacity>
                                 </View>
-                            </View>
-                        </>
-                    }
-                    ListFooterComponent={
-                        <>
-                            <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 50 }}>
-                                {/* Bio */}
-                                <View style={{ paddingBottom: 20 }}>
-                                    <Text>Bio:</Text>
-                                    <TextInput
-                                        autoFocus={false}
-                                        value={bio}
-                                        onChangeText={setBio}
-                                        maxLength={100}
-                                        multiline={true}
-                                        placeholder="Write about yourself..."
-                                        style={{
-                                            backgroundColor: "#f0f0f0",
-                                            paddingVertical: 4,
-                                            paddingHorizontal: 10,
-                                            width: 205.5,
-                                        }}
-                                    />
-                                </View>
-                                {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
-                                <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit} style={styles.btnContainer}>
-                                    <View>
-                                        <Text style={styles.textStyle}>Submit</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            </View>
-                        </>
-                    }
-                />
+                            </>
+                        }
+                    />
+                )}
             </SafeAreaView>
         </GestureHandlerRootView>
     );
