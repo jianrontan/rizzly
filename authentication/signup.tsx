@@ -34,15 +34,17 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
  
 
  const handleVerifyVerificationCode = async () => {
-   try {
-     const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
-     await signInWithCredential(auth, credential);
-     setInfo('Success: Phone authentication successful');
-   } catch (error) {
-     setInfo(`Error : ${error.message}`);
-   }
+  try {
+    const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
+    await signInWithCredential(auth, credential);
+    setInfo('Success: Phone authentication successful');
+    // Navigate to the "EmailAndPw" screen
+    navigation.navigate('EmailAndPw');
+  } catch (error) {
+    setInfo(`Error : ${error.message}`);
+  }
  };
-
+ 
  return (
    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.lightBeige }}>
      <ScrollView showsVerticalScrollIndicator={false}>

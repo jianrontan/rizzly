@@ -12,6 +12,7 @@ import Welcome from '../authentication/welcome';
 import SignIn from '../authentication/signin';
 import SignUp from '../authentication/signup';
 import ForgotPassword from '../authentication/forgotpassword';
+import EmailAndPw from '../authentication/EmailAndPwScreen';
 import { COLORS } from '../constants';
 
 const Stack = createNativeStackNavigator();
@@ -93,6 +94,7 @@ export default function AuthStack() {
                 <Stack.Screen name="SignUp" component={SignUp} />
                 <Stack.Screen name="SignIn" component={SignIn} />
                 <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+                <Stack.Screen name="EmailAndPw" component={EmailAndPw} />
             </Stack.Navigator>
         </NavigationContainer>
     );
