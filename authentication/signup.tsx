@@ -1,137 +1,102 @@
-import { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Text, View, TouchableOpacity, SafeAreaView, ScrollView, Alert } from 'react-native';
 import { Input } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-
+import { getAuth, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
+import { FirebaseRecaptchaVerifierModal, FirebaseRecaptchaBanner } from 'expo-firebase-recaptcha';
 import { COLORS, SIZES } from '../constants';
 
 const auth = getAuth();
 
 const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
-  const [value, setValue] = useState({
-    email: '',
-    password: '',
-    cfmPassword: '',
-    error: ''
-  })
+ const recaptchaVerifier = useRef(null);
+ const [phoneNumber, setPhoneNumber] = useState('');
+ const [verificationId, setVerificationID] = useState('');
+ const [verificationCode, setVerificationCode] = useState('');
+ const [info, setInfo] = useState('');
+ const attemptInvisibleVerification = false;
 
-  const isEmailValid = (email: string): boolean => {
-    const pattern = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
-    return pattern.test(email);
-  };
-
-  const isPasswordValid = (password: string): boolean => {
-    const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}$/;
-    return pattern.test(password);
-  };
-
-  async function signUp() {
-    if (!isEmailValid(value.email) || value.password === '') {
-      setValue({
-        ...value,
-        error: 'A valid email and password is required.'
-      })
-      return;
-    }
-
-    if (!isPasswordValid(value.password)) {
-      setValue({
-          ...value,
-          error: 'Passwords need to be at least 8 characters, contain a number, a lowercase letter, and a uppercase letter.'
-      })
-      return;
-    }
-
-    const comparePasswords = value.password.localeCompare(value.cfmPassword)
-
-    if (comparePasswords != 0) {
-      setValue({
-        ...value,
-        error: 'Passwords have to match.'
-      })
-      return;
-    }
-
-    createUserWithEmailAndPassword(auth, value.email, value.password)
-      .then((userCredential) => {
-        sendEmailVerification(userCredential.user)
-          .then(() => {
-            setValue({
-              ...value,
-              error: ''
-            });
-            Alert.alert(
-              'Alert',
-              'Please check your email to verify your account.',
-              [
-                {
-                  text: 'OK',
-                },
-              ],
-            )
-          })
-          .catch((error) => {
-            setValue({
-              ...value,
-              error: error.message
-            });
-          });
-      })
-      .catch((error) => {
-        setValue({
-          ...value,
-          error: error.message
-        });
-      });
+ const handleSendVerificationCode = async () => {
+  try {
+   const phoneProvider = new PhoneAuthProvider(auth);
+   // Add the "+65" prefix to the phone number
+   const formattedPhoneNumber = "+65" + phoneNumber;
+   const verificationId = await phoneProvider.verifyPhoneNumber(
+     formattedPhoneNumber,
+     recaptchaVerifier.current
+   );
+   setVerificationID(verificationId);
+   setInfo('Success : Verification code has been sent to your phone');
+  } catch (error) {
+   setInfo(`Error : ${error.message}`);
   }
+ };
+ 
 
-  return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.lightBeige }}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ flex: 1, padding: SIZES.medium, }}>
+ const handleVerifyVerificationCode = async () => {
+   try {
+     const credential = PhoneAuthProvider.credential(verificationId, verificationCode);
+     await signInWithCredential(auth, credential);
+     setInfo('Success: Phone authentication successful');
+   } catch (error) {
+     setInfo(`Error : ${error.message}`);
+   }
+ };
 
-          <View>
-            <Text>Register a new account</Text>
-          </View>
+ return (
+   <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.lightBeige }}>
+     <ScrollView showsVerticalScrollIndicator={false}>
+       <View style={{ flex: 1, padding: SIZES.medium, }}>
 
-          {!!value.error && <View><Text>{value.error}</Text></View>}
+         <View>
+           <Text>Register a new account</Text>
+         </View>
 
-          <View>
-            <Input
-              placeholder='Email'
-              value={value.email}
-              onChangeText={(text) => setValue({ ...value, email: text })}
-              autoCapitalize='none'
-            />
+         {info && <View><Text>{info}</Text></View>}
 
-            <Input
-              placeholder='Password'
-              value={value.password}
-              onChangeText={(text) => setValue({ ...value, password: text })}
-              secureTextEntry={true}
-              autoCapitalize='none'
-            />
+         <View>
+           <Input
+             placeholder='Phone Number'
+             value={phoneNumber}
+             onChangeText={(text) => setPhoneNumber(text)}
+             autoCapitalize='none'
+           />
 
-            <Input
-              placeholder='Confirm password'
-              value={value.cfmPassword}
-              onChangeText={(text) => setValue({ ...value, cfmPassword: text })}
-              secureTextEntry={true}
-              autoCapitalize='none'
-            />
+           <TouchableOpacity onPress={handleSendVerificationCode}>
+             <Text>Send Verification Code</Text>
+           </TouchableOpacity>
 
-            <View style={{ padding: 8 }}>
-              <TouchableOpacity onPress={signUp}>
-                <Text>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
+           <Input
+             placeholder='Verification Code'
+             value={verificationCode}
+             onChangeText={setVerificationCode}
+             secureTextEntry={true}
+             autoCapitalize='none'
+           />
 
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  )
+           <TouchableOpacity onPress={handleVerifyVerificationCode}>
+             <Text>Verify Code</Text>
+           </TouchableOpacity>
+
+           <FirebaseRecaptchaVerifierModal
+           ref={recaptchaVerifier}
+           firebaseConfig={{
+            apiKey: process.env.FIREBASE_API_KEY,
+            authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+            appId: process.env.FIREBASE_APP_ID,
+            measurementId: process.env.FIREBASE_MEASUREMENT_ID,
+           }}
+         />
+
+           {attemptInvisibleVerification && <FirebaseRecaptchaBanner />}
+         </View>
+       </View>
+     </ScrollView>
+   </SafeAreaView>
+ )
 }
 
 export default SignUp;
