@@ -5,39 +5,28 @@ import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
 import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { createStackNavigator } from '@react-navigation/stack';
 import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
 import BottomTabStack from "./bottomTabNavigator";
-import SettingsScreen from '../drawer/settings';
+import SettingsScreen from '../screens/Settings';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import Orientation from '../screens/Orientation';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
 
 const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
 const auth = getAuth();
 
 export default function DrawerStack() {
     const [profileComplete, setProfileComplete] = useState(false);
     const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const backAction = () => {
-            // Replace 'App' with the actual route name of your home screen
-            if (navigationRef.isReady()) {
-                navigationRef.navigate('App');
-            }
-            return true;
-        };
-
-        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-        return () => backHandler.remove();
-    }, []);
 
     // State variable appIsReady tracks when app is ready to render
     const [appIsReady, setAppIsReady] = useState(false);
@@ -171,19 +160,55 @@ export default function DrawerStack() {
         );
     }
 
+    const SettingsStack = () => {
+        return (
+            <Stack.Navigator
+                initialRouteName="Edit Settings"
+                backBehavior='initialRoute'
+                screenOptions={({ route }) => ({
+                    headerTitle: route.name,
+                    headerTitleAlign: 'center',
+                    headerShadowVisible: 'true',
+                    headerTitleStyle: appStyles.headerFont,
+                    headerLeft: () => {
+                        const navigation = useNavigation();
+                        return (
+                            <View style={appStyles.buttonPadding}>
+                                <ScreenHeaderBtn
+                                    iconUrl={icons.left}
+                                    dimension='60%'
+                                    title='goBack'
+                                    onPress={() => {
+                                        if (navigation.canGoBack()) {
+                                            navigation.goBack();
+                                        } else {
+                                            navigation.navigate('App');
+                                        }
+                                    }}
+                                />
+                            </View>
+                        )
+                    },
+                })}
+            >
+                <Stack.Screen name="Edit Settings" component={SettingsScreen} />
+                <Stack.Screen name="Orientation" component={Orientation} />
+            </Stack.Navigator>
+        );
+    };
+
     if (!appIsReady || !fontsLoaded) {
         return null;
     }
 
     return (
         <NavigationContainer
-            ref={(ref) => { navigationRef = ref; }}
             onLayout={onLayoutRootView}
         >
             <Drawer.Navigator
                 drawerContent={(props) => <CustomDrawerContent {...props} />}
                 initialRouteName={profileComplete ? 'App' : 'Profile'}
-                backBehavior='initalRoute'
+                backBehavior='initialRoute'
                 screenOptions={({ route }) => ({
                     drawerStyle: {
                         width: 180,
@@ -206,7 +231,7 @@ export default function DrawerStack() {
                                     iconUrl={icons.left}
                                     dimension='60%'
                                     title='goBack'
-                                    onPress={() => navigation.navigate('App')}
+                                    onPress={() => navigation.goBack()}
                                 />
                             </View>
                         )
@@ -216,10 +241,8 @@ export default function DrawerStack() {
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
-                <Drawer.Screen name="Settings" component={SettingsScreen} />
+                <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
             </Drawer.Navigator>
         </NavigationContainer>
     )
 };
-
-let navigationRef = React.createRef();

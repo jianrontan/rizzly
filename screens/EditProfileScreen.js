@@ -9,23 +9,18 @@ import { getAuth } from 'firebase/auth';
 import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import * as ImagePicker from 'expo-image-picker';
-import SelectDropdown from 'react-native-select-dropdown';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 import { setHasUnsavedChangesExport } from '../redux/actions';
-import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import { COLORS, SIZES, FONT } from '../constants';
-import { useAnimatedStyle } from 'react-native-reanimated';
 
 export default function EditProfileScreen({ navigation }) {
 
-    // All data
-    const [userData, setUserData] = useState(null);
+    // HANDLE CASE FOR WHEN NO BIO OR NO PROMPT IN GETFIRESTORE DATA
 
     // Error Fixing State
     const [discardChangesKey, setDiscardChangesKey] = useState(0);
     const [listKey, setListKey] = useState(Math.random().toString());
-    const [spaceAdded, setSpaceAdded] = useState(false);
 
     // Authentication
     const auth = getAuth();
@@ -33,13 +28,6 @@ export default function EditProfileScreen({ navigation }) {
 
     // Screen
     const { width } = Dimensions.get('window');
-
-    // Orientation
-    const [orientation, setOrientation] = useState(null);
-    const [startOrientation, setStartOrientation] = useState(null);
-    const [orientationError, setOrientationError] = useState('');
-    const defaultOrientation = { male: false, female: false, nonBinary: false };
-    const actualOrientation = orientation || defaultOrientation;
 
     // Images
     const [image, setImage] = useState([]);
@@ -51,6 +39,12 @@ export default function EditProfileScreen({ navigation }) {
     // Bio
     const [bio, setBio] = useState('');
     const [startBio, setStartBio] = useState('');
+
+    // Prompts
+    const [prompt1, setPrompt1] = useState('');
+    const [startPrompt1, setStartPrompt1] = useState('');
+    const [prompt2, setPrompt2] = useState('');
+    const [startPrompt2, setStartPrompt2] = useState('');
 
     // Update
     const [error, setError] = useState('');
@@ -68,11 +62,12 @@ export default function EditProfileScreen({ navigation }) {
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
-                setUserData(holdData);
-                setOrientation(holdData.orientation);
-                setStartOrientation(holdData.orientation);
                 setBio(holdData.bio);
                 setStartBio(holdData.bio);
+                setPrompt1(holdData.prompt1);
+                setStartPrompt1(holdData.prompt1);
+                setPrompt2(holdData.prompt2);
+                setStartPrompt2(holdData.prompt2);
                 if (holdData.imageURLs) {
                     const initialImages = holdData.imageURLs.map((url, index) => ({
                         id: Math.random().toString(),
@@ -87,7 +82,7 @@ export default function EditProfileScreen({ navigation }) {
                     setBio(prevBio => prevBio + " ");
                     setTimeout(() => {
                         setBio(prevBio => prevBio.trim());
-                    }, 500);
+                    }, 200);
                 } else {
                     setImage([]);
                     setStartImage([]);
@@ -97,11 +92,17 @@ export default function EditProfileScreen({ navigation }) {
                     setBio(prevBio => prevBio + " ");
                     setTimeout(() => {
                         setBio(prevBio => prevBio.trim());
-                    }, 500);
+                    }, 200);
                 }
+                setTimeout(() => {
+                    setIsLoading(false);
+                }, 500);
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
+                setTimeout(() => {
+                    setIsLoading(false);
+                }, 500);
                 setIsLoading(false);
             }
         });
@@ -116,19 +117,6 @@ export default function EditProfileScreen({ navigation }) {
             getFirestoreData();
         }, [])
     );
-
-    // ORIENTATION
-    const handleOrientation = (id, isSelected) => {
-        setOrientation(prevState => {
-            const newOrientation = { ...prevState, [id]: isSelected };
-            if (Object.values(newOrientation).every(option => !option)) {
-                setOrientationError('Please select at least one orientation.');
-            } else {
-                setOrientationError('');
-            }
-            return newOrientation;
-        });
-    };
 
     // IMAGES
     const handleImage = async () => {
@@ -220,10 +208,10 @@ export default function EditProfileScreen({ navigation }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async () => {
-        // if (!hasUnsavedChanges) {
-        //     navigation.navigate('App');
-        //     return;
-        // }
+        if (!hasUnsavedChanges) {Di
+            navigation.navigate('App');
+            return;
+        }
         setIsSubmitting(true);
         try {
             const userDocRef = doc(db, 'profiles', userId);
@@ -252,8 +240,9 @@ export default function EditProfileScreen({ navigation }) {
             setRemovedImage(prevState => prevState.filter(url => !successfullyRemovedImages.includes(url)));
 
             await updateDoc(userDocRef, {
-                orientation: orientation,
                 bio: bio,
+                prompt1: prompt1,
+                prompt2: prompt2,
                 imageURLs: imageURLs,
             });
             setHasUnsavedChanges(false);
@@ -270,7 +259,7 @@ export default function EditProfileScreen({ navigation }) {
     const arraysEqual = (a, b) => {
         if (a.length !== b.length) return false;
         for (let i = 0; i < a.length; i++) {
-            if (a[i].uri !== b[i].uri) return false;
+            if (a[i].uri !== b[i].uri || a[i].order !== b[i].order) return false;
         }
         return true;
     };
@@ -278,24 +267,21 @@ export default function EditProfileScreen({ navigation }) {
     useEffect(() => {
         if (!isLoading) {
             if (
-                JSON.stringify(orientation) == JSON.stringify(startOrientation) &&
                 bio == startBio &&
-                arraysEqual(image, startImage)  
+                prompt1 == startPrompt1 &&
+                prompt2 == startPrompt2 &&
+                arraysEqual(image, startImage)
             ) {
                 setHasUnsavedChanges(false);
                 dispatch(setHasUnsavedChangesExport(false));
-                console.log("orientation no change: ", orientation)
-                console.log("startOrientation no change: ", startOrientation)
                 console.log("edit profile screen changed hasUnsavedChanges to false")
             } else {
                 setHasUnsavedChanges(true);
                 dispatch(setHasUnsavedChangesExport(true));
-                console.log("orientation changed: ", orientation)
-                console.log("startOrientation changed: ", startOrientation)
                 console.log("edit profile screen changed hasUnsavedChanges to true")
             }
         }
-    }, [orientation, image, isLoading, bio]);
+    }, [image, isLoading, bio, prompt1, prompt2]);
 
     // Hardware back button
     useFocusEffect(
@@ -318,22 +304,17 @@ export default function EditProfileScreen({ navigation }) {
                         },
                     ]);
                     return true;
+                } else {
+                    navigation.navigate('App');
+                    return true;
                 }
             };
 
             const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
 
             return () => backHandler.remove();
-        }, [hasUnsavedChanges, startOrientation, startImage, navigation])
+        }, [hasUnsavedChanges, image, bio, navigation])
     );
-
-    if (isLoading || isSubmitting) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    }
 
     return (
         <GestureHandlerRootView style={styles.container}>
@@ -357,17 +338,6 @@ export default function EditProfileScreen({ navigation }) {
                         ListHeaderComponent={
                             <>
                                 <View style={styles.container}>
-                                    {/* Orientation */}
-                                    <View>
-                                        {!!orientationError && <Text style={{ color: '#cf0202' }}>{orientationError}</Text>}
-                                    </View>
-                                    <View>
-                                        <>
-                                            <OptionButton id="male" text="Male" onPress={handleOrientation} selected={actualOrientation.male} />
-                                            <OptionButton id="female" text="Female" onPress={handleOrientation} selected={actualOrientation.female} />
-                                            <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation} selected={actualOrientation.nonBinary} />
-                                        </>
-                                    </View>
                                     {/* Image */}
                                     <View>
                                         <TouchableOpacity onPress={handleImage}>
@@ -399,6 +369,44 @@ export default function EditProfileScreen({ navigation }) {
                                         />
                                     </View>
                                     {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
+                                    {/* Prompt 1 */}
+                                    <View style={{ paddingBottom: 20 }}>
+                                        <Text>Prompt 1:</Text>
+                                        <TextInput
+                                            autoFocus={false}
+                                            value={prompt1}
+                                            onChangeText={setPrompt1}
+                                            maxLength={100}
+                                            multiline={true}
+                                            placeholder="Write your response..."
+                                            style={{
+                                                backgroundColor: "#f0f0f0",
+                                                paddingVertical: 4,
+                                                paddingHorizontal: 10,
+                                                width: 205.5,
+                                            }}
+                                        />
+                                    </View>
+                                    {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
+                                    {/* Prompt 2 */}
+                                    <View style={{ paddingBottom: 20 }}>
+                                        <Text>Prompt 2:</Text>
+                                        <TextInput
+                                            autoFocus={false}
+                                            value={prompt2}
+                                            onChangeText={setPrompt2}
+                                            maxLength={100}
+                                            multiline={true}
+                                            placeholder="Write your response..."
+                                            style={{
+                                                backgroundColor: "#f0f0f0",
+                                                paddingVertical: 4,
+                                                paddingHorizontal: 10,
+                                                width: 205.5,
+                                            }}
+                                        />
+                                    </View>
+                                    {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
                                     <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit} style={styles.btnContainer}>
                                         <View>
                                             <Text style={styles.textStyle}>Submit</Text>
@@ -410,6 +418,11 @@ export default function EditProfileScreen({ navigation }) {
                     />
                 )}
             </SafeAreaView>
+            <Spinner
+                visible={isLoading || isSubmitting}
+                overlayColor="white"
+                color="black"
+            />
         </GestureHandlerRootView>
     );
 }
