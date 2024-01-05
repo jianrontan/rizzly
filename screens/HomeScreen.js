@@ -14,8 +14,6 @@ import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
 import { Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
-import * as Notifications from 'expo-notifications';
-
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
 const cardHeight = height - 170 ;
@@ -27,24 +25,7 @@ const HomeScreen = () => {
  const [scrollOffset, setScrollOffset] = useState(0);
  const [previousIndex, setPreviousIndex] = useState(0);
  const [fetchedUsers, setFetchedUsers] = useState([]);
- const [pushToken, setPushToken] = useState(null);
 
- useEffect(() => {
-  const requestUserPermission = async () => {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Failed to get push token for push notification!');
-      return;
-    }
-   
-    const result = await Notifications.getExpoPushTokenAsync({
-      projectId: 'b14252fb-4683-43e0-a451-f25c756a7bd5'
-    });
-    setPushToken(result.data);
-   };
- requestUserPermission();
- }, []);
- 
  useEffect(() => {
   const fetchCurrentUser = async () => {
     try {
@@ -107,41 +88,24 @@ const HomeScreen = () => {
  
  const handleLikeClick = async (likedUserId) => {
   try {
-   const likedUserDocRef = doc(db, 'profiles', likedUserId);
+    const likedUserDocRef = doc(db, 'profiles', likedUserId);
  
-   await updateDoc(likedUserDocRef, {
-     likedBy: arrayUnion(auth.currentUser.uid),
-   });
+    await updateDoc(likedUserDocRef, {
+      likedBy: arrayUnion(auth.currentUser.uid),
+    });
  
-   const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+    const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
  
-   await updateDoc(currentUserDocRef, {
-     likes: arrayUnion(likedUserId),
-   });
+    await updateDoc(currentUserDocRef, {
+      likes: arrayUnion(likedUserId),
+    });
  
-   // Send a notification to the current user
-   await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      to: likedUserId,
-      data: { type: 'NEW_LIKE' },
-      title: 'New Like',
-      body: `${auth.currentUser.displayName} liked your profile!`,
-    }),
-  });
- 
-   // Remove the liked user from the users array
-   setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
+    // Remove the liked user from the users array
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
   } catch (error) {
-   console.error('Error adding like:', error);
+    console.error('Error adding like:', error);
   }
- };
- 
+ }; 
 
  const handleDislikeClick = async (dislikedUserId) => {
   try {
@@ -223,6 +187,7 @@ const HomeScreen = () => {
                 <Text style={styles.userName}>{user.name}</Text>
                 <Text style={styles.userDetails}>{`${user.gender}, Age: ${user.age}`}</Text>
                 <Text style={styles.userDetails}>Number of retakes: {user.retakes} </Text>
+                <Text style={styles.userDetails}>Bio: {user.bio} </Text>
                 <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
                   <Text style={styles.likeButton}>Like</Text>
                 </TouchableOpacity>

@@ -229,6 +229,7 @@ export default function ProfileScreen({ navigation }) {
                     gender: gender,
                     orientation: orientation,
                     imageURLs: imageURLs,
+                    bio: bio,
                     complete: true,
                 });
                 navigation.navigate('App');
