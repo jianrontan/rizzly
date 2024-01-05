@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
+import * as Notifications from 'expo-notifications';
 
 const MatchesScreen = ({ navigation }) => {
   const [matches, setMatches] = useState([]);
@@ -28,6 +29,26 @@ const MatchesScreen = ({ navigation }) => {
         );
 
         setMatches(matchedUsers);
+        
+        const notifications = matchedUsers.map((match) => {
+          // Send a notification to the current user
+          return fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Accept-encoding': 'gzip, deflate',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              to: match.id,
+              data: { type: 'NEW_MATCH' },
+              title: 'New Match',
+              body: `You have a new match with ${match.name}!`,
+            }),
+          });
+        });
+   
+        await Promise.all(notifications);
       } catch (error) {
         console.error('Error fetching matches:', error);
       }
