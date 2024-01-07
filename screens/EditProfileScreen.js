@@ -16,7 +16,10 @@ import { COLORS, SIZES, FONT } from '../constants';
 
 export default function EditProfileScreen({ navigation }) {
 
-    // HANDLE CASE FOR WHEN NO BIO OR NO PROMPT IN GETFIRESTORE DATA
+    // HANDLE CASE FOR WHEN NO BIO OR NO PROMPT IN GET FIRESTORE DATA
+    // HANDLE CASE FOR WHEN NO IMAGE
+    // SET MIN AND MAX NUMBER OF IMAGES
+    // FIX LOGOUT ERROR
 
     // Error Fixing State
     const [discardChangesKey, setDiscardChangesKey] = useState(0);
@@ -62,12 +65,12 @@ export default function EditProfileScreen({ navigation }) {
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
-                setBio(holdData.bio);
-                setStartBio(holdData.bio);
-                setPrompt1(holdData.prompt1);
-                setStartPrompt1(holdData.prompt1);
-                setPrompt2(holdData.prompt2);
-                setStartPrompt2(holdData.prompt2);
+                setBio(holdData.bio || '');
+                setStartBio(holdData.bio || '');
+                setPrompt1(holdData.prompt1 || '');
+                setStartPrompt1(holdData.prompt1 || '');
+                setPrompt2(holdData.prompt2 || '');
+                setStartPrompt2(holdData.prompt2 || '');
                 if (holdData.imageURLs) {
                     const initialImages = holdData.imageURLs.map((url, index) => ({
                         id: Math.random().toString(),
@@ -208,7 +211,8 @@ export default function EditProfileScreen({ navigation }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async () => {
-        if (!hasUnsavedChanges) {Di
+        if (!hasUnsavedChanges) {
+            Di
             navigation.navigate('App');
             return;
         }
