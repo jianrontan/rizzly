@@ -230,9 +230,8 @@ export default function ProfileScreen({ navigation }) {
                     orientation: orientation,
                     imageURLs: imageURLs,
                     bio: bio,
-                    complete: true,
                 });
-                navigation.navigate('App');
+                navigation.navigate('SelfieCapture');
             } catch (e) {
                 console.error("Error submitting: ", e);
                 setError(e.message);

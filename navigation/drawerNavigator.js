@@ -5,6 +5,7 @@ import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
 import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { createStackNavigator } from '@react-navigation/stack';
 import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
@@ -20,6 +21,7 @@ import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
 
 const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
 const auth = getAuth();
 
 export default function DrawerStack() {
@@ -154,6 +156,15 @@ export default function DrawerStack() {
         );
     }
 
+    const ProfileStack = () => {
+        return (
+            <Stack.Navigator>
+                <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="SelfieCapture" component={SelfieCapture} />
+            </Stack.Navigator>
+        );
+    };
+
     if (!appIsReady || !fontsLoaded) {
         return null;
     }
@@ -197,7 +208,7 @@ export default function DrawerStack() {
                 })}
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
+                <Drawer.Screen name="Profile" component={ProfileStack} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
                 <Drawer.Screen name="SelfieCapture" component={SelfieCapture} />
                 <Drawer.Screen name="Settings" component={SettingsScreen} />
