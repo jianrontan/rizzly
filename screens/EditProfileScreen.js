@@ -16,9 +16,6 @@ import { COLORS, SIZES, FONT } from '../constants';
 
 export default function EditProfileScreen({ navigation }) {
 
-    // HANDLE CASE FOR WHEN NO BIO OR NO PROMPT IN GET FIRESTORE DATA
-    // HANDLE CASE FOR WHEN NO IMAGE
-    // SET MIN AND MAX NUMBER OF IMAGES
     // FIX LOGOUT ERROR
 
     // Error Fixing State
@@ -123,6 +120,14 @@ export default function EditProfileScreen({ navigation }) {
 
     // IMAGES
     const handleImage = async () => {
+        if (image.length >= 6) {
+            Alert.alert(
+                "Invalid Photo Count",
+                `Maximum number of pictures uploaded.`,
+                [{ text: "OK" }]
+            );
+            return;
+        }
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
@@ -211,8 +216,15 @@ export default function EditProfileScreen({ navigation }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async () => {
+        if (image.length < 1) {
+            Alert.alert(
+                "Invalid Photo Count",
+                `Please upload at least one photo`,
+                [{ text: "OK" }]
+            );
+            return;
+        }
         if (!hasUnsavedChanges) {
-            Di
             navigation.navigate('App');
             return;
         }
