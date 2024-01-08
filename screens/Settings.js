@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import SettingsComponent from '../components/settings/SettingsComponent';
 import DeleteAccount from '../screens/DeleteAccount';
+import ChangeLocation from './ChangeLocation';
 import { COLORS, FONT, SIZES } from '../constants';
 
 export default function SettingsScreen({ navigation }) {
@@ -63,6 +64,10 @@ export default function SettingsScreen({ navigation }) {
 	const preferredGender = () => {
 		navigation.navigate('Orientation');
 	}
+
+    const ChangeLocation = () => {
+        navigation.navigate('ChangeLocation')
+    }
     
     const DeleteAccount = () => {
         navigation.navigate('DeleteAccount')
@@ -92,6 +97,15 @@ export default function SettingsScreen({ navigation }) {
 					</TouchableOpacity>
 					<View style={styles.borderLine}></View>
 				</View>
+
+                <View style={{ flex: 1 }}>
+                    <TouchableOpacity onPress={ChangeLocation}>
+                    <View style={styles.settingView}>
+                        <Text style={styles.settingText}>Change Location</Text>
+                    </View>
+                    </TouchableOpacity>
+                    <View style={styles.borderLine}></View>
+                </View>
 
                 <View style={{ flex: 1 }}>
                     <TouchableOpacity onPress={DeleteAccount}>

@@ -231,30 +231,38 @@ export default function ProfileScreen({ navigation }) {
     const makeLocation = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          alert('Permission to access location was denied');
-          return;
+            alert('Permission to access location was denied');
+            return;
         }
-     
-        Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.BestForNavigation,
-            timeInterval: 1000,
-            distanceInterval: 1,
-          },
-          (location) => {
-            console.log(location);
-            setLocation(location);
-     
-            // Get place from coordinates
-            getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude)
-              .then(place => {
-                console.log(place);
-                setPlace(place); // Update place state variable
-              })
-              .catch(error => console.warn(error));
-          }
+    
+        let locationTask = Location.watchPositionAsync(
+            {
+                accuracy: Location.Accuracy.BestForNavigation,
+                timeInterval: 1000,
+                distanceInterval: 1,
+            },
+            (location) => {
+                console.log(location);
+                setLocation(location);
+    
+                // Get place from coordinates
+                getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude)
+                    .then(place => {
+                        console.log(place);
+                        setPlace(place); // Update place state variable
+                    })
+                    .catch(error => console.warn(error));
+            }
         );
-      };
+    
+        // Stop tracking location after the first update
+        setTimeout(() => {
+            if (locationTask) {
+                locationTask.remove();
+            }
+        }, 5000); // Stop after 5 seconds (adjust as needed)
+    };
+    
 
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen

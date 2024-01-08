@@ -3,6 +3,8 @@ import {
  View,
  Text,
  Image,
+ Modal,
+ Button,
  StyleSheet,
  SafeAreaView,
  TouchableOpacity,
@@ -14,17 +16,22 @@ import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
 import { Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
+import { Feather } from '@expo/vector-icons';
+
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
 const cardHeight = height - 170 ;
 
 const HomeScreen = () => {
- const [users, setUsers] = useState([]);
- const [currentUserData, setCurrentUserData] = useState(null);
- const [swipedUpUsers, setSwipedUpUsers] = useState([]);
- const [scrollOffset, setScrollOffset] = useState(0);
- const [previousIndex, setPreviousIndex] = useState(0);
- const [fetchedUsers, setFetchedUsers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [currentUserData, setCurrentUserData] = useState(null);
+  const [swipedUpUsers, setSwipedUpUsers] = useState([]);
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const [previousIndex, setPreviousIndex] = useState(0);
+  const [fetchedUsers, setFetchedUsers] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0)
 
  useEffect(() => {
   const fetchCurrentUser = async () => {
@@ -138,11 +145,11 @@ const HomeScreen = () => {
   const offsetY = event.nativeEvent.contentOffset.y;
 
   // Calculate the current index based on the scroll offset
-  const currentIndex = Math.round(offsetY / cardHeight);
+ const newIndex = Math.round(offsetY / cardHeight);
 
   // If the current index is greater than the previous index, it means the user has swiped to the next user
-  if (currentIndex > previousIndex) {
-    const dislikedUserId = users[previousIndex]?.id;
+  if (newIndex > currentIndex) {
+    const dislikedUserId = users[currentIndex]?.id;
 
     if (dislikedUserId) {
       handleDislikeClick(dislikedUserId);
@@ -150,8 +157,7 @@ const HomeScreen = () => {
   }
 
   // Update the previous index and scroll offset
-  setPreviousIndex(currentIndex);
-  setScrollOffset(offsetY);
+  setCurrentIndex(newIndex);
  };
  
  const renderItem = ({ item: user }) => {
@@ -195,31 +201,55 @@ const HomeScreen = () => {
             </View>
           ))}
         </Swiper>
+        <TouchableOpacity onPress={() => {
+          setSelectedUser(user); // Pass the user object directly
+          setModalVisible(true);
+          }}>
+          <Feather name="chevron-up" size={30} color="white" style={styles.arrowIcon} />
+          </TouchableOpacity>
+          <Modal animationType="slide" transparent={true} visible={modalVisible}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              {selectedUser && (
+                <>
+                  <Text style={styles.modalinfo}>{selectedUser.name || 'No name'}</Text>
+                  <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
+                  <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
+                  <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
+                  <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
+                </>
+              )}
+              <Button title="Close Modal" onPress={() => {
+                setModalVisible(false);
+                setSelectedUser(null);
+              }} />
+            </View>
+          </View>
+        </Modal>
       </View>
     </Swipeable>
   );
 };
 
-   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={users}
-        keyExtractor={(user) => user.id}
-        renderItem={renderItem}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        onEndReached={() => {
-          if (users[users.length - 1]?.id !== 'no-more-users') {
-            setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
-          }
-         }}             
-        onEndReachedThreshold={0} // Adjust this value according to your needs
-        pagingEnabled // Add this line
-      />
-    </SafeAreaView>
-   );
-   
- };
+return (
+  <SafeAreaView style={styles.container}>
+    <FlatList
+      data={users}
+      keyExtractor={(user) => user.id}
+      renderItem={renderItem}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+      onEndReached={() => {
+        if (users[users.length - 1]?.id !== 'no-more-users') {
+          setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+        }
+      }}
+      onEndReachedThreshold={0}
+      pagingEnabled
+    />
+  </SafeAreaView>
+);
+}
 
  const styles = StyleSheet.create({
   container: {
@@ -276,6 +306,31 @@ const HomeScreen = () => {
     color: 'white',
     fontSize: 16,
   },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: cardHeight,
+    width: cardWidth,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    height: cardHeight, 
+    width: cardWidth,
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  arrowIcon: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+  },
+  modalinfo: {
+    color:'black',
+    fontSize: 16,
+  }
 });
 
 export default HomeScreen;

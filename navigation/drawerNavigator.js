@@ -15,6 +15,7 @@ import SettingsScreen from '../screens/Settings';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import Orientation from '../screens/Orientation';
+import ChangeLocation from '../screens/ChangeLocation';
 import DeleteAccount from '../screens/DeleteAccount'
 import Contact from '../screens/Contact'
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
@@ -195,6 +196,7 @@ export default function DrawerStack() {
             >
                 <Stack.Screen name="Edit Settings" component={SettingsScreen} />
                 <Stack.Screen name="Orientation" component={Orientation} />
+                <Stack.Screen name="ChangeLocation" component={ChangeLocation}/>
                 <Stack.Screen name="DeleteAccount" component={DeleteAccount} />
                 <Stack.Screen name="Contact" component={Contact} />
             </Stack.Navigator>
