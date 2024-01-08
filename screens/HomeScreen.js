@@ -14,8 +14,7 @@ import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
 import { Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
-import { DrawerView } from '@react-navigation/drawer';
-import UserDetail from './UserDetail';
+import { useNavigation } from 'expo-router';
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
@@ -204,11 +203,6 @@ const HomeScreen = () => {
 };
 
    return (
-    <DrawerView
-      drawerPosition='left'
-      drawerType='slide'
-      drawerContent={<UserDetail/>}
-    >
     <SafeAreaView style={styles.container}>
       <FlatList
         data={users}
@@ -225,7 +219,6 @@ const HomeScreen = () => {
         pagingEnabled // Add this line
       />
     </SafeAreaView>
-    </DrawerView>
    );
    
  };
