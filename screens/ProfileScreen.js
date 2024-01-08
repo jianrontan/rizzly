@@ -12,10 +12,24 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import SelectDropdown from 'react-native-select-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as Location from 'expo-location';
 
 import OptionButton from '../components/touchableHighlight/touchableHightlight'
 import { COLORS, SIZES, FONT } from '../constants';
 
+async function getPlaceFromCoordinates(lat, lng) {
+    const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=87fdfbc20b6c42219965405e23651000&pretty=1`);
+    const data = await response.json();
+    if (data.results.length > 0) {
+    const components = data.results[0].components;
+    const suburb = components.suburb || '';
+    const country = components.country || '';
+    return `${suburb}, ${country}`;
+    } else {
+    throw new Error('Failed to get place from coordinates');
+    }
+   }   
+   
 export default function ProfileScreen({ navigation }) {
 
     // Authentication
@@ -55,6 +69,10 @@ export default function ProfileScreen({ navigation }) {
     const [image, setImage] = useState([]);
     const [progress, setProgress] = useState(0);
     const [refreshKey, setRefreshKey] = useState(0);
+
+    //Location 
+    const[location, setLocation] = useState([])
+    const [place, setPlace] = useState('');
 
     // Bio
     const [bio, setBio] = useState('');
@@ -209,10 +227,40 @@ export default function ProfileScreen({ navigation }) {
         setRefreshKey(oldKey => oldKey + 1);
     };
 
+    // *****LOCATION*****
+    const makeLocation = async () => {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          alert('Permission to access location was denied');
+          return;
+        }
+     
+        Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.BestForNavigation,
+            timeInterval: 1000,
+            distanceInterval: 1,
+          },
+          (location) => {
+            console.log(location);
+            setLocation(location);
+     
+            // Get place from coordinates
+            getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude)
+              .then(place => {
+                console.log(place);
+                setPlace(place); // Update place state variable
+              })
+              .catch(error => console.warn(error));
+          }
+        );
+      };
+
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen
     const handleSubmit = async () => {
-        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '' && bio !== null && bio !== '') {
+        await makeLocation();
+        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '' && bio !== null && bio !== '' && location !== null ) {
             try {
                 const userId = auth.currentUser.uid;
                 const userDocRef = doc(db, 'profiles', userId);
@@ -230,6 +278,7 @@ export default function ProfileScreen({ navigation }) {
                     orientation: orientation,
                     imageURLs: imageURLs,
                     bio: bio,
+                    location: place, 
                     complete: true,
                 });
                 navigation.navigate('App');
@@ -328,6 +377,13 @@ export default function ProfileScreen({ navigation }) {
                                 <TouchableOpacity onPress={handleImage}>
                                     <Text style={styles.textStyle2}>Upload Image</Text>
                                 </TouchableOpacity>
+                            </View>
+                            {/* Location */}
+                            <View> 
+                                <TouchableOpacity onPress={makeLocation}> 
+                                    <Text style={styles.textStyle2}>Set Location </Text>
+                                </TouchableOpacity>
+                                <Text>{place}</Text>
                             </View>
                         </View>
                     </>
