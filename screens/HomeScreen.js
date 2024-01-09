@@ -55,7 +55,7 @@ const HomeScreen = () => {
     distance = Math.round(distance * 10) / 10;
    
     // If distance is 0, return '<1 km'
-    if (distance === 0) {
+    if (distance <= 1) {
      return '<1';
     }
    
