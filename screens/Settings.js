@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import SettingsComponent from '../components/settings/SettingsComponent';
 import DeleteAccount from '../screens/DeleteAccount';
+import PauseProfile from '../screens/PauseProfile';
 import ChangeLocation from './ChangeLocation';
 import { COLORS, FONT, SIZES } from '../constants';
 
@@ -68,6 +69,10 @@ export default function SettingsScreen({ navigation }) {
     const ChangeLocation = () => {
         navigation.navigate('ChangeLocation')
     }
+
+	const PauseProfile = () => {
+		navigation.navigate('PauseProfile')
+	}
 	    
     const DeleteAccount = () => {
         navigation.navigate('DeleteAccount')
@@ -102,6 +107,15 @@ export default function SettingsScreen({ navigation }) {
                     <TouchableOpacity onPress={ChangeLocation}>
                     <View style={styles.settingView}>
                         <Text style={styles.settingText}>Change Location</Text>
+                    </View>
+                    </TouchableOpacity>
+                    <View style={styles.borderLine}></View>
+                </View>
+
+				<View style={{ flex: 1 }}>
+                    <TouchableOpacity onPress={PauseProfile}>
+                    <View style={styles.settingView}>
+                        <Text style={styles.settingText}>Pause Profile</Text>
                     </View>
                     </TouchableOpacity>
                     <View style={styles.borderLine}></View>
