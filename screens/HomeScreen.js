@@ -3,7 +3,7 @@ import {
  View,
  Text,
  Image,
- Modal,
+Modal,
  Button,
  StyleSheet,
  SafeAreaView,
@@ -17,6 +17,7 @@ import Swiper from 'react-native-swiper';
 import { Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
+
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
@@ -32,6 +33,34 @@ const HomeScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0)
+
+  function toRadians(degrees) {
+    return degrees * Math.PI / 180;
+   }
+   
+   function haversineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+   
+    const a =
+     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+     Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+   
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+   
+    let distance = R * c; // Distance in kilometers
+   
+    // Round to the nearest 0.1 km
+    distance = Math.round(distance * 10) / 10;
+   
+    // If distance is 0, return '<1 km'
+    if (distance === 0) {
+     return '<1';
+    }
+   
+    return distance;
+   }   
 
  useEffect(() => {
   const fetchCurrentUser = async () => {
@@ -145,7 +174,7 @@ const HomeScreen = () => {
   const offsetY = event.nativeEvent.contentOffset.y;
 
   // Calculate the current index based on the scroll offset
- const newIndex = Math.round(offsetY / cardHeight);
+  const newIndex = Math.round(offsetY / cardHeight);
 
   // If the current index is greater than the previous index, it means the user has swiped to the next user
   if (newIndex > currentIndex) {
@@ -194,6 +223,7 @@ const HomeScreen = () => {
                 <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
                 <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
                 <Text style={styles.userDetails}>Bio: {user.bio || 'No bio'} </Text>
+                <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
                 <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
                   <Text style={styles.likeButton}>Like</Text>
                 </TouchableOpacity>
@@ -201,7 +231,7 @@ const HomeScreen = () => {
             </View>
           ))}
         </Swiper>
-        <TouchableOpacity onPress={() => {
+<TouchableOpacity onPress={() => {
           setSelectedUser(user); // Pass the user object directly
           setModalVisible(true);
           }}>
@@ -210,15 +240,16 @@ const HomeScreen = () => {
           <Modal animationType="slide" transparent={true} visible={modalVisible}>
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              {selectedUser && (
-                <>
-                  <Text style={styles.modalinfo}>{selectedUser.name || 'No name'}</Text>
-                  <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
-                  <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
-                  <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
-                  <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
-                </>
-              )}
+            {selectedUser && (
+              <>
+                <Text style={styles.modalinfo}>{selectedUser.name || 'No name'}</Text>
+                <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
+                <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
+                <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
+                <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
+                <Text style={styles.modalinfo}>Distance: ~{haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)}km</Text>
+              </>
+            )}
               <Button title="Close Modal" onPress={() => {
                 setModalVisible(false);
                 setSelectedUser(null);
@@ -231,25 +262,25 @@ const HomeScreen = () => {
   );
 };
 
-return (
-  <SafeAreaView style={styles.container}>
-    <FlatList
-      data={users}
-      keyExtractor={(user) => user.id}
-      renderItem={renderItem}
-      onScroll={handleScroll}
-      scrollEventThrottle={16}
-      onEndReached={() => {
-        if (users[users.length - 1]?.id !== 'no-more-users') {
-          setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
-        }
-      }}
-      onEndReachedThreshold={0}
-      pagingEnabled
-    />
-  </SafeAreaView>
-);
-}
+   return (
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={users}
+        keyExtractor={(user) => user.id}
+        renderItem={renderItem}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        onEndReached={() => {
+          if (users[users.length - 1]?.id !== 'no-more-users') {
+            setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+          }
+         }}             
+        onEndReachedThreshold={0}
+        pagingEnabled
+      />
+    </SafeAreaView>
+   );
+   }
 
  const styles = StyleSheet.create({
   container: {
@@ -306,7 +337,7 @@ return (
     color: 'white',
     fontSize: 16,
   },
-  modalContainer: {
+modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

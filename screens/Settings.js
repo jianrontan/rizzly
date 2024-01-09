@@ -68,7 +68,7 @@ export default function SettingsScreen({ navigation }) {
     const ChangeLocation = () => {
         navigation.navigate('ChangeLocation')
     }
-    
+	    
     const DeleteAccount = () => {
         navigation.navigate('DeleteAccount')
     }
