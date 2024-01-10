@@ -85,7 +85,7 @@ const ChangeLocation = ({ navigation }) => {
         // Stop tracking location after the first update
         setTimeout(() => {
           locationTask.remove();
-        }, 5000); // Stop after 5 seconds (adjust as needed)
+        }, 1000); // Stop after 5 seconds (adjust as needed)
       } else {
         console.warn('locationTask is not properly initialized or does not have a remove method.');
       }

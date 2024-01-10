@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Text, View, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { Input } from 'react-native-elements';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../constants';
 
 const auth = getAuth();
 
 const SignIn = ({navigation}) => {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [value, setValue] = useState({
     email: '',
     password: '',
@@ -51,13 +52,18 @@ const SignIn = ({navigation}) => {
               autoCapitalize='none'
             />
 
-            <Input
-              placeholder='Password'
-              value={value.password}
-              onChangeText={(text) => setValue({ ...value, password: text })}
-              secureTextEntry={true}
-              autoCapitalize='none'
-            />
+              <View style={{position: 'relative'}}>
+              <Input
+                placeholder='Password'
+                value={value.password}
+                onChangeText={(text) => setValue({ ...value, password: text })}
+                secureTextEntry={!isPasswordVisible}
+                autoCapitalize='none'
+              />
+              <TouchableOpacity style={{position: 'absolute', right: 10}} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                <MaterialCommunityIcons name={isPasswordVisible ? "eye-off" : "eye"} size={28} color={COLORS.black} />
+              </TouchableOpacity>
+              </View>
 
             <View style={{ paddingLeft: 8, paddingTop: SIZES.xSmall, paddingBottom: SIZES.xLarge }}>
               <TouchableOpacity onPress={signIn} >

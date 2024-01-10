@@ -3,12 +3,16 @@ import { Text, View, TouchableOpacity, SafeAreaView, ScrollView, Alert } from 'r
 import { Input } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { COLORS, SIZES } from '../constants';
 
 const auth = getAuth();
 
 const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isCfmPasswordVisible, setIsCfmPasswordVisible] = useState(false);
+
   const [value, setValue] = useState({
     email: '',
     password: '',
@@ -105,22 +109,31 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
               autoCapitalize='none'
             />
 
-            <Input
-              placeholder='Password'
-              value={value.password}
-              onChangeText={(text) => setValue({ ...value, password: text })}
-              secureTextEntry={true}
-              autoCapitalize='none'
-            />
+              <View style={{position: 'relative'}}>
+              <Input
+                placeholder='Password'
+                value={value.password}
+                onChangeText={(text) => setValue({ ...value, password: text })}
+                secureTextEntry={!isPasswordVisible}
+                autoCapitalize='none'
+              />
+              <TouchableOpacity style={{position: 'absolute', right: 10}} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+                <MaterialCommunityIcons name={isPasswordVisible ? "eye-off" : "eye"} size={28} color={COLORS.black} />
+              </TouchableOpacity>
+              </View>
 
-            <Input
-              placeholder='Confirm password'
-              value={value.cfmPassword}
-              onChangeText={(text) => setValue({ ...value, cfmPassword: text })}
-              secureTextEntry={true}
-              autoCapitalize='none'
-            />
-
+              <View style={{position: 'relative'}}>
+              <Input
+                placeholder='Confirm password'
+                value={value.cfmPassword}
+                onChangeText={(text) => setValue({ ...value, cfmPassword: text })}
+                secureTextEntry={!isCfmPasswordVisible}
+                autoCapitalize='none'
+              />
+              <TouchableOpacity style={{position: 'absolute', right: 10}} onPress={() => setIsCfmPasswordVisible(!isCfmPasswordVisible)}>
+                <MaterialCommunityIcons name={isCfmPasswordVisible ? "eye-off" : "eye"} size={28} color={COLORS.black} />
+              </TouchableOpacity>
+              </View>
             <View style={{ padding: 8 }}>
               <TouchableOpacity onPress={signUp}>
                 <Text>Sign Up</Text>

@@ -63,7 +63,7 @@ export default function ProfileScreen({ navigation }) {
     const [show, setShow] = useState(false);
 
     //Age 
-    const [age, setAge] = useState(null);
+    const [age, setAge] = useState('');
 
     // Images
     const [image, setImage] = useState([]);
@@ -231,49 +231,56 @@ export default function ProfileScreen({ navigation }) {
     const makeLocation = async () => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          alert('Permission to access location was denied');
-          return;
+            alert('Permission to access location was denied');
+            return;
         }
     
-        let locationTask = Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.BestForNavigation,
-            timeInterval: 1000,
-            distanceInterval: 1,
-          },
-          (location) => {
-            console.log(location);
-            setLocation(location);
+        let locationTask;
     
-            // Get place from coordinates
-            getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude)
-              .then((place) => {
-                console.log(place);
-                setPlace(place); // Update place state variable
+        try {
+            locationTask = Location.watchPositionAsync(
+                {
+                    accuracy: Location.Accuracy.BestForNavigation,
+                    timeInterval: 1000,
+                    distanceInterval: 1,
+                },
+                (location) => {
+                    console.log(location);
+                    setLocation(location);
     
-                // Update user document with location information
-                const userId = auth.currentUser.uid;
-                const userDocRef = doc(db, 'profiles', userId);
+                    // Get place from coordinates
+                    getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude)
+                        .then((place) => {
+                            console.log(place);
+                            setPlace(place); // Update place state variable
     
-                // Update user document with location details
-                updateDoc(userDocRef, {
-                  location: place,
-                  latitude: location.coords.latitude,
-                  longitude: location.coords.longitude,
-                });
-              })
-              .catch((error) => console.warn(error));
-          }
-        );
+                            // Update user document with location information
+                            const userId = auth.currentUser.uid;
+                            const userDocRef = doc(db, 'profiles', userId);
+    
+                            // Update user document with location details
+                            updateDoc(userDocRef, {
+                                location: place,
+                                latitude: location.coords.latitude,
+                                longitude: location.coords.longitude,
+                            });
+                        })
+                        .catch((error) => console.warn(error));
+                }
+            );
+        } catch (error) {
+            console.error('Error starting location task:', error);
+            // Handle error as needed
+        }
     
         // Stop tracking location after the first update
         setTimeout(() => {
-          if (locationTask) {
-            locationTask.remove();
-          }
-        }, 5000); // Stop after 5 seconds (adjust as needed)
-      };
-
+            if (locationTask && locationTask.remove) {
+                locationTask.remove();
+            }
+        }, 1000); // Stop after 1 seconds (adjust as needed)
+    };
+    
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen
     const handleSubmit = async () => {

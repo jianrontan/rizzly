@@ -106,20 +106,25 @@ const HomeScreen = () => {
       setPaused(isUserPaused);
      }, [currentUserData]);     
   
-    useEffect(() => {
+     useEffect(() => {
         const fetchData = async () => {
             try {
+                if (!currentUserData) {
+                    // Handle the case where currentUserData is null
+                    return;
+                }
+    
                 const usersCollection = collection(db, 'profiles');
                 const snapshot = await getDocs(usersCollection);
                 let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
+    
                 // Filter users based on gender and current user's orientation
                 let filteredUsers = usersData.filter((user) => {
                     const userGender = user.gender?.toLowerCase?.();
-
-                    if (currentUserData && currentUserData.orientation) {
+    
+                    if (currentUserData.orientation) {
                         const { male, female, nonBinary } = currentUserData.orientation;
-
+    
                         if (userGender === 'female' && female) {
                             return true;
                         } else if (userGender === 'male' && male) {
@@ -130,24 +135,24 @@ const HomeScreen = () => {
                             return false;
                         }
                     }
-
+    
                     return true;
                 });
-
+    
                 // Exclude the current user and swiped up users from the list
                 filteredUsers = filteredUsers.filter(
                     (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id)
                 );
-
+    
                 // Always include the "No More Users" item at the end of the users array
                 setUsers([...filteredUsers]);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         };
-
+    
         fetchData();
-    }, [currentUserData, swipedUpUsers]);
+    }, [currentUserData, swipedUpUsers]);    
 
     const handleLikeClick = async (likedUserId) => {
         try {

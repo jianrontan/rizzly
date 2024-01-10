@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
-import { Text, View, TouchableOpacity, Image } from 'react-native';
+import { Text, View, TouchableOpacity, Image, Dimensions } from 'react-native';
 import {
   collection,
   addDoc,
@@ -16,6 +16,11 @@ import * as FileSystem from 'expo-file-system';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Composer, Send } from 'react-native-gifted-chat';
 import { StatusBar } from 'expo-status-bar'
+import { useFocusEffect } from '@react-navigation/native';
+
+const { width, height } = Dimensions.get('window');
+const cardWidth = width;
+const cardHeight = height - 170;
 
 const ChatRoom = ({ route }) => {
  const { chatRoomID, userId, userName } = route.params;
@@ -25,14 +30,26 @@ const ChatRoom = ({ route }) => {
  const cameraRef = useRef(null);
  const [showCamera, setShowCamera] = useState(false);
  const [isCapturing, setIsCapturing] = useState(false);
+ const [showChat, setShowChat] = useState(true);
+
  const openCamera = () => {
-  setShowCamera(true);
-};
+  setShowCamera(!showCamera);
+  if (!showCamera) {
+    setShowChat(false);
+  }
+ };
 
-const closeCamera = () => {
+ const closeCamera = () => {
   setShowCamera(false);
-};
+  setShowChat(true);
+ };
 
+ const flipCamera = () => {
+  setType(type === Camera.Constants.Type.back
+    ? Camera.Constants.Type.front
+    : Camera.Constants.Type.back);
+ };
+ 
 const uploadPhoto = async (uri) => {
   const response = await fetch(uri);
   const blob = await response.blob();
@@ -69,32 +86,34 @@ const CustomInputToolbar = (props) => {
    );
  };
  
- useEffect(() => {
-  const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
-  const messagesQuery = query(messagesCollection, orderBy('createdAt'));
+ useFocusEffect(
+  React.useCallback(() => {
+    const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
+    const messagesQuery = query(messagesCollection, orderBy('createdAt'));
  
-  const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-    const newMessages = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        _id: doc.id,
-        text: data.content,
-        createdAt: data.createdAt ? data.createdAt.toDate() : null,
-        user: {
-          _id: data.senderId,
-          name: data.user.name,
-        },
-        image: data.image, // Include the image field
-      };
+    const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+      const newMessages = snapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          _id: doc.id,
+          text: data.content,
+          createdAt: data.createdAt ? data.createdAt.toDate() : null,
+          user: {
+            _id: data.senderId,
+            name: data.user.name,
+          },
+          image: data.image, // Include the image field
+        };
+      });
+ 
+      setMessages(newMessages);
     });
  
-    setMessages(newMessages);
-  });
- 
-  return () => {
-    unsubscribe();
-  };
- }, [chatRoomID]); 
+    return () => {
+      unsubscribe();
+    };
+  }, [chatRoomID])
+ );
 
  useEffect(() => {
    (async () => {
@@ -103,6 +122,13 @@ const CustomInputToolbar = (props) => {
    })();
  }, []);
 
+ if (hasPermission === null) {
+  return <View />;
+  }
+  if (hasPermission === false) {
+  return <Text>No access to camera</Text>;
+  }
+  
  const onSend = async (newMessages = []) => {
    const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
 
@@ -149,63 +175,82 @@ const CustomInputToolbar = (props) => {
  
  return (
   <>
-    {showCamera ? (
- <View style={{ flex: 1, backgroundColor: 'black' }}>
-  <Camera style={{ flex: 1 }} type={type} ref={cameraRef}>
-     <TouchableOpacity
-       style={{
-         flex: 0.1,
-         alignSelf: 'flex-end',
-         alignItems: 'center',
-       }}
-       onPress={closeCamera}>
-       <Text style={{ fontSize: 18, marginBottom: 10, color: 'white' }}> {'Close Camera'} </Text>
-     </TouchableOpacity>
+    {showCamera && (
+      <View style={{ flex: 1 }}>
+        <Camera style={{ width: cardWidth, height: cardHeight }} type={type} ref={cameraRef}>
               <TouchableOpacity
-          style={{
-            width: 130,
-            borderRadius: 4,
-            backgroundColor: '#14274e',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: 40,
-            position: 'absolute',
-            bottom: 50,
-            alignSelf: 'center',
-          }}
-          onPress={!isCapturing ? sendPhoto : undefined}
-          >
-          <Text
+              style={{
+                position: 'absolute',
+                top: 10,
+                right: 15,
+                zIndex: 1,
+                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                borderRadius: 15,
+                padding: 10,
+              }}
+              onPress={closeCamera}>
+              <Icon name="times" size={30} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  left: 15,
+                  zIndex: 1,
+                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                  borderRadius: 15,
+                  padding: 10,
+                }}
+                onPress={flipCamera}>
+                <Icon name="exchange" size={30} color="white" />
+              </TouchableOpacity>
+          <TouchableOpacity
             style={{
-              color: '#fff',
-              fontWeight: 'bold',
-              textAlign: 'center',
-            }}>
-            Take picture
-          </Text>
+              position: 'absolute',
+              bottom: 50,
+              left: '40%',
+              borderWidth: 1,
+              borderColor: 'rgba(0,0,0,0.2)',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 80,
+              height: 80,
+              backgroundColor: '#fff',
+              borderRadius: 100,
+            }}
+            onPress={!isCapturing ? sendPhoto : undefined}>
+            <Text
+              style={{
+                color: '#fff',
+                fontWeight: 'bold',
+                textAlign: 'center',
+              }}>
+              Take picture
+            </Text>
           </TouchableOpacity>
         </Camera>
-   </View>
-) : null}
+      </View>
+    )}
     <StatusBar style="auto"></StatusBar>
-    <GiftedChat
-      messages={messages}
-      onSend={(newMessages) => onSend(newMessages)}
-      user={{
-        _id: auth.currentUser.uid,
-      }}
-      inverted={false}
-      renderBubble={(props) => {
-        if (props.currentMessage.image) {
-          return <BubbleImage {...props} />;
-        } else if (props.currentMessage.user._id === auth.currentUser.uid) {
-          return <BubbleRight {...props} />;
-        }
-        return <BubbleLeft {...props} />;
-       }}       
-      renderInputToolbar={(props) => <CustomInputToolbar {...props} />}
-      />
+{showChat && (
+ <GiftedChat
+   messages={messages}
+   onSend={(newMessages) => onSend(newMessages)}
+   user={{
+     _id: auth.currentUser.uid,
+   }}
+   inverted={false}
+   renderBubble={(props) => {
+     if (props.currentMessage.image) {
+       return <BubbleImage {...props} />;
+     } else if (props.currentMessage.user._id === auth.currentUser.uid) {
+       return <BubbleRight {...props} />;
+     }
+     return <BubbleLeft {...props} />;
+   }}
+   renderInputToolbar={(props) => <CustomInputToolbar {...props} />}
+ />
+)}
   </>
 );
     }
