@@ -2,9 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
+import { UseSelector, useDispatch, userDispatch } from 'react-redux';
 import * as Notifications from 'expo-notifications';
 
+import { setMatchesRedux } from 'redux/actions';
+
 const MatchesScreen = ({ navigation }) => {
+  
+  const dispatch = useDispatch();
+
   const [matches, setMatches] = useState([]);
 
   useEffect(() => {
@@ -29,7 +35,8 @@ const MatchesScreen = ({ navigation }) => {
         );
 
         setMatches(matchedUsers);
-        
+        dispatch(setMatchesRedux(matchedUsers));
+
         const notifications = matchedUsers.map((match) => {
           // Send a notification to the current user
           return fetch('https://exp.host/--/api/v2/push/send', {
@@ -47,7 +54,7 @@ const MatchesScreen = ({ navigation }) => {
             }),
           });
         });
-   
+
         await Promise.all(notifications);
       } catch (error) {
         console.error('Error fetching matches:', error);

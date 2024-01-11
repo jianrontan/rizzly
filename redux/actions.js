@@ -3,6 +3,7 @@ export const SET_INITIAL_ORIENTATION = 'SET_INITIAL_ORIENTATION'
 export const SET_CURRENT_IMAGE = 'SET_CURRENT_IMAGE';
 export const SET_INITIAL_IMAGE = 'SET_INITIAL_IMAGE';
 export const SET_HAS_UNSAVED_CHANGES_EXPORT = 'SET_HAS_UNSAVED_CHANGES_EXPORT';
+export const SET_MATCHES_REDUX = 'SET_MATCHES_REDUX';
 
 export const setCurrentOrientation = currentOrientationVal => {
   return dispatch => {
@@ -45,6 +46,15 @@ export const setHasUnsavedChangesExport = hasUnsavedChangesExportVal => {
     dispatch({
       type: SET_HAS_UNSAVED_CHANGES_EXPORT,
       payload: hasUnsavedChangesExportVal,
+    });
+  };
+};
+
+export const setMatchesRedux = matchesVal => {
+  return dispatch => {
+    dispatch({
+      type: SET_MATCHES_REDUX,
+      payload: matchesVal,
     });
   };
 };

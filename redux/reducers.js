@@ -1,4 +1,11 @@
-import { SET_CURRENT_ORIENTATION, SET_INITIAL_ORIENTATION, SET_CURRENT_IMAGE, SET_INITIAL_IMAGE, SET_HAS_UNSAVED_CHANGES_EXPORT } from "./actions";
+import {
+  SET_CURRENT_ORIENTATION,
+  SET_INITIAL_ORIENTATION,
+  SET_CURRENT_IMAGE,
+  SET_INITIAL_IMAGE,
+  SET_HAS_UNSAVED_CHANGES_EXPORT,
+  SET_MATCHES_REDUX,
+} from "./actions";
 
 const editProfileState = {
   currentOrientationVal: null,
@@ -6,6 +13,7 @@ const editProfileState = {
   currentImageVal: [],
   initialImageVal: [],
   hasUnsavedChangesExportVal: false,
+  matchesVal: [],
 }
 
 export function editProfileReducer(state = editProfileState, action) {
@@ -34,6 +42,11 @@ export function editProfileReducer(state = editProfileState, action) {
       return {
         ...state,
         hasUnsavedChangesExportVal: action.payload
+      }
+    case SET_MATCHES_REDUX:
+      return {
+        ...state,
+        matchesVal: action.payload
       }
     default:
       return state;
