@@ -4,6 +4,8 @@ import { Input } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { doc, addDoc, collection } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 
 import { COLORS, SIZES } from '../constants';
 
@@ -58,36 +60,51 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
     }
 
     createUserWithEmailAndPassword(auth, value.email, value.password)
-      .then((userCredential) => {
-        sendEmailVerification(userCredential.user)
-          .then(() => {
-            setValue({
-              ...value,
-              error: ''
-            });
-            Alert.alert(
-              'Alert',
-              'Please check your email to verify your account.',
-              [
-                {
-                  text: 'OK',
-                },
-              ],
-            )
-          })
-          .catch((error) => {
-            setValue({
-              ...value,
-              error: error.message
-            });
+    .then((userCredential) => {
+      // Send email verification
+      sendEmailVerification(userCredential.user)
+        .then(() => {
+          // Clear error message
+          setValue({
+            ...value,
+            error: ''
           });
-      })
-      .catch((error) => {
-        setValue({
-          ...value,
-          error: error.message
+          // Show alert
+          Alert.alert(
+            'Alert',
+            'Please check your email to verify your account.',
+            [
+              {
+                text: 'OK',
+              },
+            ],
+          )
+        })
+        .catch((error) => {
+          // Handle error
+          setValue({
+            ...value,
+            error: error.message
+          });
         });
+   
+      // Create a new document in the "emails" collection with the user's email
+      const emailsCollection = collection(db, 'emails');
+      addDoc(emailsCollection, { email: value.email })
+       .then((docRef) => {
+        console.log('Document written with ID: ', docRef.id);
+       })
+       .catch((error) => {
+        console.error('Error adding document: ', error);
+       });      
+    })
+    .catch((error) => {
+      // Handle error
+      setValue({
+        ...value,
+        error: error.message
       });
+    });   
   }
 
   return (

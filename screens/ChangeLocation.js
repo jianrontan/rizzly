@@ -69,7 +69,6 @@ const ChangeLocation = ({ navigation }) => {
           try {
             // Get place from coordinates
             const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
-            console.log(place);
             setNewPlace(place); // Update place state variable
   
             // Update newLocation with the obtained place

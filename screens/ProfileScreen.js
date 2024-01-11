@@ -234,9 +234,9 @@ export default function ProfileScreen({ navigation }) {
             alert('Permission to access location was denied');
             return;
         }
-    
+     
         let locationTask;
-    
+     
         try {
             locationTask = Location.watchPositionAsync(
                 {
@@ -244,43 +244,38 @@ export default function ProfileScreen({ navigation }) {
                     timeInterval: 1000,
                     distanceInterval: 1,
                 },
-                (location) => {
-                    console.log(location);
+                async (location) => {
                     setLocation(location);
-    
+     
                     // Get place from coordinates
-                    getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude)
-                        .then((place) => {
-                            console.log(place);
-                            setPlace(place); // Update place state variable
-    
-                            // Update user document with location information
-                            const userId = auth.currentUser.uid;
-                            const userDocRef = doc(db, 'profiles', userId);
-    
-                            // Update user document with location details
-                            updateDoc(userDocRef, {
-                                location: place,
-                                latitude: location.coords.latitude,
-                                longitude: location.coords.longitude,
-                            });
-                        })
-                        .catch((error) => console.warn(error));
+                    const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
+                    setPlace(place); // Update place state variable
+     
+                    // Update user document with location information
+                    const userId = auth.currentUser.uid;
+                    const userDocRef = doc(db, 'profiles', userId);
+     
+                    // Update user document with location details
+                    updateDoc(userDocRef, {
+                       location: place,
+                       latitude: location.coords.latitude,
+                       longitude: location.coords.longitude,
+                    });
                 }
             );
         } catch (error) {
             console.error('Error starting location task:', error);
             // Handle error as needed
         }
-    
+     
         // Stop tracking location after the first update
         setTimeout(() => {
             if (locationTask && locationTask.remove) {
                 locationTask.remove();
             }
         }, 1000); // Stop after 1 seconds (adjust as needed)
-    };
-    
+     };
+     
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen
     const handleSubmit = async () => {

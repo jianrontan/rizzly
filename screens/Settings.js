@@ -81,6 +81,11 @@ export default function SettingsScreen({ navigation }) {
     const Contact = () => {
         navigation.navigate('Contact')
     }
+
+	const BlockList = () => {
+		navigation.navigate('BlockList')
+	}
+
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
 			<ScrollView showsVerticalScrollIndicator={false}>
@@ -134,6 +139,15 @@ export default function SettingsScreen({ navigation }) {
                     <TouchableOpacity onPress={Contact}>
                     <View style={styles.settingView}>
                         <Text style={styles.settingText}>Contact Us</Text>
+                    </View>
+                    </TouchableOpacity>
+                    <View style={styles.borderLine}></View>
+                </View>
+
+				<View style={{ flex: 1 }}>
+                    <TouchableOpacity onPress={BlockList}>
+                    <View style={styles.settingView}>
+                        <Text style={styles.settingText}>Blocked List</Text>
                     </View>
                     </TouchableOpacity>
                     <View style={styles.borderLine}></View>

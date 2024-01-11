@@ -19,6 +19,7 @@ import ChangeLocation from '../screens/ChangeLocation';
 import PauseProfile from '../screens/PauseProfile'
 import DeleteAccount from '../screens/DeleteAccount'
 import Contact from '../screens/Contact'
+import BlockList from '../screens/BlockList';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
@@ -201,6 +202,7 @@ export default function DrawerStack() {
                 <Stack.Screen name="PauseProfile" component={PauseProfile}/>
                 <Stack.Screen name="DeleteAccount" component={DeleteAccount} />
                 <Stack.Screen name="Contact" component={Contact} />
+                <Stack.Screen name="BlockList" component={BlockList}/>
             </Stack.Navigator>
         );
     };

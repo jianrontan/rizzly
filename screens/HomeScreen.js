@@ -35,6 +35,7 @@ const HomeScreen = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0)
     const [paused, setPaused] = useState(false);
+    const [blockedIDs, setBlockedIDs] = useState([]);
 
     function toRadians(degrees) {
         return degrees * Math.PI / 180;
@@ -68,9 +69,11 @@ const HomeScreen = () => {
       try {
         const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
         const currentUserDoc = await getDoc(currentUserDocRef);
-     
+        let blockedIDs = [];
+
         if (currentUserDoc.exists()) {
           const userData = currentUserDoc.data();
+          blockedIDs = userData.blockedIDs || [];
      
           // Check if the pausedUser field is true
           const isUserPaused = userData.pausedUser === true;
@@ -81,6 +84,7 @@ const HomeScreen = () => {
           // Set other user data
           setCurrentUserData(userData);
         }
+        setBlockedIDs(blockedIDs);
       } catch (error) {
         console.error('Error fetching current user data:', error);
       }
@@ -113,46 +117,51 @@ const HomeScreen = () => {
                     // Handle the case where currentUserData is null
                     return;
                 }
-    
+     
                 const usersCollection = collection(db, 'profiles');
                 const snapshot = await getDocs(usersCollection);
                 let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    
+     
                 // Filter users based on gender and current user's orientation
                 let filteredUsers = usersData.filter((user) => {
                     const userGender = user.gender?.toLowerCase?.();
-    
+     
                     if (currentUserData.orientation) {
-                        const { male, female, nonBinary } = currentUserData.orientation;
-    
-                        if (userGender === 'female' && female) {
-                            return true;
-                        } else if (userGender === 'male' && male) {
-                            return true;
-                        } else if (userGender === 'nonbinary' && nonBinary) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                       const { male, female, nonBinary } = currentUserData.orientation;
+     
+                       if (userGender === 'female' && female) {
+                           return true;
+                       } else if (userGender === 'male' && male) {
+                           return true;
+                       } else if (userGender === 'nonbinary' && nonBinary) {
+                           return true;
+                       } else {
+                           return false;
+                       }
                     }
-    
+     
                     return true;
                 });
-    
+     
                 // Exclude the current user and swiped up users from the list
                 filteredUsers = filteredUsers.filter(
-                    (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id)
+                    (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
                 );
-    
+     
+                // Exclude users who have blocked the current user
+                filteredUsers = filteredUsers.filter(
+                    (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
+                );
+     
                 // Always include the "No More Users" item at the end of the users array
                 setUsers([...filteredUsers]);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         };
-    
+     
         fetchData();
-    }, [currentUserData, swipedUpUsers]);    
+     }, [currentUserData, swipedUpUsers]);       
 
     const handleLikeClick = async (likedUserId) => {
         try {
