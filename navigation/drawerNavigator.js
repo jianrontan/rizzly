@@ -5,15 +5,18 @@ import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
 import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../screens/Settings';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import ViewProfile from '../screens/ViewProfile';
 import Orientation from '../screens/Orientation';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
@@ -22,6 +25,7 @@ import { FONT, icons } from '../constants';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 const auth = getAuth();
 
 export default function DrawerStack() {
@@ -160,6 +164,41 @@ export default function DrawerStack() {
         );
     }
 
+    const EditProfileStack = () => {
+        return (
+            <Tab.Navigator
+                initialRouteName="Edit Profile Screen"
+            >
+                <Tab.Screen
+                    name="Edit Profile Screen"
+                    component={EditProfileScreen}
+                    options={{
+                        headerShown: false,
+                        tabBarIcon: ({ color, size }) => (
+                            <MaterialCommunityIcons name="lead-pencil" color={color} size={size} />
+                        ),
+                        tabBarLabel: 'Edit',
+                        tabBarLabelStyle: appStyles.bottomTabLabel,
+                        tabBarActiveTintColor: '#824444',
+                    }}
+                />
+                <Tab.Screen
+                    name="View Profile"
+                    component={ViewProfile}
+                    options={{
+                        headerShown: false,
+                        tabBarIcon: ({ color, size }) => (
+                            <MaterialCommunityIcons name="eye" color={color} size={size} />
+                        ),
+                        tabBarLabel: 'View',
+                        tabBarLabelStyle: appStyles.bottomTabLabel,
+                        tabBarActiveTintColor: '#824444',
+                    }}
+                />
+            </Tab.Navigator>
+        )
+    }
+
     const SettingsStack = () => {
         return (
             <Stack.Navigator
@@ -240,7 +279,7 @@ export default function DrawerStack() {
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-                <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
+                <Drawer.Screen name="Edit Profile" component={EditProfileStack} />
                 <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
             </Drawer.Navigator>
         </NavigationContainer>

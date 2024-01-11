@@ -12,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
 
 import { setHasUnsavedChangesExport } from '../redux/actions';
-import { COLORS, SIZES, FONT } from '../constants';
+import { COLORS, SIZES, FONT, icons } from '../constants';
 
 export default function EditProfileScreen({ navigation }) {
 
@@ -185,16 +185,29 @@ export default function EditProfileScreen({ navigation }) {
                         justifyContent: 'center',
                     }}
                 >
-                    <View style={{ marginTop: 50 }}>
+                    <View style={{ marginTop: 50, position: 'relative' }}>
+                        <TouchableOpacity
+                            onPress={() => removeImage(item.id)}
+                            style={{
+                                position: 'absolute',
+                                right: -5,
+                                top: -5,
+                                backgroundColor: 'gray',
+                                width: 21,
+                                height: 21,
+                                borderRadius: 15,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                zIndex: 1,
+                            }}>
+                            <Image source={icons.cross} style={{ width: 15, height: 15, }}></Image>
+                        </TouchableOpacity>
                         <TouchableOpacity onLongPress={drag}>
-                            <Image key={index} source={{ uri: item.uri }} style={{ width: 150, height: 200 }} />
+                            <Image key={index} source={{ uri: item.uri }} style={{ width: 165, height: 220, borderRadius: 5, borderWidth: 1, borderColor: 'gray' }} />
                         </TouchableOpacity>
                     </View>
                 </View>
-                <View style={{ flex: 1, marginTop: 35, alignItems: 'center', justifyContent: 'center' }}>
-                    <TouchableOpacity onPress={() => removeImage(item.id)} style={{ borderWidth: 1 }}>
-                        <Text>Remove</Text>
-                    </TouchableOpacity>
+                <View style={{ flex: 1, marginTop: 50, alignItems: 'center', justifyContent: 'center' }}>
                 </View>
             </GestureHandlerRootView>
         );
@@ -353,11 +366,15 @@ export default function EditProfileScreen({ navigation }) {
                         extraData={refreshKey}
                         ListHeaderComponent={
                             <>
+                                <View style={{ padding: 10 }}>
+                                    <Text style={styles.heading}>My photos</Text>
+                                </View>
+                                <View style={styles.borderLine}></View>
                                 <View style={styles.container}>
                                     {/* Image */}
-                                    <View>
+                                    <View style={{ padding: 10 }}>
                                         <TouchableOpacity onPress={handleImage}>
-                                            <Text style={styles.textStyle2}>Upload Image</Text>
+                                            <Text style={styles.textStyle2}>Upload Images</Text>
                                         </TouchableOpacity>
                                     </View>
                                 </View>
@@ -365,7 +382,11 @@ export default function EditProfileScreen({ navigation }) {
                         }
                         ListFooterComponent={
                             <>
-                                <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 50 }}>
+                                <View style={{ padding: 10 }}>
+                                    <Text style={styles.heading}>About me</Text>
+                                </View>
+                                <View style={styles.borderLine}></View>
+                                <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 20 }}>
                                     {/* Bio */}
                                     <View style={{ paddingBottom: 20 }}>
                                         <Text>Bio:</Text>
@@ -384,7 +405,6 @@ export default function EditProfileScreen({ navigation }) {
                                             }}
                                         />
                                     </View>
-                                    {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
                                     {/* Prompt 1 */}
                                     <View style={{ paddingBottom: 20 }}>
                                         <Text>Prompt 1:</Text>
@@ -403,7 +423,6 @@ export default function EditProfileScreen({ navigation }) {
                                             }}
                                         />
                                     </View>
-                                    {!!error && <Text style={{ color: '#cf0202' }}>{error}</Text>}
                                     {/* Prompt 2 */}
                                     <View style={{ paddingBottom: 20 }}>
                                         <Text>Prompt 2:</Text>
@@ -469,5 +488,13 @@ const styles = StyleSheet.create({
         fontFamily: FONT.medium,
         fontSize: SIZES.smallmedium,
         color: 'black',
+    },
+    heading: {
+        fontFamily: FONT.bold,
+        color: 'gray'
+    },
+    borderLine: {
+        borderBottomColor: "gray",
+        borderBottomWidth: 1,
     },
 });
