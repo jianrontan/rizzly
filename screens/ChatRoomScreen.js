@@ -23,7 +23,7 @@ const cardWidth = width;
 const cardHeight = height - 170;
 
 const ChatRoom = ({ route }) => {
- const { chatRoomID, userId, userName } = route.params;
+ const { chatRoomID, userId, userName, navigation } = route.params;
  const [messages, setMessages] = useState([]);
  const [hasPermission, setHasPermission] = useState(null);
  const [type, setType] = useState(Camera.Constants.Type.back);
@@ -31,6 +31,10 @@ const ChatRoom = ({ route }) => {
  const [showCamera, setShowCamera] = useState(false);
  const [isCapturing, setIsCapturing] = useState(false);
  const [showChat, setShowChat] = useState(true);
+
+ const goToReport = () => {
+  navigation.navigate('Report');
+  };
 
  const openCamera = () => {
   setShowCamera(!showCamera);
