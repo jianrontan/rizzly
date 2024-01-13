@@ -217,9 +217,9 @@ const HomeScreen = () => {
                 </View>
             );
         }
-
+    
         const allImages = user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
-
+    
         return (
             <Swipeable onSwipeableRightComplete={() => handleDislikeClick(user.id)}>
                 <View style={styles.cardContainer}>
@@ -280,7 +280,7 @@ const HomeScreen = () => {
                 </View>
             </Swipeable>
         );
-    };
+    };    
 
     return (
         <SafeAreaView style={styles.container}>

@@ -66,6 +66,7 @@ const uploadPhoto = async (uri) => {
       'state_changed',
       (snapshot) => {},
       (error) => {
+        console.error('Error uploading photo', error)
         reject(error);
       },
       () => {
@@ -75,7 +76,9 @@ const uploadPhoto = async (uri) => {
       }
     );
   });
+  
  };
+
  
 
 const CustomInputToolbar = (props) => {
@@ -133,23 +136,48 @@ const CustomInputToolbar = (props) => {
   return <Text>No access to camera</Text>;
   }
   
- const onSend = async (newMessages = []) => {
-   const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
-
-   newMessages.forEach(async (message) => {
-     await addDoc(messagesCollection, {
-       content: message.text,
-       createdAt: serverTimestamp(),
-       senderId: auth.currentUser.uid,
-       user: {
-         name: auth.currentUser.displayName,
-       },
-       // Add the current timestamp when the message is sent
-       timestamp: new Date(),
-     });
-   });
- };
-
+  const sendTextMessage = async (text) => {
+    const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
+  
+    await addDoc(messagesCollection, {
+      content: text,
+      createdAt: serverTimestamp(),
+      senderId: auth.currentUser.uid,
+      user: {
+        name: auth.currentUser.displayName,
+      },
+      timestamp: new Date(),
+    });
+  };
+  
+  const sendImageMessage = async (imageUrl) => {
+    const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
+  
+    await addDoc(messagesCollection, {
+      image: imageUrl,
+      createdAt: serverTimestamp(),
+      senderId: auth.currentUser.uid,
+      user: {
+        name: auth.currentUser.displayName,
+      },
+      timestamp: new Date(),
+    });
+  };
+  
+  const onSend = async (newMessages = []) => {
+    newMessages.forEach(async (message) => {
+      if (message.text) {
+        await sendTextMessage(message.text);
+      } else if (message.image) {
+        await sendImageMessage(message.image);
+      }
+    });
+  
+    // Clear the text input
+    // Assuming you are using the default gifted-chat component, you can do:
+    setMessages((previousMessages) => GiftedChat.append(previousMessages, []));
+  };
+  
  const capturePhoto = async () => {
   if (cameraRef.current && !isCapturing) {
     setIsCapturing(true);
