@@ -41,9 +41,9 @@ const BlockList = () => {
   
     // Check if the entered email is the current user's email
     if (email === auth.currentUser.email) {
-      console.log("Cannot block your own email");
+      Alert.alert("Cannot block your own email");
       return;
-    }
+     }     
   
     // Add the blocked email to the 'blocked' array in the user's document
     const userRef = doc(db, 'profiles', auth.currentUser.uid);

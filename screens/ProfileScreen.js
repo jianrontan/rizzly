@@ -240,7 +240,7 @@ export default function ProfileScreen({ navigation }) {
         try {
             locationTask = Location.watchPositionAsync(
                 {
-                    accuracy: Location.Accuracy.BestForNavigation,
+                    accuracy: Location.Accuracy.High,
                     timeInterval: 1000,
                     distanceInterval: 1,
                 },
@@ -300,6 +300,7 @@ export default function ProfileScreen({ navigation }) {
                     bio: bio,
                     location: place, 
                     complete: true,
+                    age: age,
                 });
                 navigation.navigate('App');
             } catch (e) {

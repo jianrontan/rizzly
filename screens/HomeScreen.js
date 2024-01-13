@@ -18,7 +18,7 @@ import Swiper from 'react-native-swiper';
 import { Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
-
+import { haversineDistance } from '../screens/haversine';
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
@@ -36,34 +36,6 @@ const HomeScreen = () => {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [paused, setPaused] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
-
-    function toRadians(degrees) {
-        return degrees * Math.PI / 180;
-    }
-
-    function haversineDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Radius of the Earth in kilometers
-        const dLat = toRadians(lat2 - lat1);
-        const dLon = toRadians(lon2 - lon1);
-
-        const a =
-            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        let distance = R * c; // Distance in kilometers
-
-        // Round to the nearest 0.1 km
-        distance = Math.round(distance * 10) / 10;
-
-        // If distance is 0, return '<1 km'
-        if (distance <= 1) {
-            return '<1';
-        }
-
-        return distance;
-    }
 
     const fetchCurrentUser = async () => {
       try {
@@ -293,7 +265,9 @@ const HomeScreen = () => {
                                         <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
                                         <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
                                         <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
-                                        <Text style={styles.modalinfo}>Distance: ~{haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)}km</Text>
+                                        <Text style={styles.modalinfo}>
+                                        Distance: ~{currentUserData && selectedUser && haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)}km
+                                        </Text>
                                     </>
                                 )}
                                 <Button title="Close Modal" onPress={() => {

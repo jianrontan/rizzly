@@ -4,7 +4,8 @@ export const SET_CURRENT_IMAGE = 'SET_CURRENT_IMAGE';
 export const SET_INITIAL_IMAGE = 'SET_INITIAL_IMAGE';
 export const SET_HAS_UNSAVED_CHANGES_EXPORT = 'SET_HAS_UNSAVED_CHANGES_EXPORT';
 export const SET_MATCHES_REDUX = 'SET_MATCHES_REDUX';
-
+export const SET_LIKES = 'SET_LIKES';
+export const SET_MATCHES_COUNT = 'SET_MATCHES_COUNT';
 export const setCurrentOrientation = currentOrientationVal => {
   return dispatch => {
     dispatch({
@@ -58,3 +59,21 @@ export const setMatchesRedux = matchesVal => {
     });
   };
 };
+
+export const setLikes = likesVal => { 
+  return dispatch => { 
+    dispatch({ 
+      type: SET_LIKES, 
+      payload: likesVal, 
+    })
+  }
+}
+
+export const setMatchesCount = countVal => { 
+  return dispatch => { 
+    dispatch({ 
+      type: SET_MATCHES_COUNT, 
+      payload: countVal, 
+    })
+  }
+}

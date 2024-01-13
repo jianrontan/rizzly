@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useSelector } from 'react-redux';
 
 import Home from "../screens/HomeScreen";
 import ChatStack from "./chatNavigator";
@@ -13,6 +14,8 @@ import appStyles from "../components/app/app.style"
 const Tab = createBottomTabNavigator();
 
 export default function BottomTabStack({ navigation }) {
+    const likesCount = useSelector(state => state.editProfileReducer.likesVal);
+    const matchesCount = useSelector(state => state.editProfileReducer.countVal)
     return (
         <Tab.Navigator
             initialRouteName='Home'
@@ -44,23 +47,29 @@ export default function BottomTabStack({ navigation }) {
                 }}
             />
             <Tab.Screen
-                name="Likes"
-                component={LikesScreen}
-                options={{
+                    name="Likes"
+                    component={LikesScreen}
+                    options={{
                     tabBarIcon: ({ color, size }) => (
+                        <View style={{ flexDirection: 'column', alignItems: 'center' }}>
                         <MaterialCommunityIcons name="heart" color={color} size={size} />
+                        <Text>{likesCount}</Text>
+                        </View>
                     ),
                     tabBarLabel: 'Likes',
                     tabBarLabelStyle: appStyles.bottomTabLabel,
                     tabBarActiveTintColor: '#824444',
-                }}
+                    }}
             />
             <Tab.Screen
                 name="Chats"
                 component={ChatStack}
                 options={{
                     tabBarIcon: ({ color, size }) => (
+                        <View style={{ flexDirection: 'column', alignItems: 'center' }}>
                         <MaterialCommunityIcons name="chat" color={color} size={size} />
+                        <Text>{matchesCount}</Text>
+                        </View>
                     ),
                     tabBarLabel: 'Chats',
                     tabBarLabelStyle: appStyles.bottomTabLabel,

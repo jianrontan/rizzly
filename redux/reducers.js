@@ -5,6 +5,8 @@ import {
   SET_INITIAL_IMAGE,
   SET_HAS_UNSAVED_CHANGES_EXPORT,
   SET_MATCHES_REDUX,
+  SET_LIKES,
+  SET_MATCHES_COUNT,
 } from "./actions";
 
 const editProfileState = {
@@ -14,6 +16,8 @@ const editProfileState = {
   initialImageVal: [],
   hasUnsavedChangesExportVal: false,
   matchesVal: [],
+  likesVal: 0, 
+  countVal: 0, 
 }
 
 export function editProfileReducer(state = editProfileState, action) {
@@ -47,7 +51,17 @@ export function editProfileReducer(state = editProfileState, action) {
       return {
         ...state,
         matchesVal: action.payload
-      }
+      } 
+    case SET_LIKES:
+      return {
+        ...state,
+        likesVal: action.payload
+      } 
+    case SET_MATCHES_COUNT:
+      return {
+        ...state,
+        countVal: action.payload
+      } 
     default:
       return state;
   }

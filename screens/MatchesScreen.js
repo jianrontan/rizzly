@@ -5,8 +5,8 @@ import { db, auth } from '../firebase/firebase';
 import { UseSelector, useDispatch, userDispatch } from 'react-redux';
 import * as Notifications from 'expo-notifications';
 
-import { setMatchesRedux } from 'redux/actions';
-
+import { setMatchesRedux } from '../redux/actions';
+import { setMatchesCount } from '../redux/actions';
 const MatchesScreen = ({ navigation }) => {
   
   const dispatch = useDispatch();
@@ -36,6 +36,7 @@ const MatchesScreen = ({ navigation }) => {
 
         setMatches(matchedUsers);
         dispatch(setMatchesRedux(matchedUsers));
+        dispatch(setMatchesCount(matchedUsers.length));
 
         const notifications = matchedUsers.map((match) => {
           // Send a notification to the current user
@@ -85,7 +86,7 @@ const MatchesScreen = ({ navigation }) => {
             source={{ uri: match.imageURLs && match.imageURLs.length > 0 ? match.imageURLs[0] : null }}
             style={styles.avatar}
           />
-          <Text>Name: {match.name}</Text>
+          <Text>{match.name}</Text>
         </TouchableOpacity>
       ))}
     </View>

@@ -55,9 +55,9 @@ const ChangeLocation = ({ navigation }) => {
       alert('Permission to access location was denied');
       return;
     }
-  
+   
     let locationTask;
-  
+   
     try {
       locationTask = Location.watchPositionAsync(
         {
@@ -70,7 +70,7 @@ const ChangeLocation = ({ navigation }) => {
             // Get place from coordinates
             const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
             setNewPlace(place); // Update place state variable
-  
+   
             // Update newLocation with the obtained place
             setNewLocation(place);
           } catch (error) {
@@ -78,20 +78,20 @@ const ChangeLocation = ({ navigation }) => {
           }
         }
       );
-  
+   
       // Ensure that locationTask has the remove method before calling it
-      if (locationTask && locationTask.remove) {
+      if (locationTask && typeof locationTask.remove === 'function') {
         // Stop tracking location after the first update
         setTimeout(() => {
           locationTask.remove();
-        }, 1000); // Stop after 5 seconds (adjust as needed)
+        }, 1000); // Stop after 1 seconds (adjust as needed)
       } else {
         console.warn('locationTask is not properly initialized or does not have a remove method.');
-      }
+      }      
     } catch (error) {
       console.warn('Error starting location tracking:', error);
     }
-  };  
+   };    
   
   const handleChangeLocation = () => {
     Alert.alert(
@@ -127,7 +127,6 @@ const ChangeLocation = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text>Current Location: {initialLocation}</Text>
-      <Text>Enter new location:</Text>
       <TextInput
         style={styles.input}
         value={newLocation}

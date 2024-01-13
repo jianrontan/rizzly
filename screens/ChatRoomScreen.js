@@ -161,12 +161,12 @@ const CustomInputToolbar = (props) => {
 
  const sendPhoto = async () => {
   const photoUri = await capturePhoto();
-  const imageUrl = await uploadPhoto(photoUri); // Get the image URL from the upload function
-  
+  const imageUrl = await uploadPhoto(photoUri);
+
   const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
-  
+
   await addDoc(messagesCollection, {
-    image: imageUrl, // Save the image URL in Firestore
+    image: imageUrl,
     createdAt: serverTimestamp(),
     senderId: auth.currentUser.uid,
     user: {
@@ -174,8 +174,10 @@ const CustomInputToolbar = (props) => {
     },
     timestamp: new Date(),
   });
- };
- 
+
+  // Close the camera after sending the photo
+  closeCamera();
+};
  
  return (
   <>
