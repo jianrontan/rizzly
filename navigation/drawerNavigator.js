@@ -20,6 +20,7 @@ import ViewProfile from '../screens/ViewProfile';
 import Orientation from '../screens/Orientation';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
+import EditProfileStack from './editProfileNavigator';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
 
@@ -164,14 +165,40 @@ export default function DrawerStack() {
         );
     }
 
-    const EditProfileStack = () => {
+    const EditProfileNavigator = () => {
         return (
             <Tab.Navigator
-                initialRouteName="Edit Profile Screen"
+                initialRouteName="Edit Profile Navigator"
+                backBehavior="initialRoute"
+                screenOptions={({ route }) => ({
+                    headerTitle: "View Profile",
+                    headerTitleAlign: 'center',
+                    headerShadowVisible: 'true',
+                    headerTitleStyle: appStyles.headerFont,
+                    headerLeft: () => {
+                        const navigation = useNavigation();
+                        return (
+                            <View style={appStyles.buttonPadding}>
+                                <ScreenHeaderBtn
+                                    iconUrl={icons.left}
+                                    dimension='60%'
+                                    title='goBack'
+                                    onPress={() => {
+                                        if (navigation.canGoBack()) {
+                                            navigation.goBack();
+                                        } else {
+                                            navigation.navigate('App');
+                                        }
+                                    }}
+                                />
+                            </View>
+                        )
+                    },
+                })}
             >
                 <Tab.Screen
-                    name="Edit Profile Screen"
-                    component={EditProfileScreen}
+                    name="Edit Profile Navigator"
+                    component={EditProfileStack}
                     options={{
                         headerShown: false,
                         tabBarIcon: ({ color, size }) => (
@@ -186,7 +213,6 @@ export default function DrawerStack() {
                     name="View Profile"
                     component={ViewProfile}
                     options={{
-                        headerShown: false,
                         tabBarIcon: ({ color, size }) => (
                             <MaterialCommunityIcons name="eye" color={color} size={size} />
                         ),
@@ -203,7 +229,7 @@ export default function DrawerStack() {
         return (
             <Stack.Navigator
                 initialRouteName="Edit Settings"
-                backBehavior='initialRoute'
+                backBehavior="initialRoute"
                 screenOptions={({ route }) => ({
                     headerTitle: route.name,
                     headerTitleAlign: 'center',
@@ -266,7 +292,7 @@ export default function DrawerStack() {
                         const navigation = useNavigation();
                         return (
                             <View style={appStyles.buttonPadding}>
-                                <DrawerBackBtn
+                                <ScreenHeaderBtn
                                     iconUrl={icons.left}
                                     dimension='60%'
                                     title='goBack'
@@ -279,7 +305,7 @@ export default function DrawerStack() {
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-                <Drawer.Screen name="Edit Profile" component={EditProfileStack} />
+                <Drawer.Screen name="Edit Profile" component={EditProfileNavigator} options={{ headerShown: false }} />
                 <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
             </Drawer.Navigator>
         </NavigationContainer>

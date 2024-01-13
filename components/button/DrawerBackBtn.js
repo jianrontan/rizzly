@@ -4,22 +4,29 @@ import { useNavigation, CommonActions } from '@react-navigation/native'
 import { useSelector, useDispatch } from 'react-redux'
 import { TouchableOpacity, Image } from 'react-native'
 
-import { setHasUnsavedChangesExport } from '../../redux/actions'
+import { setHasUnsavedChangesExport, setViewProfileChanges, setAboutMeChanges } from '../../redux/actions'
 import styles from './screenheader.style'
 
 const DrawerBackBtn = ({ iconUrl, dimension, onPress }) => {
 	const navigation = useNavigation();
 	const dispatch = useDispatch();
 
-	const hasUnsavedChangesExportVal = useSelector(state => state.editProfileReducer.hasUnsavedChangesExportVal);
-	const hasUnsavedChangesExportRef = useRef(false);
+	const aboutMeChangesVal = useSelector(state => state.editProfileReducer.aboutMeChangesVal);
+	const aboutMeChangesRef = useRef(false);
+
+	const viewProfileChangesVal = useSelector(state => state.editProfileReducer.viewProfileChangesVal);
+	const viewProfileChangesRef = useRef(false);
 
 	useEffect(() => {
-		hasUnsavedChangesExportRef.current = hasUnsavedChangesExportVal;
-	}, [hasUnsavedChangesExportVal]);
+		aboutMeChangesRef.current = aboutMeChangesVal;
+	}, [aboutMeChangesVal]);
+
+	useEffect(() => {
+		viewProfileChangesRef.current = viewProfileChangesVal;
+	}, [viewProfileChangesVal]);
 
 	const handlePress = () => {
-		if (hasUnsavedChangesExportRef.current) {
+		if (viewProfileChangesRef.current || aboutMeChangesRef.current) {
 			Alert.alert("Discard changes?", "You have unsaved changes. Are you sure you want to discard them?", [
 				{ text: "Don't leave", style: 'cancel', onPress: () => { } },
 				{
@@ -27,17 +34,18 @@ const DrawerBackBtn = ({ iconUrl, dimension, onPress }) => {
 					style: 'destructive',
 					onPress: () => {
 						dispatch(setHasUnsavedChangesExport(false));
+						dispatch(setViewProfileChanges(false));
 						navigation.dispatch(
 							CommonActions.reset({
 								index: 0,
-								routes: [{ name: 'App' }],
+								routes: [{ name: 'Edit Profile' }],
 							})
 						);
 					},
 				},
 			]);
 		} else {
-			navigation.navigate('App');
+			navigation.navigate('Edit Profile');
 		}
 	};
 
