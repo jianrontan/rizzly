@@ -6,6 +6,7 @@ export const SET_HAS_UNSAVED_CHANGES_EXPORT = 'SET_HAS_UNSAVED_CHANGES_EXPORT';
 export const SET_MATCHES_REDUX = 'SET_MATCHES_REDUX';
 export const SET_LIKES = 'SET_LIKES';
 export const SET_MATCHES_COUNT = 'SET_MATCHES_COUNT';
+export const SET_UNREAD_CHATS = 'SET_UNREAD_CHATS'
 export const setCurrentOrientation = currentOrientationVal => {
   return dispatch => {
     dispatch({
@@ -74,6 +75,14 @@ export const setMatchesCount = countVal => {
     dispatch({ 
       type: SET_MATCHES_COUNT, 
       payload: countVal, 
+    })
+  }
+}
+export const setHasUnreadChats = hasUnreadChats => { 
+  return dispatch => { 
+    dispatch({ 
+      type: SET_UNREAD_CHATS, 
+      payload: hasUnreadChats, 
     })
   }
 }

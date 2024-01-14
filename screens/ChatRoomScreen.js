@@ -15,8 +15,12 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import * as FileSystem from 'expo-file-system';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Composer, Send } from 'react-native-gifted-chat';
-import { StatusBar } from 'expo-status-bar'
+import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { doc, updateDoc, setDoc } from 'firebase/firestore';
+
+import { setHasUnreadChats } from '../redux/actions'; 
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
@@ -31,6 +35,7 @@ const ChatRoom = ({ route }) => {
  const [showCamera, setShowCamera] = useState(false);
  const [isCapturing, setIsCapturing] = useState(false);
  const [showChat, setShowChat] = useState(true);
+ const dispatch = useDispatch();
 
  const goToReport = () => {
   navigation.navigate('Report');
@@ -77,9 +82,7 @@ const uploadPhoto = async (uri) => {
     );
   });
   
- };
-
- 
+ }; 
 
 const CustomInputToolbar = (props) => {
    return (
@@ -110,31 +113,37 @@ const CustomInputToolbar = (props) => {
             name: data.user.name,
           },
           image: data.image, // Include the image field
+          read: data.read, // Include the read field
         };
       });
  
       setMessages(newMessages);
+
+     // Check for unread messages and dispatch the action
+     const hasUnread = newMessages.some(
+       (message) => message.user._id !== auth.currentUser.uid && !message.read
+     );
+
+     dispatch(setHasUnreadChats(hasUnread));
     });
  
     return () => {
       unsubscribe();
     };
-  }, [chatRoomID])
+  }, [chatRoomID, dispatch])
  );
 
  useEffect(() => {
    (async () => {
     const { status } = await Camera.requestCameraPermissionsAsync();
+if (status === 'denied') {
+      // Handle the case where permission has been denied
+      alert('Permission to access camera was denied.');
+    } else {
      setHasPermission(status === 'granted');
+}
    })();
  }, []);
-
- if (hasPermission === null) {
-  return <View />;
-  }
-  if (hasPermission === false) {
-  return <Text>No access to camera</Text>;
-  }
   
   const sendTextMessage = async (text) => {
     const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
@@ -147,6 +156,7 @@ const CustomInputToolbar = (props) => {
         name: auth.currentUser.displayName,
       },
       timestamp: new Date(),
+      read: false, 
     });
   };
   
@@ -161,6 +171,7 @@ const CustomInputToolbar = (props) => {
         name: auth.currentUser.displayName,
       },
       timestamp: new Date(),
+      read: false, 
     });
   };
   
