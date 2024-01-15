@@ -19,83 +19,88 @@ const Stack = createNativeStackNavigator();
 const auth = getAuth();
 
 export default function AuthStack() {
-    // State variable appIsReady tracks when app is ready to render
-    const [appIsReady, setAppIsReady] = useState(false);
-    const [loading, setLoading] = useState(true);
+   const [appIsReady, setAppIsReady] = useState(false);
+   const [loading, setLoading] = useState(true);
+   const [user, setUser] = useState(null);
 
-    // Load fonts
-    const [fontsLoaded] = useFonts({
-        MontBold: require('../assets/fonts/Montserrat-Bold.ttf'),
-        MontMed: require('../assets/fonts/Montserrat-Medium.ttf'),
-        MontReg: require('../assets/fonts/Montserrat-Regular.ttf'),
-    });
+   const [fontsLoaded] = useFonts({
+       MontBold: require('../assets/fonts/Montserrat-Bold.ttf'),
+       MontMed: require('../assets/fonts/Montserrat-Medium.ttf'),
+       MontReg: require('../assets/fonts/Montserrat-Regular.ttf'),
+   });
 
-    // useEffect hook calls prepare function
-    useEffect(() => {
-        async function prepare() {
-            try {
-                await SplashScreen.preventAutoHideAsync();
-            } catch (error) {
-                console.warn(error);
-            } finally {
-                setAppIsReady(true);
-    
-                if (fontsLoaded) {
-                    await SplashScreen.hideAsync();
-                }
-            }
-        }
-        prepare();
-    }, [fontsLoaded]);
+   useEffect(() => {
+       async function prepare() {
+           try {
+               await SplashScreen.preventAutoHideAsync();
+           } catch (error) {
+               console.warn(error);
+           } finally {
+               setAppIsReady(true);
+   
+               if (fontsLoaded) {
+                  await SplashScreen.hideAsync();
+               }
+           }
+       }
+       prepare();
+   }, [fontsLoaded]);
 
-    // useCallback creates a memoized callback onLayoutRootView that only changes appIsReady / fontsLoaded changes
-    const onLayoutRootView = useCallback(async () => {
-        if (appIsReady && fontsLoaded) {
-            await SplashScreen.hideAsync();
-        }
-    }, [appIsReady, fontsLoaded]);
+   const onLayoutRootView = useCallback(async () => {
+       if (appIsReady && fontsLoaded) {
+           await SplashScreen.hideAsync();
+       }
+   }, [appIsReady, fontsLoaded]);
 
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user) {
-                setLoading(false);
-            } else {
-                setLoading(false);
-            }
-        });
-        return() => unsubscribe
-    }, []);
+   useEffect(() => {
+       const unsubscribe = auth.onAuthStateChanged((user) => {
+           if (user) {
+               setUser(user);
+               setLoading(false);
+           } else {
+               setUser(null);
+               setLoading(false);
+           }
+       });
+       return() => unsubscribe
+   }, []);
 
-    if (loading) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    };
+   if (user) {
+    console.log(user.uid);
+  } else {
+    console.log("No user is signed in.");
+  }
+  
+   if (loading) {
+       return (
+           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+               <ActivityIndicator size="large" />
+           </View>
+       );
+   };
 
-    if (!appIsReady || !fontsLoaded) {
-        return null;
-    };
+   if (!appIsReady || !fontsLoaded) {
+       return null;
+   };
 
-    return (
-        <NavigationContainer onlayout={onLayoutRootView}>
-            <Stack.Navigator
-                initialRouteName='Welcome'
-                screenOptions={{
-                    headerStyle: { backgroundColor: COLORS.lightBeige },
-                    headerTitle: () => (
-                        <Text>Welcome</Text>
-                    ),
-                    headerTitleAlign: 'center',
-                }}
-            >
-                <Stack.Screen name="Welcome" component={Welcome} />
-                <Stack.Screen name="SignUp" component={SignUp} />
-                <Stack.Screen name="SignIn" component={SignIn} />
-                <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-                <Stack.Screen name="EmailAndPw" component={EmailAndPw} />
-            </Stack.Navigator>
-        </NavigationContainer>
-    );
+   return (
+       <NavigationContainer onlayout={onLayoutRootView}>
+           <Stack.Navigator
+               initialRouteName='Welcome'
+               screenOptions={{
+                  headerStyle: { backgroundColor: COLORS.lightBeige },
+                  headerTitle: () => (
+                      <Text>Welcome</Text>
+                  ),
+                  headerTitleAlign: 'center',
+               }}
+           >
+               <Stack.Screen name="Welcome" component={Welcome} />
+               <Stack.Screen name="SignUp" component={SignUp} />
+               <Stack.Screen name="SignIn" component={SignIn} />
+               <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
+               <Stack.Screen name="EmailAndPw" component={EmailAndPw} />
+           </Stack.Navigator>
+       </NavigationContainer>
+   );
 }

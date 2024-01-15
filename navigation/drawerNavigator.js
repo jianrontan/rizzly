@@ -16,6 +16,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import Orientation from '../screens/Orientation';
 import ChangeLocation from '../screens/ChangeLocation';
+import SelfieCapture from '../screens/SelfieCapture';
 import PauseProfile from '../screens/PauseProfile'
 import DeleteAccount from '../screens/DeleteAccount'
 import Contact from '../screens/Contact'
@@ -32,6 +33,20 @@ const auth = getAuth();
 export default function DrawerStack() {
     const [profileComplete, setProfileComplete] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const backAction = () => {
+            // Replace 'App' with the actual route name of your home screen
+            if (navigationRef.isReady()) {
+                navigationRef.navigate('App');
+            }
+            return true;
+        };
+
+        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+        return () => backHandler.remove();
+    }, []);
 
     // State variable appIsReady tracks when app is ready to render
     const [appIsReady, setAppIsReady] = useState(false);
@@ -165,6 +180,19 @@ export default function DrawerStack() {
         );
     }
 
+    const ProfileStack = () => {
+        return (
+            <Stack.Navigator>
+                <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="SelfieCapture" component={SelfieCapture} />
+            </Stack.Navigator>
+        );
+    };
+
+    if (!appIsReady || !fontsLoaded) {
+        return null;
+    }
+
     const SettingsStack = () => {
         return (
             <Stack.Navigator
@@ -249,10 +277,12 @@ export default function DrawerStack() {
                 })}
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+                <Drawer.Screen name="Profile" component={ProfileStack} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
-                <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
+                <Drawer.Screen name="SelfieCapture" component={SelfieCapture} />
+                <Drawer.Screen name="Settings" component={SettingsScreen} />
             </Drawer.Navigator>
         </NavigationContainer>
     )
 };
+let navigationRef = React.createRef();

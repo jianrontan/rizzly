@@ -302,7 +302,7 @@ export default function ProfileScreen({ navigation }) {
                     complete: true,
                     age: age,
                 });
-                navigation.navigate('App');
+                navigation.navigate('SelfieCapture');
             } catch (e) {
                 console.error("Error submitting: ", e);
                 setError(e.message);
