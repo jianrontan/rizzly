@@ -21,15 +21,15 @@ async function getPlaceFromCoordinates(lat, lng) {
     const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=87fdfbc20b6c42219965405e23651000&pretty=1`);
     const data = await response.json();
     if (data.results.length > 0) {
-    const components = data.results[0].components;
-    const suburb = components.suburb || '';
-    const country = components.country || '';
-    return `${suburb}, ${country}`;
+        const components = data.results[0].components;
+        const suburb = components.suburb || '';
+        const country = components.country || '';
+        return `${suburb}, ${country}`;
     } else {
-    throw new Error('Failed to get place from coordinates');
+        throw new Error('Failed to get place from coordinates');
     }
-   }   
-   
+}
+
 export default function ProfileScreen({ navigation }) {
 
     // Authentication
@@ -71,7 +71,7 @@ export default function ProfileScreen({ navigation }) {
     const [refreshKey, setRefreshKey] = useState(0);
 
     //Location 
-    const[location, setLocation] = useState([])
+    const [location, setLocation] = useState([])
     const [place, setPlace] = useState('');
 
     // Bio
@@ -234,9 +234,9 @@ export default function ProfileScreen({ navigation }) {
             alert('Permission to access location was denied');
             return;
         }
-     
+
         let locationTask;
-     
+
         try {
             locationTask = Location.watchPositionAsync(
                 {
@@ -246,20 +246,20 @@ export default function ProfileScreen({ navigation }) {
                 },
                 async (location) => {
                     setLocation(location);
-     
+
                     // Get place from coordinates
                     const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
                     setPlace(place); // Update place state variable
-     
+
                     // Update user document with location information
                     const userId = auth.currentUser.uid;
                     const userDocRef = doc(db, 'profiles', userId);
-     
+
                     // Update user document with location details
                     updateDoc(userDocRef, {
-                       location: place,
-                       latitude: location.coords.latitude,
-                       longitude: location.coords.longitude,
+                        location: place,
+                        latitude: location.coords.latitude,
+                        longitude: location.coords.longitude,
                     });
                 }
             );
@@ -267,20 +267,20 @@ export default function ProfileScreen({ navigation }) {
             console.error('Error starting location task:', error);
             // Handle error as needed
         }
-     
+
         // Stop tracking location after the first update
         setTimeout(() => {
             if (locationTask && locationTask.remove) {
                 locationTask.remove();
             }
         }, 1000); // Stop after 1 seconds (adjust as needed)
-     };
-     
+    };
+
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen
     const handleSubmit = async () => {
         await makeLocation();
-        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '' && bio !== null && bio !== '' && location !== null ) {
+        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '' && bio !== null && bio !== '' && location !== null) {
             try {
                 const userId = auth.currentUser.uid;
                 const userDocRef = doc(db, 'profiles', userId);
@@ -298,7 +298,7 @@ export default function ProfileScreen({ navigation }) {
                     orientation: orientation,
                     imageURLs: imageURLs,
                     bio: bio,
-                    location: place, 
+                    location: place,
                     complete: true,
                     age: age,
                 });
@@ -400,8 +400,8 @@ export default function ProfileScreen({ navigation }) {
                                 </TouchableOpacity>
                             </View>
                             {/* Location */}
-                            <View> 
-                                <TouchableOpacity onPress={makeLocation}> 
+                            <View>
+                                <TouchableOpacity onPress={makeLocation}>
                                     <Text style={styles.textStyle2}>Set Location </Text>
                                 </TouchableOpacity>
                                 <Text>{place}</Text>

@@ -30,7 +30,7 @@ const ContactUsScreen = () => {
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Send Message</Text>
       </TouchableOpacity>
-      <Text> 
+      <Text>
         Alternatively, you can contact us at 6123 5678 or at rizzly@gmail.com
       </Text>
     </View>

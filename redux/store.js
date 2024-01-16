@@ -7,6 +7,6 @@ const rootReducer = combineReducers({
 });
 
 export const Store = configureStore({
-    reducer: rootReducer, 
+    reducer: rootReducer,
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(thunk),
 });

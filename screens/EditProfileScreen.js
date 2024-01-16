@@ -208,7 +208,8 @@ export default function EditProfileScreen({ navigation }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async () => {
-        if (!hasUnsavedChanges) {Di
+        if (!hasUnsavedChanges) {
+            Di
             navigation.navigate('App');
             return;
         }

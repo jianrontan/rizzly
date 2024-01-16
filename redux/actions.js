@@ -61,28 +61,30 @@ export const setMatchesRedux = matchesVal => {
   };
 };
 
-export const setLikes = likesVal => { 
-  return dispatch => { 
-    dispatch({ 
-      type: SET_LIKES, 
-      payload: likesVal, 
-    })
-  }
-}
+export const setLikes = likesVal => {
+  return dispatch => {
+    dispatch({
+      type: SET_LIKES,
+      payload: likesVal,
+    });
+  };
+};
 
-export const setMatchesCount = countVal => { 
-  return dispatch => { 
-    dispatch({ 
-      type: SET_MATCHES_COUNT, 
-      payload: countVal, 
-    })
-  }
-}
-export const setHasUnreadChats = hasUnreadChats => { 
-  return dispatch => { 
-    dispatch({ 
-      type: SET_UNREAD_CHATS, 
-      payload: hasUnreadChats, 
-    })
-  }
-}
+export const setMatchesCount = countVal => {
+  return dispatch => {
+    dispatch({
+      type: SET_MATCHES_COUNT,
+      payload: countVal,
+    });
+  };
+};
+
+export const setHasUnreadChats = hasUnreadChats => {
+  return dispatch => {
+    dispatch({
+      type: SET_UNREAD_CHATS,
+      payload: hasUnreadChats,
+    });
+  };
+};
+

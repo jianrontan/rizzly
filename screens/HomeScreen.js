@@ -19,6 +19,8 @@ import { Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
+import { useDispatch } from 'react-redux';
+import { setLikes } from '../redux/actions';
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
@@ -36,104 +38,117 @@ const HomeScreen = () => {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [paused, setPaused] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        const fetchInitialLikesCount = async () => {
+            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+            const currentUserDocSnapshot = await getDoc(currentUserDocRef);
+            const currentUserData = currentUserDocSnapshot.data();
+            const initialLikesCount = currentUserData?.likedBy?.length || 0;
+            dispatch(setLikes(initialLikesCount));
+        };
+
+        fetchInitialLikesCount();
+    }, [dispatch, auth.currentUser]);
 
     const fetchCurrentUser = async () => {
-      try {
-        const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
-        const currentUserDoc = await getDoc(currentUserDocRef);
-        let blockedIDs = [];
+        try {
+            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+            const currentUserDoc = await getDoc(currentUserDocRef);
+            let blockedIDs = [];
 
-        if (currentUserDoc.exists()) {
-          const userData = currentUserDoc.data();
-          blockedIDs = userData.blockedIDs || [];
-     
-          // Check if the pausedUser field is true
-          const isUserPaused = userData.pausedUser === true;
-     
-          // Update the paused state based on the value of pausedUser field
-          setPaused(isUserPaused);
-     
-          // Set other user data
-          setCurrentUserData(userData);
+            if (currentUserDoc.exists()) {
+                const userData = currentUserDoc.data();
+                blockedIDs = userData.blockedIDs || [];
+
+                // Check if the pausedUser field is true
+                const isUserPaused = userData.pausedUser === true;
+
+                // Update the paused state based on the value of pausedUser field
+                setPaused(isUserPaused);
+
+                // Set other user data
+                setCurrentUserData(userData);
+            }
+            setBlockedIDs(blockedIDs);
+        } catch (error) {
+            console.error('Error fetching current user data:', error);
         }
-        setBlockedIDs(blockedIDs);
-      } catch (error) {
-        console.error('Error fetching current user data:', error);
-      }
-     };
-     
-     useEffect(() => {
-      fetchCurrentUser();
-     }, []);
-     
-     useFocusEffect(
-      React.useCallback(() => {
-        // Re-fetch current user data when the screen is focused
+    };
+
+    useEffect(() => {
         fetchCurrentUser();
-      }, [])
-     );
-     
-     // Use another useEffect to update the paused state when pausedUser changes
-     useEffect(() => {
-      // Check if the pausedUser field is true
-      const isUserPaused = currentUserData?.pausedUser === true;
-     
-      // Update the paused state based on the value of pausedUser field
-      setPaused(isUserPaused);
-     }, [currentUserData]);     
-  
-     useEffect(() => {
+    }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            // Re-fetch current user data when the screen is focused
+            fetchCurrentUser();
+        }, [])
+    );
+
+    // Use another useEffect to update the paused state when pausedUser changes
+    useEffect(() => {
+        // Check if the pausedUser field is true
+        const isUserPaused = currentUserData?.pausedUser === true;
+
+        // Update the paused state based on the value of pausedUser field
+        setPaused(isUserPaused);
+    }, [currentUserData]);
+
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 if (!currentUserData) {
                     // Handle the case where currentUserData is null
                     return;
                 }
-     
+
                 const usersCollection = collection(db, 'profiles');
                 const snapshot = await getDocs(usersCollection);
                 let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-     
+
                 // Filter users based on gender and current user's orientation
                 let filteredUsers = usersData.filter((user) => {
                     const userGender = user.gender?.toLowerCase?.();
-     
+
                     if (currentUserData.orientation) {
-                       const { male, female, nonBinary } = currentUserData.orientation;
-     
-                       if (userGender === 'female' && female) {
-                           return true;
-                       } else if (userGender === 'male' && male) {
-                           return true;
-                       } else if (userGender === 'nonbinary' && nonBinary) {
-                           return true;
-                       } else {
-                           return false;
-                       }
+                        const { male, female, nonBinary } = currentUserData.orientation;
+
+                        if (userGender === 'female' && female) {
+                            return true;
+                        } else if (userGender === 'male' && male) {
+                            return true;
+                        } else if (userGender === 'nonbinary' && nonBinary) {
+                            return true;
+                        } else {
+                            return false;
+                        }
                     }
-     
+
                     return true;
                 });
-     
+
                 // Exclude the current user and swiped up users from the list
                 filteredUsers = filteredUsers.filter(
                     (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
                 );
-     
+
                 // Exclude users who have blocked the current user
                 filteredUsers = filteredUsers.filter(
                     (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
                 );
-     
+
                 // Always include the "No More Users" item at the end of the users array
                 setUsers([...filteredUsers]);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
         };
-     
+
         fetchData();
-     }, [currentUserData, swipedUpUsers]);       
+    }, [currentUserData, swipedUpUsers]);
 
     const handleLikeClick = async (likedUserId) => {
         try {
@@ -217,9 +232,9 @@ const HomeScreen = () => {
                 </View>
             );
         }
-    
+
         const allImages = user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
-    
+
         return (
             <Swipeable onSwipeableRightComplete={() => handleDislikeClick(user.id)}>
                 <View style={styles.cardContainer}>
@@ -266,7 +281,7 @@ const HomeScreen = () => {
                                         <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
                                         <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
                                         <Text style={styles.modalinfo}>
-                                        Distance: ~{currentUserData && selectedUser && haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)}km
+                                            Distance: ~{currentUserData && selectedUser && haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)}km
                                         </Text>
                                     </>
                                 )}
@@ -280,7 +295,7 @@ const HomeScreen = () => {
                 </View>
             </Swipeable>
         );
-    };    
+    };
 
     return (
         <SafeAreaView style={styles.container}>

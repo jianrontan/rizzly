@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Image } from 'react-native';
 import { collection, getDoc, doc, getDocs, query, where } from 'firebase/firestore';
 import { useDispatch } from 'react-redux';
@@ -8,23 +8,23 @@ import { setLikes } from '../redux/actions';
 import { onSnapshot } from 'firebase/firestore';
 
 const LikesScreen = () => {
-const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const [likedUsersData, setLikedUsersData] = useState([]);
   const auth = getAuth();
   const [currentUserId, setCurrentUserId] = useState(auth.currentUser?.uid || null);
 
-useEffect(() => {
- const unsubscribe = onSnapshot(doc(db, 'profiles', currentUserId), (doc) => {
-   const currentUserData = doc.data();
+  useEffect(() => {
+    const unsubscribe = onSnapshot(doc(db, 'profiles', currentUserId), (doc) => {
+      const currentUserData = doc.data();
 
-   // Update the likes count in Redux store
-   dispatch(setLikes(currentUserData?.likedBy?.length || 0));
- }, { includeMetadataChanges: true });
+      // Update the likes count in Redux store
+      dispatch(setLikes(currentUserData?.likedBy?.length || 0));
+    }, { includeMetadataChanges: true });
 
- return unsubscribe;
-}, [currentUserId, dispatch]);
+    return unsubscribe;
+  }, [currentUserId, dispatch]);
 
-useEffect(() => {
+  useEffect(() => {
     const fetchLikedUsersData = async () => {
       try {
         if (!currentUserId) {

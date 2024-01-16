@@ -66,21 +66,21 @@ export default function SettingsScreen({ navigation }) {
 		navigation.navigate('Orientation');
 	}
 
-    const ChangeLocation = () => {
-        navigation.navigate('ChangeLocation')
-    }
+	const ChangeLocation = () => {
+		navigation.navigate('ChangeLocation')
+	}
 
 	const PauseProfile = () => {
 		navigation.navigate('PauseProfile')
 	}
-	    
-    const DeleteAccount = () => {
-        navigation.navigate('DeleteAccount')
-    }
 
-    const Contact = () => {
-        navigation.navigate('Contact')
-    }
+	const DeleteAccount = () => {
+		navigation.navigate('DeleteAccount')
+	}
+
+	const Contact = () => {
+		navigation.navigate('Contact')
+	}
 
 	const BlockList = () => {
 		navigation.navigate('BlockList')
@@ -108,50 +108,50 @@ export default function SettingsScreen({ navigation }) {
 					<View style={styles.borderLine}></View>
 				</View>
 
-                <View style={{ flex: 1 }}>
-                    <TouchableOpacity onPress={ChangeLocation}>
-                    <View style={styles.settingView}>
-                        <Text style={styles.settingText}>Change Location</Text>
-                    </View>
-                    </TouchableOpacity>
-                    <View style={styles.borderLine}></View>
-                </View>
+				<View style={{ flex: 1 }}>
+					<TouchableOpacity onPress={ChangeLocation}>
+						<View style={styles.settingView}>
+							<Text style={styles.settingText}>Change Location</Text>
+						</View>
+					</TouchableOpacity>
+					<View style={styles.borderLine}></View>
+				</View>
 
 				<View style={{ flex: 1 }}>
-                    <TouchableOpacity onPress={PauseProfile}>
-                    <View style={styles.settingView}>
-                        <Text style={styles.settingText}>Pause Profile</Text>
-                    </View>
-                    </TouchableOpacity>
-                    <View style={styles.borderLine}></View>
-                </View>
-
-                <View style={{ flex: 1 }}>
-                    <TouchableOpacity onPress={DeleteAccount}>
-                    <View style={styles.settingView}>
-                        <Text style={styles.settingText}>Delete Account</Text>
-                    </View>
-                    </TouchableOpacity>
-                    <View style={styles.borderLine}></View>
-                </View>
-
-                <View style={{ flex: 1 }}>
-                    <TouchableOpacity onPress={Contact}>
-                    <View style={styles.settingView}>
-                        <Text style={styles.settingText}>Contact Us</Text>
-                    </View>
-                    </TouchableOpacity>
-                    <View style={styles.borderLine}></View>
-                </View>
+					<TouchableOpacity onPress={PauseProfile}>
+						<View style={styles.settingView}>
+							<Text style={styles.settingText}>Pause Profile</Text>
+						</View>
+					</TouchableOpacity>
+					<View style={styles.borderLine}></View>
+				</View>
 
 				<View style={{ flex: 1 }}>
-                    <TouchableOpacity onPress={BlockList}>
-                    <View style={styles.settingView}>
-                        <Text style={styles.settingText}>Blocked List</Text>
-                    </View>
-                    </TouchableOpacity>
-                    <View style={styles.borderLine}></View>
-                </View>
+					<TouchableOpacity onPress={DeleteAccount}>
+						<View style={styles.settingView}>
+							<Text style={styles.settingText}>Delete Account</Text>
+						</View>
+					</TouchableOpacity>
+					<View style={styles.borderLine}></View>
+				</View>
+
+				<View style={{ flex: 1 }}>
+					<TouchableOpacity onPress={Contact}>
+						<View style={styles.settingView}>
+							<Text style={styles.settingText}>Contact Us</Text>
+						</View>
+					</TouchableOpacity>
+					<View style={styles.borderLine}></View>
+				</View>
+
+				<View style={{ flex: 1 }}>
+					<TouchableOpacity onPress={BlockList}>
+						<View style={styles.settingView}>
+							<Text style={styles.settingText}>Blocked List</Text>
+						</View>
+					</TouchableOpacity>
+					<View style={styles.borderLine}></View>
+				</View>
 
 			</ScrollView>
 		</SafeAreaView>

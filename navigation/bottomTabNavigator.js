@@ -15,7 +15,7 @@ const Tab = createBottomTabNavigator();
 
 export default function BottomTabStack({ navigation }) {
     const likesCount = useSelector(state => state.editProfileReducer.likesVal);
-    const matchesCount = useSelector(state => state.editProfileReducer.countVal)
+    const setHasUnreadChats = useSelector(state => state.editProfileReducer.countVal)
     return (
         <Tab.Navigator
             initialRouteName='Home'
@@ -47,19 +47,19 @@ export default function BottomTabStack({ navigation }) {
                 }}
             />
             <Tab.Screen
-                    name="Likes"
-                    component={LikesScreen}
-                    options={{
+                name="Likes"
+                component={LikesScreen}
+                options={{
                     tabBarIcon: ({ color, size }) => (
                         <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-                        <MaterialCommunityIcons name="heart" color={color} size={size} />
-                        <Text>{likesCount}</Text>
+                            <MaterialCommunityIcons name="heart" color={color} size={size} />
+                            <Text>{likesCount}</Text>
                         </View>
                     ),
                     tabBarLabel: 'Likes',
                     tabBarLabelStyle: appStyles.bottomTabLabel,
                     tabBarActiveTintColor: '#824444',
-                    }}
+                }}
             />
             <Tab.Screen
                 name="Chats"
@@ -67,8 +67,8 @@ export default function BottomTabStack({ navigation }) {
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-                        <MaterialCommunityIcons name="chat" color={color} size={size} />
-                        <Text>{matchesCount}</Text>
+                            <MaterialCommunityIcons name="chat" color={color} size={size} />
+                            <Text>{setHasUnreadChats}</Text>
                         </View>
                     ),
                     tabBarLabel: 'Chats',

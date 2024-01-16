@@ -17,9 +17,9 @@ const editProfileState = {
   initialImageVal: [],
   hasUnsavedChangesExportVal: false,
   matchesVal: [],
-  likesVal: 0, 
-  countVal: 0, 
-  hasUnreadChats: false, 
+  likesVal: 0,
+  countVal: 0,
+  hasUnreadChats: 0,
 }
 
 export function editProfileReducer(state = editProfileState, action) {
@@ -53,22 +53,22 @@ export function editProfileReducer(state = editProfileState, action) {
       return {
         ...state,
         matchesVal: action.payload
-      } 
+      }
     case SET_LIKES:
       return {
         ...state,
         likesVal: action.payload
-      } 
+      }
     case SET_MATCHES_COUNT:
       return {
         ...state,
         countVal: action.payload
-      } 
+      }
     case SET_UNREAD_CHATS:
       return {
         ...state,
         hasUnreadChats: action.payload
-      } 
+      }
     default:
       return state;
   }

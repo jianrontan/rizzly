@@ -12,7 +12,7 @@ const DeleteAccountScreen = ({ navigation }) => {
     setLoading(true);
     const auth = getAuth();
     const user = auth.currentUser;
-  
+
     if (user) {
       try {
         // Prompt the user to enter their password for reauthentication
@@ -20,20 +20,20 @@ const DeleteAccountScreen = ({ navigation }) => {
           email: user.email, // Use the user's email
           password: password.trim(),
         };
-  
+
         // Reauthenticate user with their password
         const credential = EmailAuthProvider.credential(credentials.email, credentials.password);
         await reauthenticateWithCredential(user, credential);
-  
+
         // Delete user from Firestore
         const userDoc = doc(db, 'profiles', auth.currentUser.uid);
         await deleteDoc(userDoc);
-  
+
         // Delete user from Firebase Auth
         await deleteUser(user);
-  
+
         Alert.alert('Success!', 'Your account has been deleted.');
-  
+
       } catch (error) {
         console.error('Error deleting user:', error);
         Alert.alert('Error!', 'Failed to delete account. Please try again later.');
@@ -41,7 +41,7 @@ const DeleteAccountScreen = ({ navigation }) => {
         setLoading(false);
       }
     }
-  };  
+  };
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

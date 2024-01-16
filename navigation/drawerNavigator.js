@@ -34,20 +34,6 @@ export default function DrawerStack() {
     const [profileComplete, setProfileComplete] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const backAction = () => {
-            // Replace 'App' with the actual route name of your home screen
-            if (navigationRef.isReady()) {
-                navigationRef.navigate('App');
-            }
-            return true;
-        };
-
-        const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
-
-        return () => backHandler.remove();
-    }, []);
-
     // State variable appIsReady tracks when app is ready to render
     const [appIsReady, setAppIsReady] = useState(false);
 
@@ -149,6 +135,7 @@ export default function DrawerStack() {
             console.log("User is not logged in.")
         }
     };
+
 
     function CustomDrawerContent(props) {
         return (

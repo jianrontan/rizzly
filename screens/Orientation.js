@@ -15,7 +15,6 @@ import { COLORS, FONT, SIZES } from '../constants';
 export default function Orientation() {
 
 	// MAKE IT SO THAT DON'T NEED A SUBMIT BUTTON TO CHANGE THE ORIENTATION
-
 	// Navigation
 	const navigation = useNavigation();
 
