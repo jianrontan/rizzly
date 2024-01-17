@@ -4,14 +4,12 @@ import { collection, getDocs, query, where, onSnapshot, updateDoc, doc } from 'f
 import { db, auth } from '../firebase/firebase';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect } from 'expo-router';
-import { setHasUnreadChats, setMatchesRedux } from '../redux/actions';
-import { setMatchesCount } from '../redux/actions';
+import { setMatchesCount, setMatchesRedux, setUnreadChatroomsCount } from '../redux/actions';
 
 const MatchesScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const [unreadMessages, setUnreadMessages] = useState({});
   const [matches, setMatches] = useState([]);
-  const hasUnreadChats = useSelector((state) => state.hasUnreadChats)
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -46,33 +44,25 @@ const MatchesScreen = ({ navigation }) => {
   }, [dispatch]);
 
   useEffect(() => {
-    const unreadChatsCount = Object.values(unreadMessages).reduce((count, hasUnread) => {
-      return hasUnread ? count + 1 : count;
-    }, 0);
-
-    dispatch(setHasUnreadChats(unreadChatsCount));
-  }, [unreadMessages, dispatch]);
-
-  useEffect(() => {
     matches.forEach((match) => {
       const chatRoomID = [auth.currentUser.uid, match.id].sort().join('_');
       const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
 
-      // Flag to determine if the current user has opened the chatroom
-      let currentUserOpenedChat = false;
+      let unreadCount = 0; // Add this line to initialize the counter
 
       const unsubscribe = onSnapshot(messagesCollection, (snapshot) => {
         const hasUnread = snapshot.docs.some((doc) => {
           const messageData = doc.data();
+          // If the message is unread and was sent by another user, increment the counter
+          if (messageData.senderId !== auth.currentUser.uid && !messageData.read) {
+            unreadCount++;
+          }
           return messageData.senderId !== auth.currentUser.uid && !messageData.read;
         });
 
         setUnreadMessages((prev) => ({ ...prev, [chatRoomID]: hasUnread }));
-
-        // Set the flag to true if there are unread messages from other users
-        if (hasUnread) {
-          currentUserOpenedChat = true;
-        }
+        // Dispatch the count to your redux store
+        dispatch(setUnreadChatroomsCount(unreadCount));
       });
 
       onSnapshot(messagesCollection, (snapshot) => {
@@ -88,7 +78,7 @@ const MatchesScreen = ({ navigation }) => {
       // Clean up the listener when the component unmounts
       return () => unsubscribe();
     });
-  }, [matches]);
+  }, [matches, dispatch]);
 
   return (
     <View>

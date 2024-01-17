@@ -7,7 +7,7 @@ import {
   SET_MATCHES_REDUX,
   SET_LIKES,
   SET_MATCHES_COUNT,
-  SET_UNREAD_CHATS
+  SET_UNREAD_CHATROOMS_COUNT,
 } from "./actions";
 
 const editProfileState = {
@@ -19,7 +19,7 @@ const editProfileState = {
   matchesVal: [],
   likesVal: 0,
   countVal: 0,
-  hasUnreadChats: 0,
+  chatVal: 0,
 }
 
 export function editProfileReducer(state = editProfileState, action) {
@@ -64,10 +64,10 @@ export function editProfileReducer(state = editProfileState, action) {
         ...state,
         countVal: action.payload
       }
-    case SET_UNREAD_CHATS:
+    case SET_UNREAD_CHATROOMS_COUNT:
       return {
         ...state,
-        hasUnreadChats: action.payload
+        chatVal: action.payload
       }
     default:
       return state;

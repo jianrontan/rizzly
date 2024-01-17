@@ -15,7 +15,7 @@ const Tab = createBottomTabNavigator();
 
 export default function BottomTabStack({ navigation }) {
     const likesCount = useSelector(state => state.editProfileReducer.likesVal);
-    const setHasUnreadChats = useSelector(state => state.editProfileReducer.countVal)
+    const unreadChatsCount = useSelector(state => state.editProfileReducer.chatVal)
     return (
         <Tab.Navigator
             initialRouteName='Home'
@@ -68,7 +68,7 @@ export default function BottomTabStack({ navigation }) {
                     tabBarIcon: ({ color, size }) => (
                         <View style={{ flexDirection: 'column', alignItems: 'center' }}>
                             <MaterialCommunityIcons name="chat" color={color} size={size} />
-                            <Text>{setHasUnreadChats}</Text>
+                            <Text>{unreadChatsCount}</Text>
                         </View>
                     ),
                     tabBarLabel: 'Chats',
