@@ -58,6 +58,9 @@ const MatchesScreen = ({ navigation }) => {
       const chatRoomID = [auth.currentUser.uid, match.id].sort().join('_');
       const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
 
+      // Flag to determine if the current user has opened the chatroom
+      let currentUserOpenedChat = false;
+
       const unsubscribe = onSnapshot(messagesCollection, (snapshot) => {
         const hasUnread = snapshot.docs.some((doc) => {
           const messageData = doc.data();
@@ -65,28 +68,22 @@ const MatchesScreen = ({ navigation }) => {
         });
 
         setUnreadMessages((prev) => ({ ...prev, [chatRoomID]: hasUnread }));
+
+        // Set the flag to true if there are unread messages from other users
+        if (hasUnread) {
+          currentUserOpenedChat = true;
+        }
       });
 
       onSnapshot(messagesCollection, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
             const messageData = change.doc.data();
-            if (messageData.senderId === auth.currentUser.uid && !messageData.read) {
-              const messageRef = doc(db, 'privatechatrooms', chatRoomID, 'messages', change.doc.id);
-              updateDoc(messageRef, { read: true });
-            }
+            // No need to mark the message as read here
           }
         });
       });
 
-      // Delay the calculation of unreadChatsCount
-      setTimeout(() => {
-        const unreadChatsCount = Object.values(unreadMessages).reduce((count, hasUnread) => {
-          return hasUnread ? count + 1 : count;
-        }, 0);
-
-        dispatch(setHasUnreadChats(unreadChatsCount));
-      }, 1000); // Adjust the delay as needed
 
       // Clean up the listener when the component unmounts
       return () => unsubscribe();
@@ -117,9 +114,10 @@ const MatchesScreen = ({ navigation }) => {
               messagesSnapshot.docs.forEach(async (doc) => {
                 const messageData = doc.data();
 
+                // Only mark the message as read if the current user is the receiver
                 if (messageData.senderId !== auth.currentUser.uid && !messageData.read) {
                   // Use the correct syntax to create a reference to the document
-                  const messageRef = doc.ref;  // Use doc.ref instead of doc
+                  const messageRef = doc.ref; // Use doc.ref instead of doc
                   await updateDoc(messageRef, { read: true });
                 }
               });
