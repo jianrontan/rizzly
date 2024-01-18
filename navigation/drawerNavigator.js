@@ -1,12 +1,13 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler } from 'react-native';
+import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler, StyleSheet } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
+import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useDispatch, useSelector } from 'react-redux';
 import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
@@ -22,6 +23,7 @@ import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import EditProfileStack from './editProfileNavigator';
 import appStyles from '../components/app/app.style';
+import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges, setSaveChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';
 
 const Drawer = createDrawerNavigator();
@@ -30,6 +32,7 @@ const Tab = createBottomTabNavigator();
 const auth = getAuth();
 
 export default function DrawerStack() {
+
     const [profileComplete, setProfileComplete] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -119,6 +122,7 @@ export default function DrawerStack() {
         );
     }
 
+    // LOGOUT
     const logoutConfirmation = async () => {
         if (auth.currentUser) {
             try {
@@ -165,9 +169,11 @@ export default function DrawerStack() {
         );
     }
 
+    // EDIT PROFILE
     const EditProfileNavigator = () => {
         return (
             <Tab.Navigator
+                tabBar={(props) => <CustomTabBar {...props} />}
                 initialRouteName="Edit Profile Navigator"
                 backBehavior="initialRoute"
                 screenOptions={({ route }) => ({
@@ -197,7 +203,7 @@ export default function DrawerStack() {
                 })}
             >
                 <Tab.Screen
-                    name="Edit Profile Navigator"
+                    name="Edit"
                     component={EditProfileStack}
                     options={{
                         headerShown: false,
@@ -210,7 +216,7 @@ export default function DrawerStack() {
                     }}
                 />
                 <Tab.Screen
-                    name="View Profile"
+                    name="View"
                     component={ViewProfile}
                     options={{
                         tabBarIcon: ({ color, size }) => (
@@ -223,8 +229,63 @@ export default function DrawerStack() {
                 />
             </Tab.Navigator>
         )
-    }
+    };
 
+    const CustomTabBar = (props) => {
+        const navigation = useNavigation();
+        const dispatch = useDispatch();
+        
+        const hasUnsavedChangesExportVal = useSelector(state => state.editProfileReducer.hasUnsavedChangesExportVal);
+        const aboutMeChangesVal = useSelector(state => state.editProfileReducer.aboutMeChangesVal);
+        const viewProfileChangesVal = useSelector(state => state.editProfileReducer.viewProfileChangesVal);
+
+        const handleTabPress = (route, isFocused) => {
+            if (route.name === 'View' && (viewProfileChangesVal || aboutMeChangesVal || hasUnsavedChangesExportVal) && !isFocused) {
+                dispatch(setSaveChanges(true));
+            } else {
+                navigation.navigate(route.name);
+            }
+        };
+
+        return (
+            <View style={{
+                flexDirection: 'row',
+                height: 50,
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 3,
+                elevation: 5,
+                shadowColor: '#000',
+                backgroundColor: 'white'
+            }}>
+                {props.state.routes.map((route, index) => {
+                    const isFocused = props.state.index === index;
+
+                    return (
+                        <TouchableOpacity
+                            key={route.key}
+                            onPress={() => handleTabPress(route, isFocused)}
+                            style={{ flex: 1 }}
+                            activeOpacity={1}
+                        >
+                            <Text style={{
+                                color: isFocused ? '#824444' : 'black',
+                                alignSelf: 'center',
+                                fontFamily: FONT.bold,
+                            }}>
+                                {route.name}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
+        );
+    };
+
+    // SETTINGS
     const SettingsStack = () => {
         return (
             <Stack.Navigator
@@ -264,8 +325,9 @@ export default function DrawerStack() {
 
     if (!appIsReady || !fontsLoaded) {
         return null;
-    }
+    };
 
+    // RENDER
     return (
         <NavigationContainer
             onLayout={onLayoutRootView}

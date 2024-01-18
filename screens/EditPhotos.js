@@ -3,7 +3,7 @@ import { Animated, View, ScrollView, FlatList, PanResponder, SafeAreaView, Style
 import { useFocusEffect, CommonActions } from '@react-navigation/native';
 import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
 import { add, eq, set, useCode } from 'react-native-reanimated';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion, DocumentSnapshot } from 'firebase/firestore';
 import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
@@ -12,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { DraggableGrid } from 'react-native-draggable-grid';
 import Spinner from 'react-native-loading-spinner-overlay';
 
-import { setViewProfileChanges } from '../redux/actions';
+import { setViewProfileChanges, setSaveChanges } from '../redux/actions';
 import { COLORS, SIZES, FONT, icons } from '../constants';
 
 const EditPhotos = ({ navigation }) => {
@@ -40,6 +40,7 @@ const EditPhotos = ({ navigation }) => {
 
     // Redux
     const dispatch = useDispatch();
+    const saveChangesVal = useSelector(state => state.editProfileReducer.saveChangesVal);
 
     // Firestore data
     const getFirestoreData = () => {
@@ -74,6 +75,8 @@ const EditPhotos = ({ navigation }) => {
         useCallback(() => {
             setIsLoading(true);
             getFirestoreData();
+            setHasUnsavedChanges(false);
+            dispatch(setViewProfileChanges(false));
         }, [])
     );
 
@@ -182,8 +185,8 @@ const EditPhotos = ({ navigation }) => {
     };
 
     const handleSubmit = async () => {
-        setSubmitting(true);
         if (image.length < 1) {
+            setSubmitting(false);
             Alert.alert(
                 "Invalid Photo Count",
                 `Please upload at least one photo`,
@@ -195,6 +198,7 @@ const EditPhotos = ({ navigation }) => {
             setSubmitting(false);
             return;
         }
+        setSubmitting(true);
         try {
             const userDocRef = doc(db, 'profiles', userId);
             const sortedImages = [...image].sort((a, b) => a.order - b.order);
@@ -225,16 +229,24 @@ const EditPhotos = ({ navigation }) => {
                 imageURLs: imageURLs,
             });
             setHasUnsavedChanges(false);
-            setSubmitting(false);
             dispatch(setViewProfileChanges(false));
+            dispatch(setSaveChanges(false));
         } catch (e) {
             console.error("Error submitting: ", e);
             setHasUnsavedChanges(false);
-            setSubmitting(false);
             dispatch(setViewProfileChanges(false));
+            dispatch(setSaveChanges(false));
             setError(e.message);
         }
+        setSubmitting(false);
     };
+
+    useEffect(() => {
+        if(saveChangesVal) {
+            handleSubmit();
+            navigation.navigate('View')
+        }
+    }, [saveChangesVal]);
 
     // Track changes
     const arraysEqual = (a, b) => {
@@ -272,6 +284,7 @@ const EditPhotos = ({ navigation }) => {
                             text: 'Discard',
                             style: 'destructive',
                             onPress: () => {
+                                dispatch(setViewProfileChanges(false));
                                 navigation.dispatch(
                                     CommonActions.reset({
                                         index: 0,
@@ -324,7 +337,7 @@ const EditPhotos = ({ navigation }) => {
                 overlayColor="rgba(0, 0, 0, 0.25)"
                 color="white"
                 indicatorStyle={{
-                    
+
                 }}
                 textContent='Saving...'
                 textStyle={{

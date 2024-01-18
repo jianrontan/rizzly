@@ -23,16 +23,36 @@ export default function EditProfileScreen({ navigation }) {
     const userId = auth.currentUser.uid;
 
     // Navigate
-    const navigatePhotos = () => {
-        navigation.navigate('Edit Photos')
+    const navigateDetails = () => {
+        navigation.navigate('My Name');
     }
-    const navigateAboutMe = () => {
-        navigation.navigate('About Me')
+    const navigatePhotos = () => {
+        navigation.navigate('Edit Photos');
+    }
+    const navigateAbout = () => {
+        navigation.navigate('About Me');
+    }
+    const navigateHeight = () => {
+        navigation.navigate('Height');
+    }
+    const navigateReligion = () => {
+        navigation.navigate('Religion');
+    }
+    const navigateEthnicity = () => {
+        navigation.navigate('Ethnicity');
     }
 
     return (
         <SafeAreaView>
             <ScrollView style={styles.container}>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity onPress={navigateDetails}>
+                        <Text style={styles.tabText}>My Name</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
 
                 <View style={styles.tabView}>
                     <TouchableOpacity onPress={navigatePhotos}>
@@ -43,8 +63,56 @@ export default function EditProfileScreen({ navigation }) {
                 <View style={styles.borderLine}></View>
 
                 <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateAboutMe}>
+                    <TouchableOpacity onPress={navigateAbout}>
                         <Text style={styles.tabText}>About Me</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity onPress={navigateHeight}>
+                        <Text style={styles.tabText}>Height</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity onPress={navigateReligion}>
+                        <Text style={styles.tabText}>Religion</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity onPress={navigateEthnicity}>
+                        <Text style={styles.tabText}>Ethnicity</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity>
+                        <Text style={styles.tabText}>Children</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity>
+                        <Text style={styles.tabText}>Education</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity>
+                        <Text style={styles.tabText}>Vices</Text>
                     </TouchableOpacity>
                 </View>
 

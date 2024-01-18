@@ -1,9 +1,10 @@
-import { SET_HAS_UNSAVED_CHANGES_EXPORT, SET_VIEW_PROFILE_CHANGES, SET_ABOUT_ME_CHANGES } from "./actions";
+import { SET_HAS_UNSAVED_CHANGES_EXPORT, SET_VIEW_PROFILE_CHANGES, SET_ABOUT_ME_CHANGES, SET_SAVE_CHANGES } from "./actions";
 
 const editProfileState = {
   hasUnsavedChangesExportVal: false,
   viewProfileChangesVal: false,
   aboutMeChangesVal: false,
+  saveChangesVal: false,
 }
 
 export function editProfileReducer(state = editProfileState, action) {
@@ -22,6 +23,11 @@ export function editProfileReducer(state = editProfileState, action) {
       return {
         ...state,
         aboutMeChangesVal: action.payload
+      }
+    case SET_SAVE_CHANGES:
+      return {
+        ...state,
+        saveChangesVal: action.payload
       }
     default:
       return state;

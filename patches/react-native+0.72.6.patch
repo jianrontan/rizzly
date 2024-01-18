@@ -1,0 +1,931 @@
+diff --git a/node_modules/react-native/index.js b/node_modules/react-native/index.js
+index 7149c64..b11139f 100644
+--- a/node_modules/react-native/index.js
++++ b/node_modules/react-native/index.js
+@@ -83,16 +83,16 @@ import typeof Vibration from './Libraries/Vibration/Vibration';
+ import typeof YellowBox from './Libraries/YellowBox/YellowBoxDeprecated';
+ 
+ // Plugins
+-import typeof {DynamicColorIOS} from './Libraries/StyleSheet/PlatformColorValueTypesIOS';
++import typeof { DynamicColorIOS } from './Libraries/StyleSheet/PlatformColorValueTypesIOS';
+ import typeof NativeModules from './Libraries/BatchedBridge/NativeModules';
+ import typeof Platform from './Libraries/Utilities/Platform';
+-import typeof {PlatformColor} from './Libraries/StyleSheet/PlatformColorValueTypes';
++import typeof { PlatformColor } from './Libraries/StyleSheet/PlatformColorValueTypes';
+ import typeof processColor from './Libraries/StyleSheet/processColor';
+ import typeof RCTDeviceEventEmitter from './Libraries/EventEmitter/RCTDeviceEventEmitter';
+ import typeof RCTNativeAppEventEmitter from './Libraries/EventEmitter/RCTNativeAppEventEmitter';
+-import typeof {RootTagContext} from './Libraries/ReactNative/RootTag';
++import typeof { RootTagContext } from './Libraries/ReactNative/RootTag';
+ 
+-import type {HostComponent as _HostComponentInternal} from './Libraries/Renderer/shims/ReactNativeTypes';
++import type { HostComponent as _HostComponentInternal } from './Libraries/Renderer/shims/ReactNativeTypes';
+ 
+ export type HostComponent<T> = _HostComponentInternal<T>;
+ 
+@@ -143,8 +143,8 @@ module.exports = {
+     warnOnce(
+       'progress-bar-android-moved',
+       'ProgressBarAndroid has been extracted from react-native core and will be removed in a future release. ' +
+-        "It can now be installed and imported from '@react-native-community/progress-bar-android' instead of 'react-native'. " +
+-        'See https://github.com/react-native-progress-view/progress-bar-android',
++      "It can now be installed and imported from '@react-native-community/progress-bar-android' instead of 'react-native'. " +
++      'See https://github.com/react-native-progress-view/progress-bar-android',
+     );
+     return require('./Libraries/Components/ProgressBarAndroid/ProgressBarAndroid');
+   },
+@@ -206,581 +206,553 @@ module.exports = {
+   },
+   // Include any types exported in the Animated module together with its default export, so
+   // you can references types such as Animated.Numeric
+-  get Animated(): {...$Diff<AnimatedModule, {default: any}>, ...Animated} {
+-    // $FlowExpectedError[prop-missing]: we only return the default export, all other exports are types
+-    return require('./Libraries/Animated/Animated').default;
+-  },
++  get Animated(): {...$Diff < AnimatedModule, {default: any }>, ...Animated} {
++  // $FlowExpectedError[prop-missing]: we only return the default export, all other exports are types
++  return require('./Libraries/Animated/Animated').default;
++},
+   get Appearance(): Appearance {
+-    return require('./Libraries/Utilities/Appearance');
+-  },
++  return require('./Libraries/Utilities/Appearance');
++},
+   get AppRegistry(): AppRegistry {
+-    return require('./Libraries/ReactNative/AppRegistry');
+-  },
++  return require('./Libraries/ReactNative/AppRegistry');
++},
+   get AppState(): AppState {
+-    return require('./Libraries/AppState/AppState');
+-  },
++  return require('./Libraries/AppState/AppState');
++},
+   get BackHandler(): BackHandler {
+-    return require('./Libraries/Utilities/BackHandler');
+-  },
++  return require('./Libraries/Utilities/BackHandler');
++},
+   get Clipboard(): Clipboard {
+-    warnOnce(
+-      'clipboard-moved',
+-      'Clipboard has been extracted from react-native core and will be removed in a future release. ' +
+-        "It can now be installed and imported from '@react-native-clipboard/clipboard' instead of 'react-native'. " +
+-        'See https://github.com/react-native-clipboard/clipboard',
+-    );
+-    return require('./Libraries/Components/Clipboard/Clipboard');
+-  },
++  warnOnce(
++    'clipboard-moved',
++    'Clipboard has been extracted from react-native core and will be removed in a future release. ' +
++    "It can now be installed and imported from '@react-native-clipboard/clipboard' instead of 'react-native'. " +
++    'See https://github.com/react-native-clipboard/clipboard',
++  );
++  return require('./Libraries/Components/Clipboard/Clipboard');
++},
+   get DeviceInfo(): DeviceInfo {
+-    return require('./Libraries/Utilities/DeviceInfo');
+-  },
++  return require('./Libraries/Utilities/DeviceInfo');
++},
+   get DevSettings(): DevSettings {
+-    return require('./Libraries/Utilities/DevSettings');
+-  },
++  return require('./Libraries/Utilities/DevSettings');
++},
+   get Dimensions(): Dimensions {
+-    return require('./Libraries/Utilities/Dimensions').default;
+-  },
++  return require('./Libraries/Utilities/Dimensions').default;
++},
+   get Easing(): Easing {
+-    return require('./Libraries/Animated/Easing').default;
+-  },
+-  get findNodeHandle(): $PropertyType<ReactNative, 'findNodeHandle'> {
+-    return require('./Libraries/ReactNative/RendererProxy').findNodeHandle;
+-  },
++  return require('./Libraries/Animated/Easing').default;
++},
++  get findNodeHandle(): $PropertyType < ReactNative, 'findNodeHandle' > {
++  return require('./Libraries/ReactNative/RendererProxy').findNodeHandle;
++},
+   get I18nManager(): I18nManager {
+-    return require('./Libraries/ReactNative/I18nManager');
+-  },
++  return require('./Libraries/ReactNative/I18nManager');
++},
+   get InteractionManager(): InteractionManager {
+-    return require('./Libraries/Interaction/InteractionManager');
+-  },
++  return require('./Libraries/Interaction/InteractionManager');
++},
+   get Keyboard(): Keyboard {
+-    return require('./Libraries/Components/Keyboard/Keyboard');
+-  },
++  return require('./Libraries/Components/Keyboard/Keyboard');
++},
+   get LayoutAnimation(): LayoutAnimation {
+-    return require('./Libraries/LayoutAnimation/LayoutAnimation');
+-  },
++  return require('./Libraries/LayoutAnimation/LayoutAnimation');
++},
+   get Linking(): Linking {
+-    return require('./Libraries/Linking/Linking');
+-  },
++  return require('./Libraries/Linking/Linking');
++},
+   get LogBox(): LogBox {
+-    return require('./Libraries/LogBox/LogBox').default;
+-  },
++  return require('./Libraries/LogBox/LogBox').default;
++},
+   get NativeDialogManagerAndroid(): NativeDialogManagerAndroid {
+-    return require('./Libraries/NativeModules/specs/NativeDialogManagerAndroid')
+-      .default;
+-  },
++  return require('./Libraries/NativeModules/specs/NativeDialogManagerAndroid')
++    .default;
++},
+   get NativeEventEmitter(): NativeEventEmitter {
+-    return require('./Libraries/EventEmitter/NativeEventEmitter').default;
+-  },
++  return require('./Libraries/EventEmitter/NativeEventEmitter').default;
++},
+   get Networking(): Networking {
+-    return require('./Libraries/Network/RCTNetworking').default;
+-  },
++  return require('./Libraries/Network/RCTNetworking').default;
++},
+   get PanResponder(): PanResponder {
+-    return require('./Libraries/Interaction/PanResponder').default;
+-  },
++  return require('./Libraries/Interaction/PanResponder').default;
++},
+   get PermissionsAndroid(): PermissionsAndroid {
+-    return require('./Libraries/PermissionsAndroid/PermissionsAndroid');
+-  },
++  return require('./Libraries/PermissionsAndroid/PermissionsAndroid');
++},
+   get PixelRatio(): PixelRatio {
+-    return require('./Libraries/Utilities/PixelRatio').default;
+-  },
++  return require('./Libraries/Utilities/PixelRatio').default;
++},
+   get PushNotificationIOS(): PushNotificationIOS {
+-    warnOnce(
+-      'pushNotificationIOS-moved',
+-      'PushNotificationIOS has been extracted from react-native core and will be removed in a future release. ' +
+-        "It can now be installed and imported from '@react-native-community/push-notification-ios' instead of 'react-native'. " +
+-        'See https://github.com/react-native-push-notification-ios/push-notification-ios',
+-    );
+-    return require('./Libraries/PushNotificationIOS/PushNotificationIOS');
+-  },
++  warnOnce(
++    'pushNotificationIOS-moved',
++    'PushNotificationIOS has been extracted from react-native core and will be removed in a future release. ' +
++    "It can now be installed and imported from '@react-native-community/push-notification-ios' instead of 'react-native'. " +
++    'See https://github.com/react-native-push-notification-ios/push-notification-ios',
++  );
++  return require('./Libraries/PushNotificationIOS/PushNotificationIOS');
++},
+   get Settings(): Settings {
+-    return require('./Libraries/Settings/Settings');
+-  },
++  return require('./Libraries/Settings/Settings');
++},
+   get Share(): Share {
+-    return require('./Libraries/Share/Share');
+-  },
++  return require('./Libraries/Share/Share');
++},
+   get StyleSheet(): StyleSheet {
+-    return require('./Libraries/StyleSheet/StyleSheet');
+-  },
++  return require('./Libraries/StyleSheet/StyleSheet');
++},
+   get Systrace(): Systrace {
+-    return require('./Libraries/Performance/Systrace');
+-  },
++  return require('./Libraries/Performance/Systrace');
++},
+   // $FlowFixMe[value-as-type]
+   get ToastAndroid(): ToastAndroid {
+-    return require('./Libraries/Components/ToastAndroid/ToastAndroid');
+-  },
++  return require('./Libraries/Components/ToastAndroid/ToastAndroid');
++},
+   get TurboModuleRegistry(): TurboModuleRegistry {
+-    return require('./Libraries/TurboModule/TurboModuleRegistry');
+-  },
++  return require('./Libraries/TurboModule/TurboModuleRegistry');
++},
+   get UIManager(): UIManager {
+-    return require('./Libraries/ReactNative/UIManager');
+-  },
+-  get unstable_batchedUpdates(): $PropertyType<
+-    ReactNative,
+-    'unstable_batchedUpdates',
++  return require('./Libraries/ReactNative/UIManager');
++},
++  get unstable_batchedUpdates(): $PropertyType <
++  ReactNative,
++  'unstable_batchedUpdates',
+   > {
+     return require('./Libraries/ReactNative/RendererProxy')
+       .unstable_batchedUpdates;
+   },
+   get useAnimatedValue(): useAnimatedValue {
+-    return require('./Libraries/Animated/useAnimatedValue').default;
+-  },
++  return require('./Libraries/Animated/useAnimatedValue').default;
++},
+   get useColorScheme(): useColorScheme {
+-    return require('./Libraries/Utilities/useColorScheme').default;
+-  },
++  return require('./Libraries/Utilities/useColorScheme').default;
++},
+   get useWindowDimensions(): useWindowDimensions {
+-    return require('./Libraries/Utilities/useWindowDimensions').default;
+-  },
++  return require('./Libraries/Utilities/useWindowDimensions').default;
++},
+   get UTFSequence(): UTFSequence {
+-    return require('./Libraries/UTFSequence').default;
+-  },
++  return require('./Libraries/UTFSequence').default;
++},
+   get Vibration(): Vibration {
+-    return require('./Libraries/Vibration/Vibration');
+-  },
++  return require('./Libraries/Vibration/Vibration');
++},
+   get YellowBox(): YellowBox {
+-    return require('./Libraries/YellowBox/YellowBoxDeprecated');
+-  },
++  return require('./Libraries/YellowBox/YellowBoxDeprecated');
++},
+ 
+   // Plugins
+   get DeviceEventEmitter(): RCTDeviceEventEmitter {
+-    return require('./Libraries/EventEmitter/RCTDeviceEventEmitter').default;
+-  },
++  return require('./Libraries/EventEmitter/RCTDeviceEventEmitter').default;
++},
+   get DynamicColorIOS(): DynamicColorIOS {
+-    return require('./Libraries/StyleSheet/PlatformColorValueTypesIOS')
+-      .DynamicColorIOS;
+-  },
++  return require('./Libraries/StyleSheet/PlatformColorValueTypesIOS')
++    .DynamicColorIOS;
++},
+   get NativeAppEventEmitter(): RCTNativeAppEventEmitter {
+-    return require('./Libraries/EventEmitter/RCTNativeAppEventEmitter');
+-  },
++  return require('./Libraries/EventEmitter/RCTNativeAppEventEmitter');
++},
+   get NativeModules(): NativeModules {
+-    return require('./Libraries/BatchedBridge/NativeModules');
+-  },
++  return require('./Libraries/BatchedBridge/NativeModules');
++},
+   get Platform(): Platform {
+-    return require('./Libraries/Utilities/Platform');
+-  },
++  return require('./Libraries/Utilities/Platform');
++},
+   get PlatformColor(): PlatformColor {
+-    return require('./Libraries/StyleSheet/PlatformColorValueTypes')
+-      .PlatformColor;
+-  },
++  return require('./Libraries/StyleSheet/PlatformColorValueTypes')
++    .PlatformColor;
++},
+   get processColor(): processColor {
+-    return require('./Libraries/StyleSheet/processColor').default;
+-  },
++  return require('./Libraries/StyleSheet/processColor').default;
++},
+   get requireNativeComponent(): <T>(
+-    uiViewClassName: string,
++  uiViewClassName: string,
+   ) => HostComponent<T> {
+     return require('./Libraries/ReactNative/requireNativeComponent').default;
+   },
+-  get RootTagContext(): RootTagContext {
++    get RootTagContext(): RootTagContext {
+     return require('./Libraries/ReactNative/RootTag').RootTagContext;
+   },
+   get unstable_enableLogBox(): () => void {
+     return () =>
+-      console.warn(
+-        'LogBox is enabled by default so there is no need to call unstable_enableLogBox() anymore. This is a no op and will be removed in the next version.',
+-      );
+-  },
+-  // Deprecated Prop Types
+-  get ColorPropType(): $FlowFixMe {
+-    console.error(
+-      'ColorPropType will be removed from React Native, along with all ' +
+-        'other PropTypes. We recommend that you migrate away from PropTypes ' +
+-        'and switch to a type system like TypeScript. If you need to ' +
+-        'continue using ColorPropType, migrate to the ' +
+-        "'deprecated-react-native-prop-types' package.",
++    console.warn(
++    'LogBox is enabled by default so there is no need to call unstable_enableLogBox() anymore. This is a no op and will be removed in the next version.',
+     );
++  },
++    // Deprecated Prop Types
++    get ColorPropType(): $FlowFixMe {
+     return require('deprecated-react-native-prop-types').ColorPropType;
+   },
+-  get EdgeInsetsPropType(): $FlowFixMe {
+-    console.error(
+-      'EdgeInsetsPropType will be removed from React Native, along with all ' +
+-        'other PropTypes. We recommend that you migrate away from PropTypes ' +
+-        'and switch to a type system like TypeScript. If you need to ' +
+-        'continue using EdgeInsetsPropType, migrate to the ' +
+-        "'deprecated-react-native-prop-types' package.",
+-    );
++    get EdgeInsetsPropType(): $FlowFixMe {
+     return require('deprecated-react-native-prop-types').EdgeInsetsPropType;
+   },
+-  get PointPropType(): $FlowFixMe {
+-    console.error(
+-      'PointPropType will be removed from React Native, along with all ' +
+-        'other PropTypes. We recommend that you migrate away from PropTypes ' +
+-        'and switch to a type system like TypeScript. If you need to ' +
+-        'continue using PointPropType, migrate to the ' +
+-        "'deprecated-react-native-prop-types' package.",
+-    );
++    get PointPropType(): $FlowFixMe {
+     return require('deprecated-react-native-prop-types').PointPropType;
+   },
+-  get ViewPropTypes(): $FlowFixMe {
+-    console.error(
+-      'ViewPropTypes will be removed from React Native, along with all ' +
+-        'other PropTypes. We recommend that you migrate away from PropTypes ' +
+-        'and switch to a type system like TypeScript. If you need to ' +
+-        'continue using ViewPropTypes, migrate to the ' +
+-        "'deprecated-react-native-prop-types' package.",
+-    );
++    get ViewPropTypes(): $FlowFixMe {
+     return require('deprecated-react-native-prop-types').ViewPropTypes;
+   },
+ };
+ 
+-if (__DEV__) {
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access ART. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access ART. */
+-  Object.defineProperty(module.exports, 'ART', {
+-    configurable: true,
+-    get() {
+-      invariant(
+-        false,
+-        'ART has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/art' instead of 'react-native'. " +
+-          'See https://github.com/react-native-art/art',
+-      );
+-    },
+-  });
++    if (__DEV__) {
++      /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++       * attempting to access ART. */
++      /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++       * attempting to access ART. */
++      Object.defineProperty(module.exports, 'ART', {
++        configurable: true,
++        get() {
++          invariant(
++            false,
++            'ART has been removed from React Native. ' +
++            "It can now be installed and imported from '@react-native-community/art' instead of 'react-native'. " +
++            'See https://github.com/react-native-art/art',
++          );
++        },
++      });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access ListView. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access ListView. */
+-  Object.defineProperty(module.exports, 'ListView', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access ListView. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access ListView. */
++    Object.defineProperty(module.exports, 'ListView', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'ListView has been removed from React Native. ' +
+-          'See https://fb.me/nolistview for more information or use ' +
+-          '`deprecated-react-native-listview`.',
++        'See https://fb.me/nolistview for more information or use ' +
++        '`deprecated-react-native-listview`.',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access SwipeableListView. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access SwipeableListView. */
+-  Object.defineProperty(module.exports, 'SwipeableListView', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access SwipeableListView. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access SwipeableListView. */
++    Object.defineProperty(module.exports, 'SwipeableListView', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'SwipeableListView has been removed from React Native. ' +
+-          'See https://fb.me/nolistview for more information or use ' +
+-          '`deprecated-react-native-swipeable-listview`.',
++        'See https://fb.me/nolistview for more information or use ' +
++        '`deprecated-react-native-swipeable-listview`.',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access WebView. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access WebView. */
+-  Object.defineProperty(module.exports, 'WebView', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access WebView. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access WebView. */
++    Object.defineProperty(module.exports, 'WebView', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'WebView has been removed from React Native. ' +
+-          "It can now be installed and imported from 'react-native-webview' instead of 'react-native'. " +
+-          'See https://github.com/react-native-webview/react-native-webview',
++        "It can now be installed and imported from 'react-native-webview' instead of 'react-native'. " +
++        'See https://github.com/react-native-webview/react-native-webview',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access NetInfo. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access NetInfo. */
+-  Object.defineProperty(module.exports, 'NetInfo', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access NetInfo. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access NetInfo. */
++    Object.defineProperty(module.exports, 'NetInfo', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'NetInfo has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/netinfo' instead of 'react-native'. " +
+-          'See https://github.com/react-native-netinfo/react-native-netinfo',
++        "It can now be installed and imported from '@react-native-community/netinfo' instead of 'react-native'. " +
++        'See https://github.com/react-native-netinfo/react-native-netinfo',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access CameraRoll. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access CameraRoll. */
+-  Object.defineProperty(module.exports, 'CameraRoll', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access CameraRoll. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access CameraRoll. */
++    Object.defineProperty(module.exports, 'CameraRoll', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'CameraRoll has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/cameraroll' instead of 'react-native'. " +
+-          'See https://github.com/react-native-cameraroll/react-native-cameraroll',
++        "It can now be installed and imported from '@react-native-community/cameraroll' instead of 'react-native'. " +
++        'See https://github.com/react-native-cameraroll/react-native-cameraroll',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access ImageStore. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access ImageStore. */
+-  Object.defineProperty(module.exports, 'ImageStore', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access ImageStore. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access ImageStore. */
++    Object.defineProperty(module.exports, 'ImageStore', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'ImageStore has been removed from React Native. ' +
+-          'To get a base64-encoded string from a local image use either of the following third-party libraries:' +
+-          "* expo-file-system: `readAsStringAsync(filepath, 'base64')`" +
+-          "* react-native-fs: `readFile(filepath, 'base64')`",
++        'To get a base64-encoded string from a local image use either of the following third-party libraries:' +
++        "* expo-file-system: `readAsStringAsync(filepath, 'base64')`" +
++        "* react-native-fs: `readFile(filepath, 'base64')`",
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access ImageEditor. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access ImageEditor. */
+-  Object.defineProperty(module.exports, 'ImageEditor', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access ImageEditor. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access ImageEditor. */
++    Object.defineProperty(module.exports, 'ImageEditor', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'ImageEditor has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/image-editor' instead of 'react-native'. " +
+-          'See https://github.com/callstack/react-native-image-editor',
++        "It can now be installed and imported from '@react-native-community/image-editor' instead of 'react-native'. " +
++        'See https://github.com/callstack/react-native-image-editor',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access TimePickerAndroid. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access TimePickerAndroid. */
+-  Object.defineProperty(module.exports, 'TimePickerAndroid', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access TimePickerAndroid. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access TimePickerAndroid. */
++    Object.defineProperty(module.exports, 'TimePickerAndroid', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'TimePickerAndroid has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/datetimepicker' instead of 'react-native'. " +
+-          'See https://github.com/react-native-datetimepicker/datetimepicker',
++        "It can now be installed and imported from '@react-native-community/datetimepicker' instead of 'react-native'. " +
++        'See https://github.com/react-native-datetimepicker/datetimepicker',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access ToolbarAndroid. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access ToolbarAndroid. */
+-  Object.defineProperty(module.exports, 'ToolbarAndroid', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access ToolbarAndroid. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access ToolbarAndroid. */
++    Object.defineProperty(module.exports, 'ToolbarAndroid', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'ToolbarAndroid has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/toolbar-android' instead of 'react-native'. " +
+-          'See https://github.com/react-native-toolbar-android/toolbar-android',
++        "It can now be installed and imported from '@react-native-community/toolbar-android' instead of 'react-native'. " +
++        'See https://github.com/react-native-toolbar-android/toolbar-android',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access ViewPagerAndroid. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access ViewPagerAndroid. */
+-  Object.defineProperty(module.exports, 'ViewPagerAndroid', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access ViewPagerAndroid. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access ViewPagerAndroid. */
++    Object.defineProperty(module.exports, 'ViewPagerAndroid', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'ViewPagerAndroid has been removed from React Native. ' +
+-          "It can now be installed and imported from 'react-native-pager-view' instead of 'react-native'. " +
+-          'See https://github.com/callstack/react-native-pager-view',
++        "It can now be installed and imported from 'react-native-pager-view' instead of 'react-native'. " +
++        'See https://github.com/callstack/react-native-pager-view',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access CheckBox. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access CheckBox. */
+-  Object.defineProperty(module.exports, 'CheckBox', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access CheckBox. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access CheckBox. */
++    Object.defineProperty(module.exports, 'CheckBox', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'CheckBox has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/checkbox' instead of 'react-native'. " +
+-          'See https://github.com/react-native-checkbox/react-native-checkbox',
++        "It can now be installed and imported from '@react-native-community/checkbox' instead of 'react-native'. " +
++        'See https://github.com/react-native-checkbox/react-native-checkbox',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access SegmentedControlIOS. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access SegmentedControlIOS. */
+-  Object.defineProperty(module.exports, 'SegmentedControlIOS', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access SegmentedControlIOS. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access SegmentedControlIOS. */
++    Object.defineProperty(module.exports, 'SegmentedControlIOS', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'SegmentedControlIOS has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/segmented-checkbox' instead of 'react-native'." +
+-          'See https://github.com/react-native-segmented-control/segmented-control',
++        "It can now be installed and imported from '@react-native-community/segmented-checkbox' instead of 'react-native'." +
++        'See https://github.com/react-native-segmented-control/segmented-control',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access StatusBarIOS. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access StatusBarIOS. */
+-  Object.defineProperty(module.exports, 'StatusBarIOS', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access StatusBarIOS. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access StatusBarIOS. */
++    Object.defineProperty(module.exports, 'StatusBarIOS', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'StatusBarIOS has been removed from React Native. ' +
+-          'Has been merged with StatusBar. ' +
+-          'See https://reactnative.dev/docs/statusbar',
++        'Has been merged with StatusBar. ' +
++        'See https://reactnative.dev/docs/statusbar',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access PickerIOS. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access PickerIOS. */
+-  Object.defineProperty(module.exports, 'PickerIOS', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access PickerIOS. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access PickerIOS. */
++    Object.defineProperty(module.exports, 'PickerIOS', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'PickerIOS has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-picker/picker' instead of 'react-native'. " +
+-          'See https://github.com/react-native-picker/picker',
++        "It can now be installed and imported from '@react-native-picker/picker' instead of 'react-native'. " +
++        'See https://github.com/react-native-picker/picker',
+       );
+     },
+   });
+ 
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access Picker. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access Picker. */
+-  Object.defineProperty(module.exports, 'Picker', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access Picker. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access Picker. */
++    Object.defineProperty(module.exports, 'Picker', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'Picker has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-picker/picker' instead of 'react-native'. " +
+-          'See https://github.com/react-native-picker/picker',
++        "It can now be installed and imported from '@react-native-picker/picker' instead of 'react-native'. " +
++        'See https://github.com/react-native-picker/picker',
+       );
+     },
+   });
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access DatePickerAndroid. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access DatePickerAndroid. */
+-  Object.defineProperty(module.exports, 'DatePickerAndroid', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access DatePickerAndroid. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access DatePickerAndroid. */
++    Object.defineProperty(module.exports, 'DatePickerAndroid', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'DatePickerAndroid has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/datetimepicker' instead of 'react-native'. " +
+-          'See https://github.com/react-native-datetimepicker/datetimepicker',
++        "It can now be installed and imported from '@react-native-community/datetimepicker' instead of 'react-native'. " +
++        'See https://github.com/react-native-datetimepicker/datetimepicker',
+       );
+     },
+   });
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access MaskedViewIOS. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access MaskedViewIOS. */
+-  Object.defineProperty(module.exports, 'MaskedViewIOS', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access MaskedViewIOS. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access MaskedViewIOS. */
++    Object.defineProperty(module.exports, 'MaskedViewIOS', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'MaskedViewIOS has been removed from React Native. ' +
+-          "It can now be installed and imported from '@react-native-community/react-native-masked-view' instead of 'react-native'. " +
+-          'See https://github.com/react-native-masked-view/masked-view',
++        "It can now be installed and imported from '@react-native-community/react-native-masked-view' instead of 'react-native'. " +
++        'See https://github.com/react-native-masked-view/masked-view',
+       );
+     },
+   });
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access AsyncStorage. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access AsyncStorage. */
+-  Object.defineProperty(module.exports, 'AsyncStorage', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access AsyncStorage. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access AsyncStorage. */
++    Object.defineProperty(module.exports, 'AsyncStorage', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'AsyncStorage has been removed from react-native core. ' +
+-          "It can now be installed and imported from '@react-native-async-storage/async-storage' instead of 'react-native'. " +
+-          'See https://github.com/react-native-async-storage/async-storage',
++        "It can now be installed and imported from '@react-native-async-storage/async-storage' instead of 'react-native'. " +
++        'See https://github.com/react-native-async-storage/async-storage',
+       );
+     },
+   });
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access ImagePickerIOS. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access ImagePickerIOS. */
+-  Object.defineProperty(module.exports, 'ImagePickerIOS', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access ImagePickerIOS. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access ImagePickerIOS. */
++    Object.defineProperty(module.exports, 'ImagePickerIOS', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'ImagePickerIOS has been removed from React Native. ' +
+-          "Please upgrade to use either '@react-native-community/react-native-image-picker' or 'expo-image-picker'. " +
+-          "If you cannot upgrade to a different library, please install the deprecated '@react-native-community/image-picker-ios' package. " +
+-          'See https://github.com/rnc-archive/react-native-image-picker-ios',
++        "Please upgrade to use either '@react-native-community/react-native-image-picker' or 'expo-image-picker'. " +
++        "If you cannot upgrade to a different library, please install the deprecated '@react-native-community/image-picker-ios' package. " +
++        'See https://github.com/rnc-archive/react-native-image-picker-ios',
+       );
+     },
+   });
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access ProgressViewIOS. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access ProgressViewIOS. */
+-  Object.defineProperty(module.exports, 'ProgressViewIOS', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access ProgressViewIOS. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access ProgressViewIOS. */
++    Object.defineProperty(module.exports, 'ProgressViewIOS', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'ProgressViewIOS has been removed from react-native core. ' +
+-          "It can now be installed and imported from '@react-native-community/progress-view' instead of 'react-native'. " +
+-          'See https://github.com/react-native-progress-view/progress-view',
++        "It can now be installed and imported from '@react-native-community/progress-view' instead of 'react-native'. " +
++        'See https://github.com/react-native-progress-view/progress-view',
+       );
+     },
+   });
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access DatePickerIOS. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access DatePickerIOS. */
+-  Object.defineProperty(module.exports, 'DatePickerIOS', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access DatePickerIOS. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access DatePickerIOS. */
++    Object.defineProperty(module.exports, 'DatePickerIOS', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'DatePickerIOS has been removed from react-native core. ' +
+-          "It can now be installed and imported from '@react-native-community/datetimepicker' instead of 'react-native'. " +
+-          'See https://github.com/react-native-datetimepicker/datetimepicker',
++        "It can now be installed and imported from '@react-native-community/datetimepicker' instead of 'react-native'. " +
++        'See https://github.com/react-native-datetimepicker/datetimepicker',
+       );
+     },
+   });
+-  /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
+-   * attempting to access Slider. */
+-  /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
+-   * attempting to access Slider. */
+-  Object.defineProperty(module.exports, 'Slider', {
+-    configurable: true,
++    /* $FlowFixMe[prop-missing] This is intentional: Flow will error when
++     * attempting to access Slider. */
++    /* $FlowFixMe[invalid-export] This is intentional: Flow will error when
++     * attempting to access Slider. */
++    Object.defineProperty(module.exports, 'Slider', {
++      configurable: true,
+     get() {
+       invariant(
+         false,
+         'Slider has been removed from react-native core. ' +
+-          "It can now be installed and imported from '@react-native-community/slider' instead of 'react-native'. " +
+-          'See https://github.com/callstack/react-native-slider',
++        "It can now be installed and imported from '@react-native-community/slider' instead of 'react-native'. " +
++        'See https://github.com/callstack/react-native-slider',
+       );
+     },
+   });

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
 import { useFocusEffect, CommonActions } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
 import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
@@ -12,7 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
 import DropDownPicker from 'react-native-dropdown-picker';
 
-import { setAboutMeChanges } from '../redux/actions';
+import { setAboutMeChanges, setSaveChanges } from '../redux/actions';
 import { COLORS, SIZES, FONT, icons } from '../constants';
 
 export default function AboutMe({ navigation }) {
@@ -87,6 +87,7 @@ export default function AboutMe({ navigation }) {
 
     // Redux
     const dispatch = useDispatch();
+    const saveChangesVal = useSelector(state => state.editProfileReducer.saveChangesVal);
 
     // Firestore data
     const getFirestoreData = () => {
@@ -123,6 +124,8 @@ export default function AboutMe({ navigation }) {
         useCallback(() => {
             setIsLoading(true);
             getFirestoreData();
+            setHasUnsavedChanges(false);
+            dispatch(setAboutMeChanges(false));
         }, [])
     );
 
@@ -162,14 +165,23 @@ export default function AboutMe({ navigation }) {
             });
             setHasUnsavedChanges(false);
             dispatch(setAboutMeChanges(false));
+            dispatch(setSaveChanges(false));
         } catch (e) {
             console.error("Error submitting: ", e);
             setHasUnsavedChanges(false);
             dispatch(setAboutMeChanges(false));
+            dispatch(setSaveChanges(false));
             setError(e.message);
         }
         setSubmitting(false);
     };
+
+    useEffect(() => {
+        if (saveChangesVal) {
+            handleSubmit();
+            navigation.navigate('View')
+        }
+    }, [saveChangesVal]);
 
     // Track changes
     useEffect(() => {
@@ -205,6 +217,7 @@ export default function AboutMe({ navigation }) {
                             text: 'Discard',
                             style: 'destructive',
                             onPress: () => {
+                                dispatch(setAboutMeChanges(false));
                                 navigation.dispatch(
                                     CommonActions.reset({
                                         index: 0,
@@ -373,6 +386,7 @@ export default function AboutMe({ navigation }) {
                         />
                     </View>
                 </View>
+
                 <Spinner
                     visible={submitting}
                     animation='fade'
