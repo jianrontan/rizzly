@@ -20,8 +20,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { doc, updateDoc, setDoc } from 'firebase/firestore';
 
-import { setHasUnreadChats } from '../redux/actions';
-
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
 const cardHeight = height - 170;
@@ -123,8 +121,6 @@ const ChatRoom = ({ route }) => {
         const hasUnread = newMessages.some(
           (message) => message.user._id !== auth.currentUser.uid && !message.read
         );
-
-        dispatch(setHasUnreadChats(hasUnread));
       });
 
       return () => {

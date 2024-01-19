@@ -3,13 +3,15 @@ import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import { collection, getDocs, query, where, onSnapshot, updateDoc, doc } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { setMatchesCount, setMatchesRedux, setUnreadChatroomsCount } from '../redux/actions';
 
 const MatchesScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const [unreadMessages, setUnreadMessages] = useState({});
   const [matches, setMatches] = useState([]);
+  const [openedChatrooms, setOpenedChatrooms] = useState([]);
+  const chatVal = Number(useSelector(state => state.chatVal));
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -97,6 +99,10 @@ const MatchesScreen = ({ navigation }) => {
                 userName: match.name,
               });
 
+              if (!openedChatrooms.includes(chatRoomID)) {
+                setOpenedChatrooms([...openedChatrooms, chatRoomID]); // Add the chat room to the list of opened chatrooms
+              }
+
               // Fetch all messages in the chat room
               const messagesSnapshot = await getDocs(collection(db, 'privatechatrooms', chatRoomID, 'messages'));
 
@@ -111,6 +117,15 @@ const MatchesScreen = ({ navigation }) => {
                   await updateDoc(messageRef, { read: true });
                 }
               });
+
+              // Calculate the new unread count
+              const unreadCount = messagesSnapshot.docs.reduce((count, doc) => {
+                const messageData = doc.data();
+                return messageData.senderId !== auth.currentUser.uid && !messageData.read ? count + 1 : count;
+              }, 0);
+
+              // Update chatVal with the new unread count
+              dispatch(setUnreadChatroomsCount(unreadCount));
             }}
           >
             {/* Display the circular avatar */}

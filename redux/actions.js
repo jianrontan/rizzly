@@ -80,6 +80,7 @@ export const setMatchesCount = countVal => {
 };
 
 export const setUnreadChatroomsCount = chatVal => {
+  console.log(`Dispatching setUnreadChatroomsCount with count: ${chatVal}`);
   return dispatch => {
     dispatch({
       type: SET_UNREAD_CHATROOMS_COUNT,

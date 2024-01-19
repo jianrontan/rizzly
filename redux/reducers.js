@@ -65,6 +65,7 @@ export function editProfileReducer(state = editProfileState, action) {
         countVal: action.payload
       }
     case SET_UNREAD_CHATROOMS_COUNT:
+      console.log(`Updating unreadChatroomsCount to: ${action.payload}`);
       return {
         ...state,
         chatVal: action.payload
