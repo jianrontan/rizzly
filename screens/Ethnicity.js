@@ -32,158 +32,29 @@ export default function Ethnicity({ navigation }) {
     // Ethnicities
     const [ethnicity, setEthnicity] = useState([]);
     const [startEthnicity, setStartEthnicity] = useState([]);
+    const [checkedState, setCheckedState] = useState({});
     const ethnicities = [
         'African',
-        'Akan',
-        'Albanian',
-        'Amhara',
         'Arab',
-        'Armenian',
         'Ashkenazi Jewish',
-        'Assyrian',
-        'Australian Aboriginal',
-        'Austrian',
-        'Azerbaijani',
-        'Baloch',
-        'Bamar',
-        'Basque',
-        'Belarusian',
-        'Bengali',
-        'Berber',
-        'Bosniak',
-        'Brazilian',
-        'Bulgarian',
-        'Burmese',
-        'Catalan',
-        'Chechen',
-        'Cherokee',
-        'Chinese',
-        'Chuvash',
-        'Colombian',
-        'Cree',
-        'Croatian',
-        'Czech',
-        'Danish',
-        'Dutch',
-        'English',
-        'Estonian',
-        'Ethiopian',
-        'Faroese',
-        'Fijian',
-        'Filipino',
-        'Finnish',
-        'French',
-        'Georgian',
-        'German',
-        'Greek',
-        'Greenlandic',
-        'Guatemalan',
-        'Gujarati',
-        'Haitian',
-        'Hazaras',
-        'Hmong',
-        'Hungarian',
-        'Icelandic',
-        'Igbo',
-        'Indian',
-        'Indigenous/Native',
-        'Indonesian',
-        'Iranian',
-        'Iraqi',
-        'Irish',
-        'Israeli',
-        'Italian',
-        'Ivorian',
-        'Japanese',
-        'Javanese',
-        'Kannada',
-        'Kazakh',
-        'Khmer',
-        'Kikuyu',
-        'Korean',
-        'Kurdish',
-        'Kyrgyz',
-        'Lao',
-        'Latvian',
-        'Lebanese',
-        'Lithuanian',
-        'Luxembourgish',
-        'Macedonian',
-        'Malagasy',
-        'Malay',
-        'Malayali',
-        'Maldivian',
-        'Maltese',
-        'Maori',
-        'Marathi',
-        'Mestizo',
-        'Mexican',
-        'Miao',
-        'Mongolian',
-        'Montenegrin',
-        'Moroccan',
-        'Navajo',
-        'Nepali',
-        'New Zealander',
-        'Nigerian',
-        'Norwegian',
-        'Oromo',
-        'Pakistani',
-        'Palestinian',
-        'Parsi',
-        'Pashtun',
-        'Peruvian',
-        'Polish',
-        'Portuguese',
-        'Punjabi',
-        'Quechua',
-        'Romani',
-        'Romanian',
+        'East Asian (Chinese, Japanese, Korean)',
+        'South Asian (Indian, Pakistani, Bangladeshi)',
+        'Southeast Asian (Filipino, Vietnamese, Thai)',
+        'European (British, German, French, Italian, Spanish)',
+        'Latino/Hispanic',
+        'Middle Eastern (Iranian, Turkish, Kurdish)',
+        'Native American',
+        'Pacific Islander (Polynesian, Micronesian, Melanesian)',
         'Russian',
-        'Rwandan',
-        'Sámi',
-        'Scottish',
-        'Serbian',
-        'Sikh',
-        'Sindhi',
-        'Sinhalese',
-        'Slovak',
-        'Slovene',
-        'Somali',
-        'South African',
-        'South American',
-        'South Asian',
-        'Southeast Asian',
-        'Spanish',
-        'Sri Lankan',
-        'Sudanese',
-        'Swedish',
-        'Swiss',
-        'Syrian',
-        'Tahitian',
-        'Tajik',
-        'Tamil',
-        'Tatar',
-        'Telugu',
-        'Thai',
-        'Tibetan',
-        'Tigrayan',
-        'Tongan',
-        'Tunisian',
-        'Turkish',
-        'Turkmen',
-        'Ukrainian',
-        'Uruguayan',
-        'Uyghur',
-        'Uzbek',
-        'Venezuelan',
-        'Vietnamese',
-        'Welsh',
-        'Yemeni',
-        'Yoruba',
-        'Zulu',
+        'Slavic (Ukrainian, Polish, Czech)',
+        'Sub-Saharan African (Yoruba, Igbo, Zulu)',
+        'Scandinavian (Swedish, Norwegian, Danish)',
+        'South American (Peruvian, Argentinean, Colombian)',
+        'Balkan (Serbian, Croatian, Bulgarian)',
+        'Jewish',
+        'Mestizo (Mexican, Central American)',
         'Other',
-        'Prefer not to say',
+        'Prefer not to say'
     ];
 
     // Update
@@ -210,6 +81,13 @@ export default function Ethnicity({ navigation }) {
                 setEthnicity(holdData.ethnicity || []);
 
                 setStartEthnicity(holdData.ethnicity || []);
+
+                const initialCheckedState = {};
+                ethnicities.forEach((ethnicity) => {
+                    initialCheckedState[ethnicity] = holdData.ethnicity.includes(ethnicity);
+                });
+                setCheckedState(initialCheckedState);
+
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
@@ -262,11 +140,16 @@ export default function Ethnicity({ navigation }) {
     }, [saveChangesVal]);
 
     // Track changes
+    const arraysAreEqual = (arr1, arr2) => {
+        if (arr1.length !== arr2.length) return false;
+        const sortedArr1 = [...arr1].sort();
+        const sortedArr2 = [...arr2].sort();
+        return sortedArr1.every((value, index) => value === sortedArr2[index]);
+    };
+
     useEffect(() => {
         if (!isLoading) {
-            if (
-                ethnicity == startEthnicity
-            ) {
+            if (arraysAreEqual(ethnicity, startEthnicity)) {
                 setHasUnsavedChanges(false);
                 dispatch(setHasUnsavedChangesExport(false));
                 console.log("myname changed hasUnsavedChanges to false")
@@ -314,27 +197,51 @@ export default function Ethnicity({ navigation }) {
 
     // Function
     const handleSelectEthnicity = useCallback((selectedEthnicity) => {
-        if (selectedEthnicity === 'Prefer not to say') {
-            setEthnicity(['Prefer not to say']);
-        } else {
-            setEthnicity((currentEthnicities) => {
+        setCheckedState((prevState) => {
+            // If "Prefer not to say" is currently selected and the user selects something else,
+            // clear "Prefer not to say" and add the new selection
+            if (prevState['Prefer not to say'] && selectedEthnicity !== 'Prefer not to say') {
+                const newState = { ...prevState, 'Prefer not to say': false };
+                return { ...newState, [selectedEthnicity]: true };
+            }
+            // If the user selects "Prefer not to say", clear all other selections
+            if (selectedEthnicity === 'Prefer not to say') {
+                const clearedState = Object.keys(prevState).reduce((state, key) => {
+                    return { ...state, [key]: false };
+                }, {});
+                return { ...clearedState, 'Prefer not to say': true };
+            }
+            // For any other selection, toggle its current state
+            return { ...prevState, [selectedEthnicity]: !prevState[selectedEthnicity] };
+        });
+
+        // Update the ethnicity array based on the new checked state
+        setEthnicity((currentEthnicities) => {
+            if (selectedEthnicity === 'Prefer not to say') {
+                // If "Prefer not to say" is selected, return only that
+                return ['Prefer not to say'];
+            } else {
+                // Toggle the selected ethnicity in the array
                 if (currentEthnicities.includes(selectedEthnicity)) {
                     return currentEthnicities.filter(ethnicity => ethnicity !== selectedEthnicity);
                 } else {
-                    const newSelections = currentEthnicities.filter(ethnicity => ethnicity !== 'Prefer not to say');
-                    if (newSelections.length < 8) {
-                        return [...newSelections, selectedEthnicity];
+                    // If "Prefer not to say" is already selected, remove it and add the new selection
+                    const withoutPreferNotToSay = currentEthnicities.filter(ethnicity => ethnicity !== 'Prefer not to say');
+                    if (withoutPreferNotToSay.length < 8) {
+                        return [...withoutPreferNotToSay, selectedEthnicity];
                     } else {
-                        Alert.alert("You can only select up to 8 ethnicities.");
+                        Alert.alert(
+                            "Maximum number exceeded",
+                            "You may choose up to 8 ethnicities."
+                        );
                         return currentEthnicities;
                     }
                 }
-            });
-        }
+            }
+        });
     }, []);
 
     console.log(ethnicity);
-    console.log(ethnicity.length);
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -366,7 +273,7 @@ export default function Ethnicity({ navigation }) {
                             <EthnicityCheckbox
                                 key={item}
                                 item={item}
-                                isChecked={ethnicity.includes(item)}
+                                isChecked={checkedState[item]}
                                 onToggle={handleSelectEthnicity}
                             />
                         </TouchableOpacity>
