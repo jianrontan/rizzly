@@ -33,6 +33,7 @@ const ChatRoom = ({ route }) => {
   const [showCamera, setShowCamera] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [showChat, setShowChat] = useState(true);
+  const [firstMessageSent, setFirstMessageSent] = useState(false);
   const dispatch = useDispatch();
 
   const goToReport = () => {
@@ -154,6 +155,8 @@ const ChatRoom = ({ route }) => {
       timestamp: new Date(),
       read: false,
     });
+
+    setFirstMessageSent(true);
   };
 
   const sendImageMessage = async (imageUrl) => {
@@ -169,6 +172,8 @@ const ChatRoom = ({ route }) => {
       timestamp: new Date(),
       read: false,
     });
+
+    setFirstMessageSent(true);
   };
 
   const onSend = async (newMessages = []) => {
@@ -216,6 +221,11 @@ const ChatRoom = ({ route }) => {
 
   return (
     <>
+      {!firstMessageSent && (
+        < View style={{ justifyContent: 'center', alignItems: 'center'}}>
+          <Text>Start being a rizzler!</Text>
+        </View>
+      )}
       {showCamera && (
         <View style={{ flex: 1 }}>
           <Camera style={{ width: cardWidth, height: cardHeight }} type={type} ref={cameraRef}>
