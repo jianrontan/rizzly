@@ -8,6 +8,9 @@ import {
   SET_LIKES,
   SET_MATCHES_COUNT,
   SET_UNREAD_CHATROOMS_COUNT,
+  SET_VIEW_PROFILE_CHANGES,
+  SET_ABOUT_ME_CHANGES,
+  SET_SAVE_CHANGES
 } from "./actions";
 
 const editProfileState = {
@@ -20,6 +23,9 @@ const editProfileState = {
   likesVal: 0,
   countVal: 0,
   chatVal: 0,
+  viewProfileChangesVal: false,
+  aboutMeChangesVal: false,
+  saveChangesVal: false,
 }
 
 export function editProfileReducer(state = editProfileState, action) {
@@ -69,6 +75,21 @@ export function editProfileReducer(state = editProfileState, action) {
       return {
         ...state,
         chatVal: action.payload
+      }
+    case SET_VIEW_PROFILE_CHANGES:
+      return {
+        ...state,
+        viewProfileChangesVal: action.payload
+      }
+    case SET_ABOUT_ME_CHANGES:
+      return {
+        ...state,
+        aboutMeChangesVal: action.payload
+      }
+    case SET_SAVE_CHANGES:
+      return {
+        ...state,
+        saveChangesVal: action.payload
       }
     default:
       return state;
