@@ -212,34 +212,6 @@ export default function ProfileScreen({ navigation }) {
     // SUBMIT //
     // ****SUBMIT**** user details and navigates user to the main App screen
     const handleSubmit = async () => {
-        if (name !== null && name !== '' && gender !== '' && Object.values(orientation).some(option => option) && image.length > 0 && birthday !== null && birthday !== '' && bio !== null && bio !== '') {
-            try {
-                const userId = auth.currentUser.uid;
-                const userDocRef = doc(db, 'profiles', userId);
-
-                const sortedImages = [...image].sort((a, b) => a.order - b.order)
-                const imageURLs = [];
-                for (let img of sortedImages) {
-                    const url = await uploadImage(img.uri, "image");
-                    imageURLs.push(url);
-                }
-                await updateDoc(userDocRef, {
-                    name: name,
-                    birthday: birthday,
-                    gender: gender,
-                    orientation: orientation,
-                    imageURLs: imageURLs,
-                    bio: bio,
-                    complete: true,
-                });
-                navigation.navigate('App');
-            } catch (e) {
-                console.error("Error submitting: ", e);
-                setError(e.message);
-            }
-        } else {
-            setError('Please fill out all the fields.');
-        }
     };
 
     // BACK BUTTON HANDLER

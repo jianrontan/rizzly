@@ -21,6 +21,7 @@ import ViewProfile from '../screens/ViewProfile';
 import Orientation from '../screens/Orientation';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
+import SetUpProfile from './setUpProfileNavigator';
 import EditProfileStack from './editProfileNavigator';
 import appStyles from '../components/app/app.style';
 import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges, setSaveChanges } from '../redux/actions';
@@ -366,7 +367,7 @@ export default function DrawerStack() {
                 })}
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+                <Drawer.Screen name="Profile" component={SetUpProfile} options={{ headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileNavigator} options={{ headerShown: false }} />
                 <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
             </Drawer.Navigator>
