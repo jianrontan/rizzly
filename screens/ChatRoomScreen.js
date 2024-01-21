@@ -118,6 +118,11 @@ const ChatRoom = ({ route }) => {
 
         setMessages(newMessages);
 
+        // If there are any messages in the chatroom, set firstMessageSent to true
+        if (newMessages.length > 0) {
+          setFirstMessageSent(true);
+        }
+
         // Check for unread messages and dispatch the action
         const hasUnread = newMessages.some(
           (message) => message.user._id !== auth.currentUser.uid && !message.read
@@ -222,8 +227,8 @@ const ChatRoom = ({ route }) => {
   return (
     <>
       {!firstMessageSent && (
-        < View style={{ justifyContent: 'center', alignItems: 'center'}}>
-          <Text>Start being a rizzler!</Text>
+        < View style={{ justifyContent: 'center', alignItems: 'center' }}>
+          <Text>Start chatting...</Text>
         </View>
       )}
       {showCamera && (

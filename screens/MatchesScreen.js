@@ -67,7 +67,6 @@ const MatchesScreen = ({ navigation }) => {
 
           setUnreadMessages((prev) => ({ ...prev, [chatRoomID]: hasUnread }));
           // Dispatch the count to your redux store
-          dispatch(setUnreadChatroomsCount(unreadCount));
         });
 
         onSnapshot(messagesCollection, (snapshot) => {
