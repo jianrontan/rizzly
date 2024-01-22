@@ -2,13 +2,14 @@ import React from 'react';
 import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useFonts } from 'expo-font';
-import { SplashScreen } from 'expo-router';
+import SplashScreen from 'react-native-splash-screen';
 import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { createStackNavigator } from '@react-navigation/stack';
 import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
+import { useDispatch, useSelector } from 'react-redux';
 
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../screens/Settings';
