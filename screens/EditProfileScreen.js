@@ -35,11 +35,11 @@ export default function EditProfileScreen({ navigation }) {
     const navigateHeight = () => {
         navigation.navigate('Height');
     }
-    const navigateReligion = () => {
-        navigation.navigate('Religion');
-    }
     const navigateEthnicity = () => {
         navigation.navigate('Ethnicity');
+    }
+    const navigateReligion = () => {
+        navigation.navigate('Religion');
     }
 
     return (
@@ -79,16 +79,16 @@ export default function EditProfileScreen({ navigation }) {
                 <View style={styles.borderLine}></View>
 
                 <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateReligion}>
-                        <Text style={styles.tabText}>Religion</Text>
+                    <TouchableOpacity onPress={navigateEthnicity}>
+                        <Text style={styles.tabText}>Ethnicity</Text>
                     </TouchableOpacity>
                 </View>
 
                 <View style={styles.borderLine}></View>
 
                 <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateEthnicity}>
-                        <Text style={styles.tabText}>Ethnicity</Text>
+                    <TouchableOpacity onPress={navigateReligion}>
+                        <Text style={styles.tabText}>Religion</Text>
                     </TouchableOpacity>
                 </View>
 

@@ -81,25 +81,12 @@ export default function DrawerStack() {
             const userDocRef = doc(db, 'profiles', userId);
 
             unsubscribe.current = onSnapshot(userDocRef, (docSnap) => {
-                // If exists stop loading
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     setProfileComplete(data.complete);
                     setLoading(false);
-                    // Else create a new doc for the user
                 } else {
-                    setDoc(userDocRef, {
-                        name: null,
-                        age: null,
-                        gender: null,
-                        orientation: {
-                            "male": false,
-                            "female": false,
-                            "nonBinary": false,
-                        },
-                        complete: false,
-                        id: userId
-                    });
+                    setProfileComplete(false);
                     setLoading(false);
                 }
             });

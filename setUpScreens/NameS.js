@@ -14,7 +14,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 
 import { COLORS, SIZES, FONT, icons } from '../constants';
 
-export default function MyNameS({ navigation }) {
+export default function Name({ navigation }) {
 
     // Authentication
     const auth = getAuth();
@@ -89,6 +89,7 @@ export default function MyNameS({ navigation }) {
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
+                navigation.navigate("App");
                 return true;
             };
             BackHandler.addEventListener('hardwareBackPress', onBackPress);

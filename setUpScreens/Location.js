@@ -18,17 +18,13 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import { COLORS, SIZES, FONT, icons } from '../constants';
 
-export default function Orientation({ navigation }) {
+export default function Location({ navigation }) {
 
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
 
-    // Orientation
-    const [orientation, setOrientation] = useState(null);
-    const [orientationError, setOrientationError] = useState('');
-    const defaultOrientation = { male: false, female: false, nonBinary: false };
-    const actualOrientation = orientation || defaultOrientation;
+    // Location
 
     // Update
     const [error, setError] = useState('');
@@ -47,7 +43,6 @@ export default function Orientation({ navigation }) {
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
-                setOrientation(holdData.orientation);
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
@@ -68,30 +63,25 @@ export default function Orientation({ navigation }) {
     // Next
     const next = () => {
         navigation.dispatch(
-            navigation.navigate("Photos")
+            navigation.navigate("Height")
         );
     };
 
+    // Handle hardware back button
+    useFocusEffect(
+        useCallback(() => {
+            const backAction = () => {
+                navigation.dispatch(
+                    navigation.navigate('Photos')
+                );
+                return true;
+            };
+            const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+            return () => backHandler.remove();
+        }, [])
+    );
+
     // Function
-    const handleOrientation = (id, isSelected) => {
-        setOrientation(prevState => {
-            const newOrientation = { ...prevState, [id]: isSelected };
-            if (Object.values(newOrientation).every(option => !option)) {
-                setOrientationError('Please select at least one orientation.');
-            } else {
-                setOrientationError('');
-            }
-            const docRef = doc(db, 'profiles', userId);
-            updateDoc(docRef, {
-                orientation: newOrientation
-            }).then(() => {
-                console.log("Orientation successfully updated!");
-            }).catch((error) => {
-                console.error("Error updating Orientation: ", error);
-            });
-            return newOrientation;
-        });
-    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -99,27 +89,13 @@ export default function Orientation({ navigation }) {
 
                 <View style={styles.buttonsContainer}>
                     <TouchableOpacity>
-                        <Text style={styles.heading}>Your Rizzly matches will be based on your{"\n"}preferred genders</Text>
+                        <Text style={styles.heading}>Your Rizzly matches will be based on your{"\n"}location</Text>
                     </TouchableOpacity>
                     <TouchableOpacity activeOpacity={0.69} onPress={next}>
                         <View>
                             <Text style={styles.headingBold}>Next</Text>
                         </View>
                     </TouchableOpacity>
-                </View>
-
-                <View style={{ flex: 1, padding: SIZES.medium, alignSelf: 'center' }}>
-                    {/* Orientation */}
-                    <View>
-                        <>
-                            <OptionButton id="male" text="Male" onPress={handleOrientation} selected={actualOrientation.male} />
-                            <OptionButton id="female" text="Female" onPress={handleOrientation} selected={actualOrientation.female} />
-                            <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation} selected={actualOrientation.nonBinary} />
-                        </>
-                    </View>
-                </View>
-                <View style={{ flex: 1, alignSelf: 'center' }}>
-                    {!!orientationError && <Text style={{ color: '#cf0202', fontFamily: FONT.regular }}>{orientationError}</Text>}
                 </View>
 
                 <Spinner

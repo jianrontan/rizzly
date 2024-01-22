@@ -75,12 +75,12 @@ export default function EditProfileStack() {
                 component={Height}
             />
             <Stack.Screen
-                name="Religion"
-                component={Religion}
-            />
-            <Stack.Screen
                 name="Ethnicity"
                 component={Ethnicity}
+            />
+            <Stack.Screen
+                name="Religion"
+                component={Religion}
             />
         </Stack.Navigator>
     )
