@@ -26,7 +26,6 @@ import SetUpProfile from './setUpProfileNavigator';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
-import SetUpProfile from './setUpProfileNavigator';
 import EditProfileStack from './editProfileNavigator';
 import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges, setSaveChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';

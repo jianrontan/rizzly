@@ -6,7 +6,7 @@ import { useDrawerStatus } from '@react-navigation/drawer';
 
 import { COLORS, FONT, SIZES } from '../../constants';
 
-const SettingsComponent = ({settingsOptions, isEnabled, setIsEnabled, fieldName, updateFirestore}) => {
+const SettingsComponent = ({ settingsOptions, isEnabled, setIsEnabled, fieldName, updateFirestore }) => {
     const toggleSwitch = () => {
         const newState = !isEnabled;
         setIsEnabled(newState);
@@ -16,19 +16,19 @@ const SettingsComponent = ({settingsOptions, isEnabled, setIsEnabled, fieldName,
     return (
         <SafeAreaView>
             <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-                {settingsOptions.map(({title, subTitle }, index) =>
+                {settingsOptions.map(({ title, subTitle }, index) =>
                     <TouchableOpacity key={title}>
                         <View style={{
                             paddingHorizontal: 20,
                             paddingTop: 20,
                             paddingBottom: 20,
                         }}>
-                            <Text style={{fontFamily: FONT.medium, fontSize: SIZES.medium, color: COLORS.themeColor}}>{title}</Text>
-                            {subTitle && <Text style={{fontFamily: FONT.regular, fontSize: SIZES.small, color: COLORS.lightThemeColor}}>{subTitle}</Text>}
+                            <Text style={{ fontFamily: FONT.medium, fontSize: SIZES.medium, color: COLORS.themeColor }}>{title}</Text>
+                            {subTitle && <Text style={{ fontFamily: FONT.regular, fontSize: SIZES.small, color: COLORS.lightThemeColor }}>{subTitle}</Text>}
                         </View>
                     </TouchableOpacity>
                 )}
-                <View 
+                <View
                     style={{
                         paddingHorizontal: 20,
                         paddingTop: 20,

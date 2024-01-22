@@ -9,7 +9,7 @@ const SwitchComponent = () => {
     const toggleSwitch = () => setIsEnabled(previousState => !previousState);
 
     return (
-        <View 
+        <View
             style={{
                 paddingHorizontal: 20,
                 paddingTop: 20,

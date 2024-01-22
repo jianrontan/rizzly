@@ -12,26 +12,28 @@ import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
-import ProfileScreen from '../screens/ProfileScreen';
-import MyNameS from '../setUpScreens/MyNameS';
-import Birthday from '../setUpScreens/Birthday';
-import Gender from '../setUpScreens/Gender';
-import Orientation from '../setUpScreens/OrientationS';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import MyName from '../screens/MyName';
+import EditPhotos from '../screens/EditPhotos';
+import AboutMe from '../screens/AboutMe';
+import Height from '../screens/Height';
+import Religion from '../screens/Religion';
+import Ethnicity from '../screens/Ethnicity';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
-import SetUpBackBtn from '../components/button/SetUpBackBtn.js';
+import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';
 
 const Stack = createStackNavigator();
 
-export default function SetUpProfile() {
+export default function EditProfileStack() {
 
     const navigation = useNavigation();
 
     return (
         <Stack.Navigator
-            initialRouteName="Name"
+            initialRouteName="Edit Profile Screen"
             backBehavior="initialRoute"
             screenOptions={({ route }) => ({
                 headerTitle: route.name,
@@ -42,7 +44,7 @@ export default function SetUpProfile() {
                     const navigation = useNavigation();
                     return (
                         <View style={appStyles.buttonPadding}>
-                            <SetUpBackBtn
+                            <DrawerBackBtn
                                 iconUrl={icons.left}
                                 dimension='60%'
                                 title='goBack'
@@ -52,11 +54,34 @@ export default function SetUpProfile() {
                 },
             })}
         >
-            <Stack.Screen name="Name" component={MyNameS} />
-            <Stack.Screen name="Birthday" component={Birthday} />
-            <Stack.Screen name="Gender" component={Gender} />
-            <Stack.Screen name="Preferred Genders" component={Orientation} />
-            <Stack.Screen name="Profile Screen" component={ProfileScreen} />
+            <Stack.Screen
+                name="Edit Profile"
+                component={EditProfileScreen}
+            />
+            <Stack.Screen
+                name="My Name"
+                component={MyName}
+            />
+            <Stack.Screen
+                name="Edit Photos"
+                component={EditPhotos}
+            />
+            <Stack.Screen
+                name="About Me"
+                component={AboutMe}
+            />
+            <Stack.Screen
+                name="Height"
+                component={Height}
+            />
+            <Stack.Screen
+                name="Religion"
+                component={Religion}
+            />
+            <Stack.Screen
+                name="Ethnicity"
+                component={Ethnicity}
+            />
         </Stack.Navigator>
     )
 };
