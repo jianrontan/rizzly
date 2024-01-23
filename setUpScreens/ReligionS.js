@@ -7,31 +7,37 @@ import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUn
 import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
-import { parseISO, format } from 'date-fns';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DropDownPicker from 'react-native-dropdown-picker';
+import CheckBox from 'react-native-check-box';
 
-import { COLORS, SIZES, FONT, icons } from '../constants';
+import { COLORS, SIZES, FONT } from '../constants';
 
-export default function Birthday({ navigation }) {
+export default function Religion({ navigation }) {
 
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
 
-    // Age
-    const [age, setAge] = useState(null);
-
-    // Birthday
-    const [date, setDate] = useState(new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()));
-    const [birthday, setBirthday] = useState('');
-    const [dateText, setDateText] = useState('Pick Your Birthday');
-    const [datePickerValue, setDatePickerValue] = useState(date);
-    const [newDateSet, setNewDateSet] = useState(false);
-    const [mode, setMode] = useState('date');
-    const [show, setShow] = useState(false);
+    // Religions
+    const [religion, setReligion] = useState('');
+    const religions = [
+        'Agnostic',
+        'Atheist',
+        'Buddhist',
+        'Catholic',
+        'Christian',
+        'Hindu',
+        'Jewish',
+        'Muslim',
+        'Taoist',
+        'Sikh',
+        'Zoroastrian',
+        'Other',
+        'Prefer not to say',
+    ];
 
     // Update
     const [error, setError] = useState('');
@@ -49,14 +55,9 @@ export default function Birthday({ navigation }) {
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
-                setBirthday(holdData.birthday || '');
-                const timestamp = holdData.datePickerValue;
-                if (timestamp) {
-                    const dateObject = timestamp.toDate();
-                    let textDate = `${dateObject.getDate()}-${dateObject.getMonth() + 1}-${dateObject.getFullYear()}`;
-                    setDateText(textDate || 'Pick Your Birthday');
-                    setDatePickerValue(dateObject);
-                }
+
+                setReligion(holdData.religion || '');
+
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
@@ -75,14 +76,12 @@ export default function Birthday({ navigation }) {
     );
 
     // Submitting
-    const handleSubmit = async () => {
+    const handleSubmit = async (newReligion) => {
         setSubmitting(true);
         const userDocRef = doc(db, 'profiles', userId);
         try {
             await updateDoc(userDocRef, {
-                birthday: birthday,
-                datePickerValue: datePickerValue,
-                age: age,
+                religion: newReligion,
             });
         } catch (e) {
             console.error("Error submitting: ", e);
@@ -91,96 +90,78 @@ export default function Birthday({ navigation }) {
         setSubmitting(false);
     };
 
+    // Finish
+    const finishProfile = async () => {
+        try {
+            const userId = auth.currentUser.uid;
+            const userDocRef = doc(db, 'profiles', userId);
+            await updateDoc(userDocRef, {
+                complete: true,
+            });
+        } catch (e) {
+            console.error("Error submitting: ", e);
+            setError(e.message);
+        }
+    };
+
     // Next
     const next = () => {
-        if (birthday == '') {
-            setSubmitting(false);
+        if (religion === '') {
             Alert.alert(
-                "Birthday Required",
-                "Please enter your birthday",
+                "Religion Required",
+                "Please select at least one religion option. You may pick prefer not to say if you wish to hide your religious beliefs.",
                 [{ text: "OK" }]
             );
+            setSubmitting(false);
             return;
         }
+        finishProfile();
         navigation.dispatch(
-            navigation.navigate("Photos")
+            navigation.navigate("App")
         );
     };
 
     // Function
-    const calculateAge = (birthday) => {
-        const today = new Date();
-        const [day, month, year] = birthday.split("/");
-        const birthDate = new Date(year, month - 1, day);
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const m = today.getMonth() - birthDate.getMonth();
-
-        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-        }
-
-        return age;
+    const handleSelectReligion = (newReligion) => {
+        const religionToSet = religion === newReligion ? '' : newReligion;
+        setReligion(religionToSet);
+        handleSubmit(religionToSet);
     };
-
-    const onChangeDate = (event, selectedDate) => {
-        const currentDate = selectedDate || date;
-        let tempDate = new Date(currentDate); // 2006-01-20T16:00:00.000Z
-        let fDate = `${tempDate.getDate()}/${tempDate.getMonth() + 1}/${tempDate.getFullYear()}`; // 20/1/2006
-        let textDate = `${tempDate.getDate()}-${tempDate.getMonth() + 1}-${tempDate.getFullYear()}`; // 19-1-2006
-        setShow(false);
-        if (event.type === 'set') {
-            setBirthday(fDate);
-            setDatePickerValue(currentDate);
-            setDateText(textDate);
-            setNewDateSet(true);
-        }
-    };
-
-    useEffect(() => {
-        if (newDateSet) {
-            setShow(false);
-            const userAge = calculateAge(birthday);
-            setAge(userAge)
-            setNewDateSet(false);
-            handleSubmit();
-        }
-    }, [newDateSet, birthday]);
-
-    const showMode = (currentMode) => {
-        setShow(true);
-        setMode(currentMode);
-    }
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-            <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
+            <ScrollView showsVerticalScrollIndicator={false} overScrollMode='never'>
 
                 <View style={styles.buttonsContainer}>
                     <TouchableOpacity>
-                        <Text style={styles.heading}>Only your age will be visible on{"\n"}your profile</Text>
+                        <Text style={styles.heading}>Pick 'Prefer not to say' to hide your religion</Text>
                     </TouchableOpacity>
                     <TouchableOpacity activeOpacity={0.69} onPress={next}>
                         <View>
-                            <Text style={styles.headingBold}>Next</Text>
+                            <Text style={styles.headingBold}>Finish</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
 
-                <View style={{ alignSelf: 'center', padding: 10 }}>
-                    <TouchableOpacity onPress={() => showMode('date')}>
-                        <Text style={styles.textStyle3}>{dateText}</Text>
-                    </TouchableOpacity>
-                    {show && (
-                        <DateTimePicker
-                            id='datePicker'
-                            value={datePickerValue}
-                            mode={mode}
-                            display='default'
-                            onChange={onChangeDate}
-                            maximumDate={new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate())}
-                        />
-                    )}
-                </View>
+                {!isLoading &&
+                    (religions.map((item) => (
+                        <TouchableOpacity
+                            style={styles.row}
+                            key={item}
+                            onPress={() => {
+                                handleSelectReligion(item);
+                            }}
+                        >
+                            <Text style={styles.textStyle2}>{item}</Text>
+                            <CheckBox
+                                isChecked={religion === item}
+                                onClick={() => {
+                                    handleSelectReligion(item);
+                                }}
+                            />
+                        </TouchableOpacity>
+                    )))
+                }
 
                 <Spinner
                     visible={submitting}
@@ -206,7 +187,7 @@ export default function Birthday({ navigation }) {
                     indicatorStyle={{
 
                     }}
-                    textContent='Saving...'
+                    textContent='Loading...'
                     textStyle={{
                         fontFamily: FONT.bold,
                         fontSize: SIZES.medium,
@@ -224,6 +205,14 @@ export default function Birthday({ navigation }) {
 const width = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottomWidth: 1,
+        borderColor: 'grey',
+        padding: 10,
+    },
     wrapper: {
         flex: 1,
     },
@@ -249,11 +238,6 @@ const styles = StyleSheet.create({
         fontSize: SIZES.smallmedium,
         color: 'black',
     },
-    textStyle3: {
-        fontFamily: FONT.medium,
-        fontSize: SIZES.large,
-        color: 'black',
-    },
     heading: {
         fontFamily: FONT.medium,
         fontSize: SIZES.small,
@@ -274,6 +258,11 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+    textStyle: {
+        fontFamily: FONT.medium,
+        fontSize: SIZES.smallmedium,
+        color: COLORS.white,
+    },
     dropdownTextStyle: {
         fontFamily: FONT.medium,
         fontSize: SIZES.smallmedium,
@@ -293,7 +282,9 @@ const styles = StyleSheet.create({
     buttonsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: 10,
+        paddingTop: 10,
+        paddingHorizontal: 10,
+        paddingBottom: 9
     },
     borderLine: {
         width: width - 10,

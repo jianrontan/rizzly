@@ -277,18 +277,13 @@ const Photos = ({ navigation }) => {
                             style: 'destructive',
                             onPress: () => {
                                 dispatch(setHasUnsavedChangesExport(false));
-                                navigation.dispatch(
-                                    CommonActions.reset({
-                                        index: 0,
-                                        routes: [{ name: 'Preferred Genders' }],
-                                    })
-                                );
+                                navigation.navigate('Birthday');
                             },
                         },
                     ]);
                     return true;
                 } else {
-                    navigation.navigate('Preferred Genders');
+                    navigation.navigate('Birthday');
                     return true;
                 }
             };

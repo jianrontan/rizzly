@@ -108,6 +108,15 @@ export default function Ethnicity({ navigation }) {
 
     // Submitting
     const handleSubmit = async () => {
+        if (ethnicity.length === 0) {
+            Alert.alert(
+                "Ethnicity Required",
+                "Please select at least one ethnicity option. You may pick prefer not to say if you wish to hide your ethnicity.",
+                [{ text: "OK" }]
+            );
+            setSubmitting(false);
+            return;
+        }
         if (!hasUnsavedChanges) {
             navigation.navigate("Religion");
             setSubmitting(false);

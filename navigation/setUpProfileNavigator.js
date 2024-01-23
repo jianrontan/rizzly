@@ -21,6 +21,7 @@ import Photos from '../setUpScreens/Photos'
 import Location from '../setUpScreens/Location';
 import Height from '../setUpScreens/HeightS';
 import Ethnicity from '../setUpScreens/EthnicityS';
+import Religion from '../setUpScreens/ReligionS';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import SetUpBackBtn from '../components/button/SetUpBackBtn';
 import appStyles from '../components/app/app.style';
@@ -56,7 +57,7 @@ export default function SetUpProfile() {
                 },
             })}
         >
-            <Stack.Screen name="Name" component={Name} />
+            <Stack.Screen name="Name" component={Name} options={{ headerLeft: () => null }} />
             <Stack.Screen name="Birthday" component={Birthday} />
             <Stack.Screen name="Gender" component={Gender} />
             <Stack.Screen name="Preferred Genders" component={Orientation} />
@@ -64,6 +65,7 @@ export default function SetUpProfile() {
             <Stack.Screen name="Location" component={Location} />
             <Stack.Screen name="Height" component={Height} />
             <Stack.Screen name="Ethnicity" component={Ethnicity} />
+            <Stack.Screen name="Religion" component={Religion} />
             <Stack.Screen name="Profile Screen" component={ProfileScreen} />
         </Stack.Navigator>
     )

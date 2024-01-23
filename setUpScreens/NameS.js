@@ -73,10 +73,10 @@ export default function Name({ navigation }) {
         setSubmitting(true);
         const userDocRef = doc(db, 'profiles', userId);
         try {
-            await updateDoc(userDocRef, {
+            await setDoc(userDocRef, {
                 firstName: firstName,
                 lastName: lastName,
-            });
+            }, { merge: true });
         } catch (e) {
             console.error("Error submitting: ", e);
             setError(e.message);
@@ -89,7 +89,6 @@ export default function Name({ navigation }) {
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
-                navigation.navigate("App");
                 return true;
             };
             BackHandler.addEventListener('hardwareBackPress', onBackPress);

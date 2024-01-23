@@ -16,7 +16,6 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { COLORS, SIZES, FONT, icons } from '../constants';
-import { setHasUnsavedChangesExport } from '../redux/actions';
 
 export default function Gender({ navigation }) {
 
@@ -27,7 +26,6 @@ export default function Gender({ navigation }) {
     // Gender
     const [open, setOpen] = useState(false);
     const [gender, setGender] = useState('');
-    const [startGender, setStartGender] = useState('')
     const [genders, setGenders] = useState([
         { label: "Male", value: "Male" },
         { label: "Female", value: "Female" },
@@ -40,15 +38,10 @@ export default function Gender({ navigation }) {
     // Changes
     const [isLoading, setIsLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
     // Styling
     const width = Dimensions.get('window').width;
     const height = Dimensions.get('window').height;
-
-    // Redux
-    const dispatch = useDispatch();
-    const saveChangesVal = useSelector(state => state.editProfileReducer.saveChangesVal);
 
     // Firestore data
     const getFirestoreData = () => {
@@ -57,7 +50,6 @@ export default function Gender({ navigation }) {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
                 setGender(holdData.gender || '');
-                setStartGender(holdData.gender || '');
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
@@ -72,8 +64,6 @@ export default function Gender({ navigation }) {
         useCallback(() => {
             setIsLoading(true);
             getFirestoreData();
-            setHasUnsavedChanges(false);
-            dispatch(setHasUnsavedChangesExport(false));
         }, [])
     );
 
@@ -94,66 +84,19 @@ export default function Gender({ navigation }) {
             await updateDoc(userDocRef, {
                 gender: gender,
             });
-            setHasUnsavedChanges(false);
-            dispatch(setHasUnsavedChangesExport(false));
         } catch (e) {
             console.error("Error submitting: ", e);
-            setHasUnsavedChanges(false);
-            dispatch(setHasUnsavedChangesExport(false));
             setError(e.message);
         }
-        navigation.navigate("Preferred Genders");
         setSubmitting(false);
     };
 
-    // Track changes
-    useEffect(() => {
-        if (!isLoading) {
-            if (
-                gender == startGender
-            ) {
-                setHasUnsavedChanges(false);
-                dispatch(setHasUnsavedChangesExport(false));
-                console.log("gender changed hasUnsavedChanges to false")
-            } else {
-                setHasUnsavedChanges(true);
-                dispatch(setHasUnsavedChangesExport(true));
-                console.log("gender changed hasUnsavedChanges to true")
-            }
-        }
-    }, [gender]);
-
-    // Handle hardware back button
-    useFocusEffect(
-        useCallback(() => {
-            const backAction = () => {
-                if (hasUnsavedChanges) {
-                    Alert.alert("Discard changes?", "You have unsaved changes. Are you sure you want to discard them?", [
-                        { text: "Don't leave", style: 'cancel', onPress: () => { } },
-                        {
-                            text: 'Discard',
-                            style: 'destructive',
-                            onPress: () => {
-                                dispatch(setHasUnsavedChangesExport(false));
-                                navigation.dispatch(
-                                    navigation.navigate('Birthday')
-                                );
-                            },
-                        },
-                    ]);
-                    return true;
-                } else {
-                    navigation.dispatch(
-                        navigation.navigate('Birthday')
-                    );
-                };
-            };
-
-            const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
-
-            return () => backHandler.remove();
-        }, [hasUnsavedChanges])
-    );
+    // Next
+    const next = () => {
+        navigation.dispatch(
+            navigation.navigate("Preferred Genders")
+        );
+    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
@@ -163,9 +106,9 @@ export default function Gender({ navigation }) {
                     <TouchableOpacity>
                         <Text style={styles.heading}>Your Rizzly matches will be based on{"\n"}your gender</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit}>
+                    <TouchableOpacity activeOpacity={0.69} onPress={next}>
                         <View>
-                            <Text style={styles.headingBold}>Save Changes</Text>
+                            <Text style={styles.headingBold}>Next</Text>
                         </View>
                     </TouchableOpacity>
                 </View>
@@ -178,6 +121,7 @@ export default function Gender({ navigation }) {
                     setOpen={setOpen}
                     setValue={setGender}
                     setItems={setGenders}
+                    onChangeValue={handleSubmit}
                     placeholder='Select your gender'
                     textStyle={styles.dropdownTextStyle}
                     containerStyle={{

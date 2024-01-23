@@ -23,7 +23,7 @@ export default function EditProfileScreen({ navigation }) {
     const userId = auth.currentUser.uid;
 
     // Navigate
-    const navigateDetails = () => {
+    const navigateName = () => {
         navigation.navigate('My Name');
     }
     const navigatePhotos = () => {
@@ -47,8 +47,16 @@ export default function EditProfileScreen({ navigation }) {
             <ScrollView style={styles.container}>
 
                 <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateDetails}>
+                    <TouchableOpacity onPress={navigateName}>
                         <Text style={styles.tabText}>My Name</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity>
+                        <Text style={styles.tabText}>My Gender</Text>
                     </TouchableOpacity>
                 </View>
 
