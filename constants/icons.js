@@ -6,9 +6,10 @@ import left from "../assets/icons/left.png";
 import heartOutline from "../assets/icons/heart-ol.png";
 import share from "../assets/icons/share.png";
 import location from "../assets/icons/location.png";
-import chevronLeft from '../assets/icons/chevron-left.png'
-import chevronRight from '../assets/icons/chevron-right.png'
-import backButton from '../assets/icons/backButton.jpg'
+import chevronLeft from '../assets/icons/chevron-left.png';
+import chevronRight from '../assets/icons/chevron-right.png';
+import backButton from '../assets/icons/backButton.jpg';
+import cross from '../assets/icons/cross.png';
 
 export default {
   heart,
@@ -21,5 +22,6 @@ export default {
   location,
   chevronLeft,
   chevronRight,
-  backButton
+  backButton,
+  cross,
 };

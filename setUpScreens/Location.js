@@ -43,51 +43,37 @@ export default function MyLocation({ navigation }) {
     const [location, setLocation] = useState([])
     const [place, setPlace] = useState('');
     const makeLocation = async () => {
+        setSubmitting(true);
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
             alert('Permission to access location was denied');
             return;
         }
-
-        let locationTask;
-
         try {
-            locationTask = Location.watchPositionAsync(
-                {
-                    accuracy: Location.Accuracy.High,
-                    timeInterval: 1000,
-                    distanceInterval: 1,
-                },
-                async (location) => {
-                    setLocation(location);
+            const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.High,
+            });
+            setLocation(location);
 
-                    // Get place from coordinate s
-                    const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
-                    setPlace(place); // Update place state variable
+            // Get place from coordinates
+            const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
+            setPlace(place); // Update place state variable
 
-                    // Update user document with location information
-                    const userId = auth.currentUser.uid;
-                    const userDocRef = doc(db, 'profiles', userId);
+            // Update user document with location information
+            const userId = auth.currentUser.uid;
+            const userDocRef = doc(db, 'profiles', userId);
 
-                    // Update user document with location details
-                    updateDoc(userDocRef, {
-                        location: place,
-                        latitude: location.coords.latitude,
-                        longitude: location.coords.longitude,
-                    });
-                }
-            );
+            // Update user document with location details
+            updateDoc(userDocRef, {
+                location: place,
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            });
         } catch (error) {
-            console.error('Error starting location task:', error);
+            console.error('Error getting location:', error);
             // Handle error as needed
         }
-
-        // Stop tracking location after the first update
-        setTimeout(() => {
-            if (locationTask && locationTask.remove) {
-                locationTask.remove();
-            }
-        }, 1000); // Stop after 1 seconds (adjust as needed)
+        setSubmitting(false);
     };
 
     // Update
@@ -107,7 +93,7 @@ export default function MyLocation({ navigation }) {
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
-                setPlace(holdData.place || '');
+                setPlace(holdData.location || '');
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
@@ -127,6 +113,14 @@ export default function MyLocation({ navigation }) {
 
     // Next
     const next = () => {
+        if (location.length === 0) {
+            Alert.alert(
+                "Location Required",
+                "Please set your location.",
+                [{ text: "OK" }]
+            );
+            return;
+        }
         navigation.dispatch(
             navigation.navigate("Height")
         );
@@ -153,15 +147,29 @@ export default function MyLocation({ navigation }) {
             <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
 
                 <View style={styles.buttonsContainer}>
-                    <TouchableOpacity onPress={makeLocation}>
-                        <Text style={styles.textStyle2}>Set Location </Text>
+                    <TouchableOpacity>
+                        <Text style={styles.heading}>Your Rizzly matches will be based on your{"\n"}location</Text>
                     </TouchableOpacity>
-                    <Text>{place}</Text>
                     <TouchableOpacity activeOpacity={0.69} onPress={next}>
                         <View>
                             <Text style={styles.headingBold}>Next</Text>
                         </View>
                     </TouchableOpacity>
+                </View>
+
+                <View style={styles.buttonsContainer}>
+                    <TouchableOpacity
+                        style={{
+                            borderWidth: 1,
+                            borderRadius: 5,
+                            borderColor: 'gray',
+                            backgroundColor: 'gray',
+                        }}
+                        onPress={makeLocation}
+                    >
+                        <Text style={styles.textStyle5}>Set Location</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.textStyle4}>{place}</Text>
                 </View>
 
                 <Spinner
@@ -172,7 +180,7 @@ export default function MyLocation({ navigation }) {
                     indicatorStyle={{
 
                     }}
-                    textContent='Saving...'
+                    textContent='Loading...'
                     textStyle={{
                         fontFamily: FONT.bold,
                         fontSize: SIZES.medium,
@@ -188,7 +196,7 @@ export default function MyLocation({ navigation }) {
                     indicatorStyle={{
 
                     }}
-                    textContent='Saving...'
+                    textContent='Loading...'
                     textStyle={{
                         fontFamily: FONT.bold,
                         fontSize: SIZES.medium,
@@ -236,6 +244,18 @@ const styles = StyleSheet.create({
         fontSize: SIZES.large,
         color: 'black',
     },
+    textStyle4: {
+        fontFamily: FONT.medium,
+        fontSize: SIZES.smallmedium,
+        color: 'black',
+        padding: 3
+    },
+    textStyle5: {
+        fontFamily: FONT.medium,
+        fontSize: SIZES.smallmedium,
+        color: 'white',
+        padding: 3
+    },
     heading: {
         fontFamily: FONT.medium,
         fontSize: SIZES.small,
@@ -282,5 +302,19 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         borderBottomColor: "gray",
         borderBottomWidth: 1,
+    },
+    card: {
+        backgroundColor: 'white',
+        borderRadius: 8,
+        paddingVertical: 45,
+        paddingHorizontal: 25,
+        width: '100%',
+        marginVertical: 10,
+    },
+    shadowProp: {
+        shadowColor: '#171717',
+        shadowOffset: { width: -2, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
     },
 });

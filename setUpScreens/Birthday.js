@@ -94,7 +94,6 @@ export default function Birthday({ navigation }) {
     // Next
     const next = () => {
         if (birthday == '') {
-            setSubmitting(false);
             Alert.alert(
                 "Birthday Required",
                 "Please enter your birthday",
@@ -206,7 +205,7 @@ export default function Birthday({ navigation }) {
                     indicatorStyle={{
 
                     }}
-                    textContent='Saving...'
+                    textContent='Loading...'
                     textStyle={{
                         fontFamily: FONT.bold,
                         fontSize: SIZES.medium,
