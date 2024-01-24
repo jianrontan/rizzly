@@ -1,36 +1,45 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler } from 'react-native';
+import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler, StyleSheet } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused } from '@react-navigation/native';
+import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useDispatch, useSelector } from 'react-redux';
 import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../screens/Settings';
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import ViewProfile from '../screens/ViewProfile';
 import Orientation from '../screens/Orientation';
 import ChangeLocation from '../screens/ChangeLocation';
 import SelfieCapture from '../screens/SelfieCapture';
-import PauseProfile from '../screens/PauseProfile'
-import DeleteAccount from '../screens/DeleteAccount'
-import Contact from '../screens/Contact'
+import PauseProfile from '../screens/PauseProfile';
+import DeleteAccountScreen from '../screens/DeleteAccount';
+import ContactUsScreen from '../screens/Contact';
 import BlockList from '../screens/BlockList';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
+import SetUpProfile from './setUpProfileNavigator';
+import EditProfileStack from '../navigation/editProfileNavigator,.js';
 import appStyles from '../components/app/app.style';
+import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges, setSaveChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 const auth = getAuth();
 
 export default function DrawerStack() {
+
     const [profileComplete, setProfileComplete] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -78,25 +87,12 @@ export default function DrawerStack() {
             const userDocRef = doc(db, 'profiles', userId);
 
             unsubscribe.current = onSnapshot(userDocRef, (docSnap) => {
-                // If exists stop loading
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     setProfileComplete(data.complete);
                     setLoading(false);
-                    // Else create a new doc for the user
                 } else {
-                    setDoc(userDocRef, {
-                        name: null,
-                        age: null,
-                        gender: null,
-                        orientation: {
-                            "male": false,
-                            "female": false,
-                            "nonBinary": false,
-                        },
-                        complete: false,
-                        id: userId
-                    });
+                    setProfileComplete(false);
                     setLoading(false);
                 }
             });
@@ -120,6 +116,7 @@ export default function DrawerStack() {
         );
     }
 
+    // LOGOUT
     const logoutConfirmation = async () => {
         if (auth.currentUser) {
             try {
@@ -135,7 +132,6 @@ export default function DrawerStack() {
             console.log("User is not logged in.")
         }
     };
-
 
     function CustomDrawerContent(props) {
         return (
@@ -167,24 +163,128 @@ export default function DrawerStack() {
         );
     }
 
-    const ProfileStack = () => {
+    // EDIT PROFILE
+    const EditProfileNavigator = () => {
         return (
-            <Stack.Navigator>
-                <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
-                <Stack.Screen name="SelfieCapture" component={SelfieCapture} />
-            </Stack.Navigator>
+            <Tab.Navigator
+                tabBar={(props) => <CustomTabBar {...props} />}
+                initialRouteName="Edit Profile Navigator"
+                backBehavior="initialRoute"
+                screenOptions={({ route }) => ({
+                    headerTitle: "View Profile",
+                    headerTitleAlign: 'center',
+                    headerShadowVisible: 'true',
+                    headerTitleStyle: appStyles.headerFont,
+                    headerLeft: () => {
+                        const navigation = useNavigation();
+                        return (
+                            <View style={appStyles.buttonPadding}>
+                                <ScreenHeaderBtn
+                                    iconUrl={icons.left}
+                                    dimension='60%'
+                                    title='goBack'
+                                    onPress={() => {
+                                        if (navigation.canGoBack()) {
+                                            navigation.goBack();
+                                        } else {
+                                            navigation.navigate('App');
+                                        }
+                                    }}
+                                />
+                            </View>
+                        )
+                    },
+                })}
+            >
+                <Tab.Screen
+                    name="Edit"
+                    component={EditProfileStack}
+                    options={{
+                        headerShown: false,
+                        tabBarIcon: ({ color, size }) => (
+                            <MaterialCommunityIcons name="lead-pencil" color={color} size={size} />
+                        ),
+                        tabBarLabel: 'Edit',
+                        tabBarLabelStyle: appStyles.bottomTabLabel,
+                        tabBarActiveTintColor: '#824444',
+                    }}
+                />
+                <Tab.Screen
+                    name="View"
+                    component={ViewProfile}
+                    options={{
+                        tabBarIcon: ({ color, size }) => (
+                            <MaterialCommunityIcons name="eye" color={color} size={size} />
+                        ),
+                        tabBarLabel: 'View',
+                        tabBarLabelStyle: appStyles.bottomTabLabel,
+                        tabBarActiveTintColor: '#824444',
+                    }}
+                />
+            </Tab.Navigator>
+        )
+    };
+
+    const CustomTabBar = (props) => {
+        const navigation = useNavigation();
+        const dispatch = useDispatch();
+
+        const hasUnsavedChangesExportVal = useSelector(state => state.editProfileReducer.hasUnsavedChangesExportVal);
+        const aboutMeChangesVal = useSelector(state => state.editProfileReducer.aboutMeChangesVal);
+        const viewProfileChangesVal = useSelector(state => state.editProfileReducer.viewProfileChangesVal);
+
+        const handleTabPress = (route, isFocused) => {
+            if (route.name === 'View' && (viewProfileChangesVal || aboutMeChangesVal || hasUnsavedChangesExportVal) && !isFocused) {
+                dispatch(setSaveChanges(true));
+            } else {
+                navigation.navigate(route.name);
+            }
+        };
+
+        return (
+            <View style={{
+                flexDirection: 'row',
+                height: 50,
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 3,
+                elevation: 5,
+                shadowColor: '#000',
+                backgroundColor: 'white'
+            }}>
+                {props.state.routes.map((route, index) => {
+                    const isFocused = props.state.index === index;
+
+                    return (
+                        <TouchableOpacity
+                            key={route.key}
+                            onPress={() => handleTabPress(route, isFocused)}
+                            style={{ flex: 1 }}
+                            activeOpacity={1}
+                        >
+                            <Text style={{
+                                color: isFocused ? '#824444' : 'black',
+                                alignSelf: 'center',
+                                fontFamily: FONT.bold,
+                            }}>
+                                {route.name}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
+            </View>
         );
     };
 
-    if (!appIsReady || !fontsLoaded) {
-        return null;
-    }
-
+    // SETTINGS
     const SettingsStack = () => {
         return (
             <Stack.Navigator
                 initialRouteName="Edit Settings"
-                backBehavior='initialRoute'
+                backBehavior="initialRoute"
                 screenOptions={({ route }) => ({
                     headerTitle: route.name,
                     headerTitleAlign: 'center',
@@ -213,19 +313,20 @@ export default function DrawerStack() {
             >
                 <Stack.Screen name="Edit Settings" component={SettingsScreen} />
                 <Stack.Screen name="Orientation" component={Orientation} />
-                <Stack.Screen name="ChangeLocation" component={ChangeLocation}/>
-                <Stack.Screen name="PauseProfile" component={PauseProfile}/>
-                <Stack.Screen name="DeleteAccount" component={DeleteAccount} />
-                <Stack.Screen name="Contact" component={Contact} />
-                <Stack.Screen name="BlockList" component={BlockList}/>
+                <Stack.Screen name="ChangeLocation" component={ChangeLocation} />
+                <Stack.Screen name="PauseProfile" component={PauseProfile} />
+                <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
+                <Stack.Screen name="Contact" component={ContactUsScreen} />
+                <Stack.Screen name="BlockList" component={BlockList} />
             </Stack.Navigator>
         );
     };
 
     if (!appIsReady || !fontsLoaded) {
         return null;
-    }
+    };
 
+    // RENDER
     return (
         <NavigationContainer
             onLayout={onLayoutRootView}
@@ -252,7 +353,7 @@ export default function DrawerStack() {
                         const navigation = useNavigation();
                         return (
                             <View style={appStyles.buttonPadding}>
-                                <DrawerBackBtn
+                                <ScreenHeaderBtn
                                     iconUrl={icons.left}
                                     dimension='60%'
                                     title='goBack'
@@ -264,12 +365,10 @@ export default function DrawerStack() {
                 })}
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Profile" component={ProfileStack} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
-                <Drawer.Screen name="SelfieCapture" component={SelfieCapture} />
-                <Drawer.Screen name="Settings" component={SettingsScreen} />
+                <Drawer.Screen name="Profile" component={SetUpProfile} options={{ headerShown: false }} />
+                <Drawer.Screen name="Edit Profile" component={EditProfileNavigator} options={{ headerShown: false }} />
+                <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
             </Drawer.Navigator>
         </NavigationContainer>
     )
 };
-let navigationRef = React.createRef();
