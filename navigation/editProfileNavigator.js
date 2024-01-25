@@ -14,7 +14,10 @@ import { db } from '../firebase/firebase';
 
 import EditProfileScreen from '../screens/EditProfileScreen';
 import MyName from '../screens/MyName';
+import MyGender from '../screens/MyGender';
+import MySexuality from '../screens/Sexuality';
 import EditPhotos from '../screens/EditPhotos';
+import MyLocation from '../screens/Location';
 import AboutMe from '../screens/AboutMe';
 import Height from '../screens/Height';
 import Ethnicity from '../screens/Ethnicity';
@@ -63,8 +66,20 @@ export default function EditProfileStack() {
                 component={MyName}
             />
             <Stack.Screen
+                name="My Gender"
+                component={MyGender}
+            />
+            <Stack.Screen
+                name="My Sexuality"
+                component={MySexuality}
+            />
+            <Stack.Screen
                 name="Edit Photos"
                 component={EditPhotos}
+            />
+            <Stack.Screen
+                name="My Location"
+                component={MyLocation}
             />
             <Stack.Screen
                 name="About Me"

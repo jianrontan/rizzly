@@ -7,37 +7,24 @@ import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUn
 import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
+import { parseISO, format } from 'date-fns';
+import SelectDropdown from 'react-native-select-dropdown';
+import DropDownPicker from 'react-native-dropdown-picker';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
-import DropDownPicker from 'react-native-dropdown-picker';
-import CheckBox from 'react-native-check-box';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { haversineDistance } from '../screens/haversine';
+import * as Location from 'expo-location';
 
-import { COLORS, SIZES, FONT } from '../constants';
+import OptionButton from '../components/touchableHighlight/touchableHightlight';
+import { COLORS, SIZES, FONT, icons } from '../constants';
 
-export default function Religion({ navigation }) {
+export default function MyLocation({ navigation }) {
 
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
-
-    // Religions
-    const [religion, setReligion] = useState('');
-    const religions = [
-        'Agnostic',
-        'Atheist',
-        'Buddhist',
-        'Catholic',
-        'Christian',
-        'Hindu',
-        'Jewish',
-        'Muslim',
-        'Taoist',
-        'Sikh',
-        'Zoroastrian',
-        'Other',
-        'Prefer not to say',
-    ];
 
     // Update
     const [error, setError] = useState('');
@@ -48,6 +35,7 @@ export default function Religion({ navigation }) {
 
     // Styling
     const width = Dimensions.get('window').width;
+    const height = Dimensions.get('window').height;
 
     // Firestore data
     const getFirestoreData = () => {
@@ -55,9 +43,8 @@ export default function Religion({ navigation }) {
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
-
-                setReligion(holdData.religion || '');
-
+                setPlace(holdData.location || '');
+                setHave(holdData.location || '');
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
@@ -75,93 +62,81 @@ export default function Religion({ navigation }) {
         }, [])
     );
 
-    // Submitting
-    const handleSubmit = async (newReligion) => {
+    // Location
+    async function getPlaceFromCoordinates(lat, lng) {
+        const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=87fdfbc20b6c42219965405e23651000&pretty=1`);
+        const data = await response.json();
+        if (data.results.length > 0) {
+            const components = data.results[0].components;
+            const suburb = components.suburb || '';
+            const country = components.country || '';
+            return `${suburb}, ${country}`;
+        } else {
+            throw new Error('Failed to get place from coordinates');
+        }
+    }
+
+    const [location, setLocation] = useState([])
+    const [place, setPlace] = useState('');
+    const [have, setHave] = useState('');
+    const makeLocation = async () => {
         setSubmitting(true);
-        const userDocRef = doc(db, 'profiles', userId);
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Permission to access location was denied');
+            return;
+        }
         try {
-            await updateDoc(userDocRef, {
-                religion: newReligion,
+            const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.High,
             });
-        } catch (e) {
-            console.error("Error submitting: ", e);
-            setError(e.message);
+            setLocation(location);
+            setHave(location);
+            // Get place from coordinates
+            const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
+            setPlace(place); // Update place state variable
+
+            // Update user document with location information
+            const userId = auth.currentUser.uid;
+            const userDocRef = doc(db, 'profiles', userId);
+
+            // Update user document with location details
+            updateDoc(userDocRef, {
+                location: place,
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            });
+        } catch (error) {
+            console.error('Error getting location:', error);
+            // Handle error as needed
         }
         setSubmitting(false);
     };
 
-    // Finish
-    const finishProfile = async () => {
-        try {
-            const userId = auth.currentUser.uid;
-            const userDocRef = doc(db, 'profiles', userId);
-            await updateDoc(userDocRef, {
-                complete: true,
-            });
-        } catch (e) {
-            console.error("Error submitting: ", e);
-            setError(e.message);
-        }
-    };
-
-    // Next
-    const next = () => {
-        if (religion === '') {
-            Alert.alert(
-                "Religion Required",
-                "Please select at least one religion option. You may pick prefer not to say if you wish to hide your religious beliefs.",
-                [{ text: "OK" }]
-            );
-            setSubmitting(false);
-            return;
-        }
-        // finishProfile();
-        navigation.dispatch(
-            navigation.navigate("Selfie")
-        );
-    };
-
-    // Function
-    const handleSelectReligion = (newReligion) => {
-        const religionToSet = religion === newReligion ? '' : newReligion;
-        setReligion(religionToSet);
-        handleSubmit(religionToSet);
-    };
-
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-            <ScrollView showsVerticalScrollIndicator={false} overScrollMode='never'>
+            <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
 
                 <View style={styles.buttonsContainer}>
                     <TouchableOpacity>
-                        <Text style={styles.heading}>Pick 'Prefer not to say' to hide your religion</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity activeOpacity={0.69} onPress={next}>
-                        <View>
-                            <Text style={styles.headingBold}>Next</Text>
-                        </View>
+                        <Text style={styles.heading}>Your Rizzly matches will be based on your location</Text>
                     </TouchableOpacity>
                 </View>
 
-                {!isLoading &&
-                    (religions.map((item) => (
-                        <TouchableOpacity
-                            style={styles.row}
-                            key={item}
-                            onPress={() => {
-                                handleSelectReligion(item);
-                            }}
-                        >
-                            <Text style={styles.textStyle2}>{item}</Text>
-                            <CheckBox
-                                isChecked={religion === item}
-                                onClick={() => {
-                                    handleSelectReligion(item);
-                                }}
-                            />
-                        </TouchableOpacity>
-                    )))
-                }
+                <View style={styles.buttonsContainer}>
+                    <TouchableOpacity
+                        style={{
+                            borderWidth: 1,
+                            borderRadius: 5,
+                            borderColor: 'gray',
+                            backgroundColor: 'gray',
+                        }}
+                        onPress={makeLocation}
+                    >
+                        <Text style={styles.textStyle5}>Set Location</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.textStyle4}>{place}</Text>
+                </View>
 
                 <Spinner
                     visible={submitting}
@@ -171,7 +146,7 @@ export default function Religion({ navigation }) {
                     indicatorStyle={{
 
                     }}
-                    textContent='Saving...'
+                    textContent='Loading...'
                     textStyle={{
                         fontFamily: FONT.bold,
                         fontSize: SIZES.medium,
@@ -205,14 +180,6 @@ export default function Religion({ navigation }) {
 const width = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderColor: 'grey',
-        padding: 10,
-    },
     wrapper: {
         flex: 1,
     },
@@ -238,6 +205,23 @@ const styles = StyleSheet.create({
         fontSize: SIZES.smallmedium,
         color: 'black',
     },
+    textStyle3: {
+        fontFamily: FONT.medium,
+        fontSize: SIZES.large,
+        color: 'black',
+    },
+    textStyle4: {
+        fontFamily: FONT.medium,
+        fontSize: SIZES.smallmedium,
+        color: 'black',
+        padding: 3
+    },
+    textStyle5: {
+        fontFamily: FONT.medium,
+        fontSize: SIZES.smallmedium,
+        color: 'white',
+        padding: 3
+    },
     heading: {
         fontFamily: FONT.medium,
         fontSize: SIZES.small,
@@ -258,11 +242,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-    textStyle: {
-        fontFamily: FONT.medium,
-        fontSize: SIZES.smallmedium,
-        color: COLORS.white,
-    },
     dropdownTextStyle: {
         fontFamily: FONT.medium,
         fontSize: SIZES.smallmedium,
@@ -282,14 +261,26 @@ const styles = StyleSheet.create({
     buttonsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingTop: 10,
-        paddingHorizontal: 10,
-        paddingBottom: 9
+        padding: 10,
     },
     borderLine: {
         width: width - 10,
         alignSelf: 'center',
         borderBottomColor: "gray",
         borderBottomWidth: 1,
+    },
+    card: {
+        backgroundColor: 'white',
+        borderRadius: 8,
+        paddingVertical: 45,
+        paddingHorizontal: 25,
+        width: '100%',
+        marginVertical: 10,
+    },
+    shadowProp: {
+        shadowColor: '#171717',
+        shadowOffset: { width: -2, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
     },
 });

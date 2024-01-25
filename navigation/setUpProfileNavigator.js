@@ -15,12 +15,13 @@ import { db } from '../firebase/firebase';
 import Name from '../setUpScreens/NameS';
 import Birthday from '../setUpScreens/Birthday';
 import Gender from '../setUpScreens/Gender';
-import Orientation from '../setUpScreens/OrientationS';
+import Orientation from '../setUpScreens/Orientation';
 import Photos from '../setUpScreens/Photos'
-import MyLocation from '../setUpScreens/Location';
+import MyLocation from '../setUpScreens/LocationS';
 import Height from '../setUpScreens/HeightS';
 import Ethnicity from '../setUpScreens/EthnicityS';
 import Religion from '../setUpScreens/ReligionS';
+import SelfieCapture from '../setUpScreens/SelfieCapture';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import SetUpBackBtn from '../components/button/SetUpBackBtn';
 import appStyles from '../components/app/app.style';
@@ -65,6 +66,7 @@ export default function SetUpProfile() {
             <Stack.Screen name="Height" component={Height} />
             <Stack.Screen name="Ethnicity" component={Ethnicity} />
             <Stack.Screen name="Religion" component={Religion} />
+            <Stack.Screen name="Selfie" component={SelfieCapture} />
         </Stack.Navigator>
     )
 };

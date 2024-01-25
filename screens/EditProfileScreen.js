@@ -26,8 +26,17 @@ export default function EditProfileScreen({ navigation }) {
     const navigateName = () => {
         navigation.navigate('My Name');
     }
+    const navigateGender = () => {
+        navigation.navigate('My Gender');
+    }
+    const navigateSexuality = () => {
+        navigation.navigate('My Sexuality');
+    }
     const navigatePhotos = () => {
         navigation.navigate('Edit Photos');
+    }
+    const navigateLocation = () => {
+        navigation.navigate('My Location');
     }
     const navigateAbout = () => {
         navigation.navigate('About Me');
@@ -44,7 +53,7 @@ export default function EditProfileScreen({ navigation }) {
 
     return (
         <SafeAreaView>
-            <ScrollView style={styles.container}>
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
 
                 <View style={styles.tabView}>
                     <TouchableOpacity onPress={navigateName}>
@@ -55,8 +64,16 @@ export default function EditProfileScreen({ navigation }) {
                 <View style={styles.borderLine}></View>
 
                 <View style={styles.tabView}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={navigateGender}>
                         <Text style={styles.tabText}>My Gender</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity onPress={navigateSexuality}>
+                        <Text style={styles.tabText}>My Sexuality</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -65,6 +82,14 @@ export default function EditProfileScreen({ navigation }) {
                 <View style={styles.tabView}>
                     <TouchableOpacity onPress={navigatePhotos}>
                         <Text style={styles.tabText}>My Photos</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity onPress={navigateLocation}>
+                        <Text style={styles.tabText}>My Location</Text>
                     </TouchableOpacity>
                 </View>
 

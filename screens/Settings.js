@@ -12,7 +12,6 @@ import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import SettingsComponent from '../components/settings/SettingsComponent';
 import DeleteAccount from '../screens/DeleteAccount';
 import PauseProfile from '../screens/PauseProfile';
-import ChangeLocation from './ChangeLocation';
 import { COLORS, FONT, SIZES } from '../constants';
 
 export default function SettingsScreen({ navigation }) {
@@ -62,14 +61,6 @@ export default function SettingsScreen({ navigation }) {
 	);
 
 	// Preferred Gender
-	const preferredGender = () => {
-		navigation.navigate('Orientation');
-	}
-
-	const ChangeLocation = () => {
-		navigation.navigate('ChangeLocation')
-	}
-
 	const PauseProfile = () => {
 		navigation.navigate('PauseProfile')
 	}
@@ -89,33 +80,6 @@ export default function SettingsScreen({ navigation }) {
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
 			<ScrollView showsVerticalScrollIndicator={false}>
-
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity onPress={preferredGender}>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Preferred Gender</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
-				</View>
-
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Settings</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
-				</View>
-
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity onPress={ChangeLocation}>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Change Location</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
-				</View>
 
 				<View style={{ flex: 1 }}>
 					<TouchableOpacity onPress={PauseProfile}>

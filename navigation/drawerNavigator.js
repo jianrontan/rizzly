@@ -17,9 +17,7 @@ import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../screens/Settings';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import ViewProfile from '../screens/ViewProfile';
-import Orientation from '../screens/Orientation';
-import ChangeLocation from '../screens/ChangeLocation';
-import SelfieCapture from '../screens/SelfieCapture';
+import SelfieCapture from '../setUpScreens/SelfieCapture';
 import PauseProfile from '../screens/PauseProfile';
 import DeleteAccountScreen from '../screens/DeleteAccount';
 import ContactUsScreen from '../screens/Contact';
@@ -27,7 +25,7 @@ import BlockList from '../screens/BlockList';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import SetUpProfile from './setUpProfileNavigator';
-import EditProfileStack from '../navigation/editProfileNavigator,.js';
+import EditProfileStack from './editProfileNavigator.js';
 import appStyles from '../components/app/app.style';
 import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges, setSaveChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';
@@ -311,8 +309,6 @@ export default function DrawerStack() {
                 })}
             >
                 <Stack.Screen name="Edit Settings" component={SettingsScreen} />
-                <Stack.Screen name="Orientation" component={Orientation} />
-                <Stack.Screen name="ChangeLocation" component={ChangeLocation} />
                 <Stack.Screen name="PauseProfile" component={PauseProfile} />
                 <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
                 <Stack.Screen name="Contact" component={ContactUsScreen} />

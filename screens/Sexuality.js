@@ -7,37 +7,28 @@ import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUn
 import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
+import { parseISO, format } from 'date-fns';
+import SelectDropdown from 'react-native-select-dropdown';
+import DropDownPicker from 'react-native-dropdown-picker';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
-import DropDownPicker from 'react-native-dropdown-picker';
-import CheckBox from 'react-native-check-box';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { COLORS, SIZES, FONT } from '../constants';
+import OptionButton from '../components/touchableHighlight/touchableHightlight';
+import { COLORS, SIZES, FONT, icons } from '../constants';
 
-export default function Religion({ navigation }) {
+export default function MySexuality({ navigation }) {
 
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
 
-    // Religions
-    const [religion, setReligion] = useState('');
-    const religions = [
-        'Agnostic',
-        'Atheist',
-        'Buddhist',
-        'Catholic',
-        'Christian',
-        'Hindu',
-        'Jewish',
-        'Muslim',
-        'Taoist',
-        'Sikh',
-        'Zoroastrian',
-        'Other',
-        'Prefer not to say',
-    ];
+    // Orientation
+    const [orientation, setOrientation] = useState(null);
+    const [orientationError, setOrientationError] = useState('');
+    const defaultOrientation = { male: false, female: false, nonBinary: false };
+    const actualOrientation = orientation || defaultOrientation;
 
     // Update
     const [error, setError] = useState('');
@@ -48,6 +39,7 @@ export default function Religion({ navigation }) {
 
     // Styling
     const width = Dimensions.get('window').width;
+    const height = Dimensions.get('window').height;
 
     // Firestore data
     const getFirestoreData = () => {
@@ -55,9 +47,7 @@ export default function Religion({ navigation }) {
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
-
-                setReligion(holdData.religion || '');
-
+                setOrientation(holdData.orientation);
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
@@ -75,93 +65,50 @@ export default function Religion({ navigation }) {
         }, [])
     );
 
-    // Submitting
-    const handleSubmit = async (newReligion) => {
-        setSubmitting(true);
-        const userDocRef = doc(db, 'profiles', userId);
-        try {
-            await updateDoc(userDocRef, {
-                religion: newReligion,
-            });
-        } catch (e) {
-            console.error("Error submitting: ", e);
-            setError(e.message);
-        }
-        setSubmitting(false);
-    };
-
-    // Finish
-    const finishProfile = async () => {
-        try {
-            const userId = auth.currentUser.uid;
-            const userDocRef = doc(db, 'profiles', userId);
-            await updateDoc(userDocRef, {
-                complete: true,
-            });
-        } catch (e) {
-            console.error("Error submitting: ", e);
-            setError(e.message);
-        }
-    };
-
-    // Next
-    const next = () => {
-        if (religion === '') {
-            Alert.alert(
-                "Religion Required",
-                "Please select at least one religion option. You may pick prefer not to say if you wish to hide your religious beliefs.",
-                [{ text: "OK" }]
-            );
-            setSubmitting(false);
-            return;
-        }
-        // finishProfile();
-        navigation.dispatch(
-            navigation.navigate("Selfie")
-        );
-    };
-
     // Function
-    const handleSelectReligion = (newReligion) => {
-        const religionToSet = religion === newReligion ? '' : newReligion;
-        setReligion(religionToSet);
-        handleSubmit(religionToSet);
+    const handleOrientation = (id, isSelected) => {
+        setOrientation(prevState => {
+            const newOrientation = { ...prevState, [id]: isSelected };
+            if (Object.values(newOrientation).every(option => !option)) {
+                setOrientationError('Please select at least one orientation.');
+            } else {
+                setOrientationError('');
+            }
+            const docRef = doc(db, 'profiles', userId);
+            updateDoc(docRef, {
+                orientation: newOrientation
+            }).then(() => {
+                console.log("Orientation successfully updated!");
+            }).catch((error) => {
+                console.error("Error updating Orientation: ", error);
+            });
+            return newOrientation;
+        });
     };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-            <ScrollView showsVerticalScrollIndicator={false} overScrollMode='never'>
+            <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
 
                 <View style={styles.buttonsContainer}>
                     <TouchableOpacity>
-                        <Text style={styles.heading}>Pick 'Prefer not to say' to hide your religion</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity activeOpacity={0.69} onPress={next}>
-                        <View>
-                            <Text style={styles.headingBold}>Next</Text>
-                        </View>
+                        <Text style={styles.heading}>Your Rizzly matches will be based on your sexuality</Text>
                     </TouchableOpacity>
                 </View>
 
-                {!isLoading &&
-                    (religions.map((item) => (
-                        <TouchableOpacity
-                            style={styles.row}
-                            key={item}
-                            onPress={() => {
-                                handleSelectReligion(item);
-                            }}
-                        >
-                            <Text style={styles.textStyle2}>{item}</Text>
-                            <CheckBox
-                                isChecked={religion === item}
-                                onClick={() => {
-                                    handleSelectReligion(item);
-                                }}
-                            />
-                        </TouchableOpacity>
-                    )))
-                }
+                <View style={{ flex: 1, padding: SIZES.medium, alignSelf: 'center' }}>
+                    {/* Orientation */}
+                    <View>
+                        <>
+                            <OptionButton id="male" text="Male" onPress={handleOrientation} selected={actualOrientation.male} />
+                            <OptionButton id="female" text="Female" onPress={handleOrientation} selected={actualOrientation.female} />
+                            <OptionButton id="nonBinary" text="Non-Binary" onPress={handleOrientation} selected={actualOrientation.nonBinary} />
+                        </>
+                    </View>
+                </View>
+                <View style={{ flex: 1, alignSelf: 'center' }}>
+                    {!!orientationError && <Text style={{ color: '#cf0202', fontFamily: FONT.regular }}>{orientationError}</Text>}
+                </View>
 
                 <Spinner
                     visible={submitting}
@@ -205,14 +152,6 @@ export default function Religion({ navigation }) {
 const width = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderColor: 'grey',
-        padding: 10,
-    },
     wrapper: {
         flex: 1,
     },
@@ -238,6 +177,11 @@ const styles = StyleSheet.create({
         fontSize: SIZES.smallmedium,
         color: 'black',
     },
+    textStyle3: {
+        fontFamily: FONT.medium,
+        fontSize: SIZES.large,
+        color: 'black',
+    },
     heading: {
         fontFamily: FONT.medium,
         fontSize: SIZES.small,
@@ -258,11 +202,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-    textStyle: {
-        fontFamily: FONT.medium,
-        fontSize: SIZES.smallmedium,
-        color: COLORS.white,
-    },
     dropdownTextStyle: {
         fontFamily: FONT.medium,
         fontSize: SIZES.smallmedium,
@@ -282,9 +221,7 @@ const styles = StyleSheet.create({
     buttonsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingTop: 10,
-        paddingHorizontal: 10,
-        paddingBottom: 9
+        padding: 10,
     },
     borderLine: {
         width: width - 10,

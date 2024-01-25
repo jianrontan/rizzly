@@ -7,37 +7,30 @@ import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUn
 import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
+import { parseISO, format } from 'date-fns';
+import SelectDropdown from 'react-native-select-dropdown';
+import DropDownPicker from 'react-native-dropdown-picker';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
-import DropDownPicker from 'react-native-dropdown-picker';
-import CheckBox from 'react-native-check-box';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { COLORS, SIZES, FONT } from '../constants';
+import { COLORS, SIZES, FONT, icons } from '../constants';
 
-export default function Religion({ navigation }) {
+export default function MyGender({ navigation }) {
 
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
 
-    // Religions
-    const [religion, setReligion] = useState('');
-    const religions = [
-        'Agnostic',
-        'Atheist',
-        'Buddhist',
-        'Catholic',
-        'Christian',
-        'Hindu',
-        'Jewish',
-        'Muslim',
-        'Taoist',
-        'Sikh',
-        'Zoroastrian',
-        'Other',
-        'Prefer not to say',
-    ];
+    // Gender
+    const [open, setOpen] = useState(false);
+    const [gender, setGender] = useState('');
+    const [genders, setGenders] = useState([
+        { label: "Male", value: "Male" },
+        { label: "Female", value: "Female" },
+        { label: "Non-binary", value: "Non-binary" },
+    ]);
 
     // Update
     const [error, setError] = useState('');
@@ -48,6 +41,7 @@ export default function Religion({ navigation }) {
 
     // Styling
     const width = Dimensions.get('window').width;
+    const height = Dimensions.get('window').height;
 
     // Firestore data
     const getFirestoreData = () => {
@@ -55,9 +49,7 @@ export default function Religion({ navigation }) {
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
-
-                setReligion(holdData.religion || '');
-
+                setGender(holdData.gender || '');
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
@@ -76,12 +68,21 @@ export default function Religion({ navigation }) {
     );
 
     // Submitting
-    const handleSubmit = async (newReligion) => {
+    const handleSubmit = async () => {
+        if (gender == '') {
+            setSubmitting(false);
+            Alert.alert(
+                "Invalid",
+                `Please enter your gender`,
+                [{ text: "OK" }]
+            );
+            return;
+        }
         setSubmitting(true);
         const userDocRef = doc(db, 'profiles', userId);
         try {
             await updateDoc(userDocRef, {
-                religion: newReligion,
+                gender: gender,
             });
         } catch (e) {
             console.error("Error submitting: ", e);
@@ -90,78 +91,38 @@ export default function Religion({ navigation }) {
         setSubmitting(false);
     };
 
-    // Finish
-    const finishProfile = async () => {
-        try {
-            const userId = auth.currentUser.uid;
-            const userDocRef = doc(db, 'profiles', userId);
-            await updateDoc(userDocRef, {
-                complete: true,
-            });
-        } catch (e) {
-            console.error("Error submitting: ", e);
-            setError(e.message);
-        }
-    };
-
-    // Next
-    const next = () => {
-        if (religion === '') {
-            Alert.alert(
-                "Religion Required",
-                "Please select at least one religion option. You may pick prefer not to say if you wish to hide your religious beliefs.",
-                [{ text: "OK" }]
-            );
-            setSubmitting(false);
-            return;
-        }
-        // finishProfile();
-        navigation.dispatch(
-            navigation.navigate("Selfie")
-        );
-    };
-
-    // Function
-    const handleSelectReligion = (newReligion) => {
-        const religionToSet = religion === newReligion ? '' : newReligion;
-        setReligion(religionToSet);
-        handleSubmit(religionToSet);
-    };
-
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-            <ScrollView showsVerticalScrollIndicator={false} overScrollMode='never'>
+            <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
 
                 <View style={styles.buttonsContainer}>
                     <TouchableOpacity>
-                        <Text style={styles.heading}>Pick 'Prefer not to say' to hide your religion</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity activeOpacity={0.69} onPress={next}>
-                        <View>
-                            <Text style={styles.headingBold}>Next</Text>
-                        </View>
+                        <Text style={styles.heading}>Your Rizzly matches will be based on your gender</Text>
                     </TouchableOpacity>
                 </View>
 
-                {!isLoading &&
-                    (religions.map((item) => (
-                        <TouchableOpacity
-                            style={styles.row}
-                            key={item}
-                            onPress={() => {
-                                handleSelectReligion(item);
-                            }}
-                        >
-                            <Text style={styles.textStyle2}>{item}</Text>
-                            <CheckBox
-                                isChecked={religion === item}
-                                onClick={() => {
-                                    handleSelectReligion(item);
-                                }}
-                            />
-                        </TouchableOpacity>
-                    )))
-                }
+                <Text style={{ paddingHorizontal: 15, paddingBottom: 10, fontFamily: FONT.medium }}>Gender:</Text>
+                <DropDownPicker
+                    open={open}
+                    value={gender}
+                    items={genders}
+                    setOpen={setOpen}
+                    setValue={setGender}
+                    setItems={setGenders}
+                    onChangeValue={handleSubmit}
+                    placeholder='Select your gender'
+                    textStyle={styles.dropdownTextStyle}
+                    containerStyle={{
+                        width: width - 20,
+                        alignSelf: 'center',
+                    }}
+                    dropDownContainerStyle={{
+                        backgroundColor: '#ededed'
+                    }}
+                    listMode='SCROLLVIEW'
+                />
+
+                <View style={{ paddingBottom: 500 }}></View>
 
                 <Spinner
                     visible={submitting}
@@ -205,14 +166,6 @@ export default function Religion({ navigation }) {
 const width = Dimensions.get('window').width;
 
 const styles = StyleSheet.create({
-    row: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderColor: 'grey',
-        padding: 10,
-    },
     wrapper: {
         flex: 1,
     },
@@ -238,6 +191,11 @@ const styles = StyleSheet.create({
         fontSize: SIZES.smallmedium,
         color: 'black',
     },
+    textStyle3: {
+        fontFamily: FONT.medium,
+        fontSize: SIZES.large,
+        color: 'black',
+    },
     heading: {
         fontFamily: FONT.medium,
         fontSize: SIZES.small,
@@ -258,11 +216,6 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
-    textStyle: {
-        fontFamily: FONT.medium,
-        fontSize: SIZES.smallmedium,
-        color: COLORS.white,
-    },
     dropdownTextStyle: {
         fontFamily: FONT.medium,
         fontSize: SIZES.smallmedium,
@@ -282,9 +235,7 @@ const styles = StyleSheet.create({
     buttonsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingTop: 10,
-        paddingHorizontal: 10,
-        paddingBottom: 9
+        padding: 10,
     },
     borderLine: {
         width: width - 10,
