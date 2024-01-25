@@ -71,6 +71,7 @@ export function editProfileReducer(state = editProfileState, action) {
         saveChangesVal: action.payload
       }
     case SET_MATCHES_REDUX:
+      console.log(action.payload); 
       return {
         ...state,
         matchesVal: action.payload

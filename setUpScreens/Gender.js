@@ -134,7 +134,7 @@ export default function Gender({ navigation }) {
                     listMode='SCROLLVIEW'
                 />
 
-                <View style={{paddingBottom: 500}}></View>
+                <View style={{ paddingBottom: 500 }}></View>
 
                 <Spinner
                     visible={submitting}
@@ -160,7 +160,7 @@ export default function Gender({ navigation }) {
                     indicatorStyle={{
 
                     }}
-                    textContent='Saving...'
+                    textContent='Loading...'
                     textStyle={{
                         fontFamily: FONT.bold,
                         fontSize: SIZES.medium,

@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useMemo } from 'react';
 import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback, Animated } from 'react-native';
 import { useFocusEffect, CommonActions } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -25,12 +26,21 @@ const EthnicityCheckbox = React.memo(({ item, onToggle, isChecked }) => (
 
 export default function Ethnicity({ navigation }) {
 
+    //Back to top button 
+    const [scrollY, setScrollY] = useState(new Animated.Value(0));
+    const scrollRef = useRef();
+    const height = Dimensions.get('window').height
+
+    const throttledScrollHandler = useMemo(() => {
+        return Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false }
+        );
+    }, []);
+
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
-
-    //Back to top button 
-    const [scrollY, setScrollY] = useState(new Animated.Value(0));
 
     // Ethnicities
     const [ethnicity, setEthnicity] = useState([]);
@@ -239,84 +249,80 @@ export default function Ethnicity({ navigation }) {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-            <Animated.ScrollView
-                onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                    { useNativeDriver: false }
-                )}
+            <ScrollView
+                ref={scrollRef}
+                showsVerticalScrollIndicator={false}
+                overScrollMode='never'
+                onScroll={throttledScrollHandler}
                 scrollEventThrottle={16}
             >
+                <View style={styles.buttonsContainer}>
+                    <TouchableOpacity>
+                        <Text style={styles.heading}>
+                            Pick 'Prefer not to say' to hide{"\n"}your ethnicity{"\n"}{"\n"}Maximum of 8 ethnicities
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit}>
+                        <View>
+                            <Text style={styles.headingBold}>Save Changes</Text>
+                        </View>
+                    </TouchableOpacity>
+                </View>
 
-                <ScrollView showsVerticalScrollIndicator={false} overScrollMode='never'>
-
-                    <View style={styles.buttonsContainer}>
-                        <TouchableOpacity>
-                            <Text style={styles.heading}>
-                                Pick 'Prefer not to say' to hide{"\n"}your ethnicity{"\n"}{"\n"}Maximum of 8 ethnicities
-                            </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit}>
-                            <View>
-                                <Text style={styles.headingBold}>Save Changes</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-
-                    {!isLoading &&
-                        (ethnicities.map((item) => (
-                            <TouchableOpacity
-                                style={styles.row}
+                {!isLoading &&
+                    (ethnicities.map((item) => (
+                        <TouchableOpacity
+                            style={styles.row}
+                            key={item}
+                            onPress={() => {
+                                handleSelectEthnicity(item);
+                            }}
+                        >
+                            <Text style={styles.textStyle2}>{item}</Text>
+                            <EthnicityCheckbox
                                 key={item}
-                                onPress={() => {
-                                    handleSelectEthnicity(item);
-                                }}
-                            >
-                                <Text style={styles.textStyle2}>{item}</Text>
-                                <EthnicityCheckbox
-                                    key={item}
-                                    item={item}
-                                    isChecked={checkedState[item]}
-                                    onToggle={handleSelectEthnicity}
-                                />
-                            </TouchableOpacity>
-                        )))
-                    }
+                                item={item}
+                                isChecked={checkedState[item]}
+                                onToggle={handleSelectEthnicity}
+                            />
+                        </TouchableOpacity>
+                    )))
+                }
 
-                    <Spinner
-                        visible={submitting}
-                        animation='fade'
-                        overlayColor="rgba(0, 0, 0, 0.25)"
-                        color="white"
-                        indicatorStyle={{
+                <Spinner
+                    visible={submitting}
+                    animation='fade'
+                    overlayColor="rgba(0, 0, 0, 0.25)"
+                    color="white"
+                    indicatorStyle={{
 
-                        }}
-                        textContent='Saving...'
-                        textStyle={{
-                            fontFamily: FONT.bold,
-                            fontSize: SIZES.medium,
-                            fontWeight: 'normal',
-                            color: 'white',
-                        }}
-                    />
-                    <Spinner
-                        visible={isLoading}
-                        animation='fade'
-                        overlayColor="rgba(0, 0, 0, 0.25)"
-                        color="white"
-                        indicatorStyle={{
+                    }}
+                    textContent='Saving...'
+                    textStyle={{
+                        fontFamily: FONT.bold,
+                        fontSize: SIZES.medium,
+                        fontWeight: 'normal',
+                        color: 'white',
+                    }}
+                />
+                <Spinner
+                    visible={isLoading}
+                    animation='fade'
+                    overlayColor="rgba(0, 0, 0, 0.25)"
+                    color="white"
+                    indicatorStyle={{
 
-                        }}
-                        textContent='Loading...'
-                        textStyle={{
-                            fontFamily: FONT.bold,
-                            fontSize: SIZES.medium,
-                            fontWeight: 'normal',
-                            color: 'white',
-                        }}
-                    />
+                    }}
+                    textContent='Loading...'
+                    textStyle={{
+                        fontFamily: FONT.bold,
+                        fontSize: SIZES.medium,
+                        fontWeight: 'normal',
+                        color: 'white',
+                    }}
+                />
 
-                </ScrollView>
-            </Animated.ScrollView>
+            </ScrollView>
             {scrollY._value > 200 && (
                 <TouchableOpacity
                     style={{
@@ -329,18 +335,14 @@ export default function Ethnicity({ navigation }) {
                         borderRadius: 5,
                     }}
                     onPress={() => {
-                        Animated.timing(scrollY, {
-                            toValue: 0,
-                            duration: 500,
-                            useNativeDriver: false,
-                        }).start();
+                        scrollRef.current.scrollTo({ x: 0, y: 0, animated: true });
                     }}
                 >
                     <Text style={{ color: '#fff' }}>Back to Top</Text>
                 </TouchableOpacity>
             )}
 
-        </SafeAreaView>
+        </SafeAreaView >
     )
 
 };

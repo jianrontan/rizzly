@@ -1,81 +1,155 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Animated, View, ScrollView, FlatList, PanResponder, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Button, Dimensions, BackHandler, ActivityIndicator } from 'react-native';
-import { useFocusEffect, CommonActions } from '@react-navigation/native';
-import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
-import { add, eq, set, useCode } from 'react-native-reanimated';
-import { useDispatch } from 'react-redux';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion, DocumentSnapshot } from 'firebase/firestore';
-import { db, storage } from '../firebase/firebase';
+import React, { useEffect, useState } from 'react';
+import { View, SafeAreaView, StyleSheet, Text, TouchableOpacity, Image } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { getDoc, doc } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
-import * as ImagePicker from 'expo-image-picker';
-import { DraggableGrid } from 'react-native-draggable-grid';
-import Spinner from 'react-native-loading-spinner-overlay';
+import { Dimensions } from 'react-native'
 
-import { setViewProfileChanges } from '../redux/actions';
-import { COLORS, SIZES, FONT, icons } from '../constants';
+import { COLORS, SIZES, FONT } from '../constants';
+
+const { width, height } = Dimensions.get('window');
+const cardWidth = width;
+const cardHeight = height - 170;
 
 const ViewProfile = ({ navigation }) => {
+    const auth = getAuth();
+    const [currentUserData, setCurrentUserData] = useState(null);
+
+    const fetchCurrentUser = async () => {
+        try {
+            const user = auth.currentUser;
+            if (!user) {
+                console.error('No user is currently signed in');
+                return;
+            }
+
+            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+            const currentUserDoc = await getDoc(currentUserDocRef);
+
+            if (currentUserDoc.exists()) {
+                const userData = currentUserDoc.data();
+
+                // Convert the date of birth from a Timestamp to a Date object
+                const dob = userData.datePickerValue.toDate();
+
+                // Get today's date
+                const today = new Date();
+
+                // Calculate the user's age
+                let age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+
+                // Add the age to the user data
+                userData.age = age;
+
+                setCurrentUserData(userData);
+            }
+        } catch (error) {
+            console.error('Error fetching current user data:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchCurrentUser();
+    }, []);
+
+    useFocusEffect(
+        React.useCallback(() => {
+            // Re-fetch current user data when the screen is focused
+            fetchCurrentUser();
+        }, [])
+    );
+
+    return (
+        <SafeAreaView style={styles.container}>
+            {currentUserData && (
+                <View style={styles.cardContainer}>
+                    <Image
+                        source={{ uri: currentUserData.imageURLs[0] }}
+                        onLoad={() => console.log('Image loaded')}
+                        onError={(error) => console.log('Error loading image: ', error)}
+                        style={styles.image}
+                    />
+                    <View style={styles.userInfoContainer}>
+                        <Text style={styles.userName}>{currentUserData.firstName || 'No name'}</Text>
+                        <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}`}</Text>
+                        <Text style={styles.userDetails}>Number of retakes: {currentUserData.retakes || 'No retakes'} </Text>
+                        <Text style={styles.userDetails}>Bio: {currentUserData.bio || 'No bio'} </Text>
+                        <Text style={styles.userDetails}>Location: {currentUserData.location || 'No Location'} </Text>
+                        <Text style={styles.userDetails}>Age: {currentUserData.age || 'No age'} </Text>
+                        <Text style={styles.userDetails}>Ethnicity: {currentUserData.ethnicity.join(', ') || 'No ethnicity'} </Text>
+                        <Text style={styles.userDetails}>Religion: {currentUserData.religion || 'No religion'} </Text>
+                    </View>
+                </View>
+            )}
+        </SafeAreaView>
+    );
+
 };
 
-const width = Dimensions.get('window').width;
-
 const styles = StyleSheet.create({
-    wrapper: {
+    container: {
         flex: 1,
     },
-    item: {
-        width: width / 2 - 50,
-        aspectRatio: 3 / 4,
+    cardContainer: {
+        flex: 1,
+        borderRadius: 1,
+        backgroundColor: COLORS.white,
+        borderRadius: SIZES.borderRadius,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
     image: {
-        width: '100%',
-        height: '100%',
+        flex: 1, 
         resizeMode: 'cover',
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: 'gray'
     },
-    textStyle: {
-        fontFamily: FONT.medium,
-        fontSize: SIZES.smallmedium,
-        color: COLORS.white,
+    userInfoContainer: {
+        marginTop: SIZES.padding,
     },
-    textStyle2: {
-        fontFamily: FONT.medium,
-        fontSize: SIZES.smallmedium,
+    userName: {
         color: 'black',
+        fontSize: 18,
+        fontWeight: 'bold',
     },
-    heading: {
-        fontFamily: FONT.medium,
-        fontSize: SIZES.small,
-        color: 'gray'
+    userDetails: {
+        color: 'black',
+        fontSize: 16,
     },
-    headingBold: {
-        fontFamily: FONT.bold,
-        fontSize: SIZES.small,
-        color: 'gray'
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: cardHeight,
+        width: cardWidth,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
-    btnContainer: {
-        width: 200,
-        height: 60,
-        backgroundColor: 'gray',
-        borderRadius: SIZES.large / 1.25,
-        borderWidth: 1.5,
-        borderColor: COLORS.white,
-        justifyContent: "center",
-        alignItems: "center",
+    modalContent: {
+        backgroundColor: 'white',
+        height: cardHeight,
+        width: cardWidth,
+        padding: 20,
+        borderRadius: 10,
+        alignItems: 'center',
     },
-    textStyle: {
-        fontFamily: FONT.medium,
-        fontSize: SIZES.smallmedium,
-        color: COLORS.white,
+    arrowIcon: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
     },
-    buttonsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-    },
+    modalinfo: {
+        color: 'black',
+        fontSize: 16,
+    }
 });
 
 export default ViewProfile;

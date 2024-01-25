@@ -12,9 +12,9 @@
     "@expo/vector-icons": "^13.0.0",
     "@firebase/firestore": "^4.4.0",
     "@react-native-async-storage/async-storage": "1.18.2",
-    "@react-native-community/datetimepicker": "7.2.0",
+    "@react-native-community/datetimepicker": "^7.2.0",
     "@react-native-community/geolocation": "^3.1.0",
-    "@react-native-picker/picker": "^2.6.1",
+    "@react-native-picker/picker": "2.4.10",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/drawer": "^6.6.6",
     "@react-navigation/native": "^6.1.9",
@@ -33,7 +33,7 @@
     "expo-font": "~11.4.0",
     "expo-image-manipulator": "~11.3.0",
     "expo-image-picker": "~14.3.2",
-    "expo-location": "^16.3.0",
+    "expo-location": "~16.1.0",
     "expo-notifications": "^0.20.1",
     "expo-permissions": "~14.2.1",
     "expo-router": "^2.0.0",
@@ -81,7 +81,8 @@
     "yarn": "^1.22.19"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@types/react-native-check-box": "^2.1.6"
   },
   "android": {
     "package": "com.ronbutan.Rizzly"

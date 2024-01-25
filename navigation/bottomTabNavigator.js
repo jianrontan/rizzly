@@ -30,7 +30,7 @@ export default function BottomTabStack({ navigation }) {
                     </View>
                 ),
                 headerTitle: () => (
-                    <Text style={appStyles.headerFont}>App</Text>
+                    <Text style={appStyles.headerFont}>Rizzly</Text>
                 ),
                 headerTitleAlign: 'center',
             }}>

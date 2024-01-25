@@ -4,8 +4,8 @@ function toRadians(degrees) {
 
 export function haversineDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Radius of the Earth in kilometers
-    const dLat = toRadians(lat2 - lat1);
-    const dLon = toRadians(lon2 - lon1);
+    const dLat = toRadians(Math.abs(lat2 - lat1));
+    const dLon = toRadians(Math.abs(lon2 - lon1));
 
     const a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +

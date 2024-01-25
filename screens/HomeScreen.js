@@ -11,7 +11,7 @@ import {
     FlatList,
     Dimensions,
 } from 'react-native';
-import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot} from 'firebase/firestore';
+import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
@@ -42,53 +42,53 @@ const HomeScreen = () => {
 
     useFocusEffect(
         React.useCallback(() => {
-          const fetchUnreadChatsCount = async () => {
-            const currentUser = auth.currentUser;
-            const usersCollection = collection(db, 'profiles');
-       
-            // Query for documents where the 'likes' array contains the current user's ID
-            const likesQuery = query(usersCollection, where('likes', 'array-contains', currentUser.uid));
-            const likesSnapshot = await getDocs(likesQuery);
-            const likesUsers = likesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-       
-            // Query for documents where the 'likedBy' array contains the current user's ID
-            const likedByQuery = query(usersCollection, where('likedBy', 'array-contains', currentUser.uid));
-            const likedBySnapshot = await getDocs(likedByQuery);
-            const likedByUsers = likedBySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-       
-            // Combine the results locally
-            const matchedUsers = likesUsers.filter((likeUser) =>
-              likedByUsers.some((likedByUser) => likedByUser.id === likeUser.id)
-            );
-       
-            matchedUsers.forEach((match) => {
-              const chatRoomID = [currentUser.uid, match.id].sort().join('_');
-              const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
-       
-              let unreadCount = 0; // Add this line to initialize the counter
-       
-              const unsubscribe = onSnapshot(messagesCollection, (snapshot) => {
-                const hasUnread = snapshot.docs.some((doc) => {
-                  const messageData = doc.data();
-                  // If the message is unread and was sent by another user, increment the counter
-                  if (messageData.senderId !== currentUser.uid && !messageData.read) {
-                    unreadCount++;
-                  }
-                  return messageData.senderId !== currentUser.uid && !messageData.read;
+            const fetchUnreadChatsCount = async () => {
+                const currentUser = auth.currentUser;
+                const usersCollection = collection(db, 'profiles');
+
+                // Query for documents where the 'likes' array contains the current user's ID
+                const likesQuery = query(usersCollection, where('likes', 'array-contains', currentUser.uid));
+                const likesSnapshot = await getDocs(likesQuery);
+                const likesUsers = likesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+                // Query for documents where the 'likedBy' array contains the current user's ID
+                const likedByQuery = query(usersCollection, where('likedBy', 'array-contains', currentUser.uid));
+                const likedBySnapshot = await getDocs(likedByQuery);
+                const likedByUsers = likedBySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+                // Combine the results locally
+                const matchedUsers = likesUsers.filter((likeUser) =>
+                    likedByUsers.some((likedByUser) => likedByUser.id === likeUser.id)
+                );
+
+                matchedUsers.forEach((match) => {
+                    const chatRoomID = [currentUser.uid, match.id].sort().join('_');
+                    const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
+
+                    let unreadCount = 0; // Add this line to initialize the counter
+
+                    const unsubscribe = onSnapshot(messagesCollection, (snapshot) => {
+                        const hasUnread = snapshot.docs.some((doc) => {
+                            const messageData = doc.data();
+                            // If the message is unread and was sent by another user, increment the counter
+                            if (messageData.senderId !== currentUser.uid && !messageData.read) {
+                                unreadCount++;
+                            }
+                            return messageData.senderId !== currentUser.uid && !messageData.read;
+                        });
+
+                        // Dispatch the count to your redux store
+                        dispatch(setUnreadChatroomsCount(unreadCount));
+                    });
+
+                    // Clean up the listener when the component unmounts
+                    return () => unsubscribe();
                 });
-       
-                // Dispatch the count to your redux store
-                dispatch(setUnreadChatroomsCount(unreadCount));
-              });
-       
-              // Clean up the listener when the component unmounts
-              return () => unsubscribe();
-            });
-          };
-       
-          fetchUnreadChatsCount();
+            };
+
+            fetchUnreadChatsCount();
         }, [dispatch])
-       );
+    );
 
     useEffect(() => {
         const fetchInitialLikesCount = async () => {
@@ -302,11 +302,11 @@ const HomeScreen = () => {
                                     style={styles.image}
                                 />
                                 <View style={styles.userInfoContainer}>
-                                    <Text style={styles.userName}>{user.name || 'No name'}</Text>
+                                    <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
                                     <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
                                     <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
-                                    <Text style={styles.userDetails}>Bio: {user.bio || 'No bio'} </Text>
                                     <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
+                                    <Text style={styles.userDetails}>Height: {user.cmHeight + ' cm' || 'No Height'}  </Text>
                                     <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
                                         <Text style={styles.likeButton}>Like</Text>
                                     </TouchableOpacity>
@@ -325,11 +325,13 @@ const HomeScreen = () => {
                             <View style={styles.modalContent}>
                                 {selectedUser && (
                                     <>
-                                        <Text style={styles.modalinfo}>{selectedUser.name || 'No name'}</Text>
+                                        <Text style={styles.modalinfo}>{selectedUser.firstName + ' ' + selectedUser.lastName || 'No name'}</Text>
                                         <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
                                         <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
                                         <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
                                         <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
+                                        <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
+                                        <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
                                         <Text style={styles.modalinfo}>
                                             Distance: ~{currentUserData && selectedUser && haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)}km
                                         </Text>

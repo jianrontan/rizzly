@@ -7,7 +7,7 @@ import { COLORS, SIZES } from '../constants';
 
 const auth = getAuth();
 
-const SignIn = ({navigation}) => {
+const SignIn = ({ navigation }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [value, setValue] = useState({
     email: '',
@@ -52,7 +52,7 @@ const SignIn = ({navigation}) => {
               autoCapitalize='none'
             />
 
-              <View style={{position: 'relative'}}>
+            <View style={{ position: 'relative' }}>
               <Input
                 placeholder='Password'
                 value={value.password}
@@ -60,10 +60,10 @@ const SignIn = ({navigation}) => {
                 secureTextEntry={!isPasswordVisible}
                 autoCapitalize='none'
               />
-              <TouchableOpacity style={{position: 'absolute', right: 10}} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+              <TouchableOpacity style={{ position: 'absolute', right: 10 }} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
                 <MaterialCommunityIcons name={isPasswordVisible ? "eye-off" : "eye"} size={28} color={COLORS.black} />
               </TouchableOpacity>
-              </View>
+            </View>
 
             <View style={{ paddingLeft: 8, paddingTop: SIZES.xSmall, paddingBottom: SIZES.xLarge }}>
               <TouchableOpacity onPress={signIn} >

@@ -11,7 +11,7 @@ import { COLORS, SIZES } from '../constants';
 
 const auth = getAuth();
 
-const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
+const SignUp: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isCfmPasswordVisible, setIsCfmPasswordVisible] = useState(false);
 
@@ -43,8 +43,8 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
 
     if (!isPasswordValid(value.password)) {
       setValue({
-          ...value,
-          error: 'Passwords need to be at least 8 characters, contain a number, a lowercase letter, and a uppercase letter.'
+        ...value,
+        error: 'Passwords need to be at least 8 characters, contain a number, a lowercase letter, and a uppercase letter.'
       })
       return;
     }
@@ -60,51 +60,51 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
     }
 
     createUserWithEmailAndPassword(auth, value.email, value.password)
-    .then((userCredential) => {
-      // Send email verification
-      sendEmailVerification(userCredential.user)
-        .then(() => {
-          // Clear error message
-          setValue({
-            ...value,
-            error: ''
+      .then((userCredential) => {
+        // Send email verification
+        sendEmailVerification(userCredential.user)
+          .then(() => {
+            // Clear error message
+            setValue({
+              ...value,
+              error: ''
+            });
+            // Show alert
+            Alert.alert(
+              'Alert',
+              'Please check your email to verify your account.',
+              [
+                {
+                  text: 'OK',
+                },
+              ],
+            )
+          })
+          .catch((error) => {
+            // Handle error
+            setValue({
+              ...value,
+              error: error.message
+            });
           });
-          // Show alert
-          Alert.alert(
-            'Alert',
-            'Please check your email to verify your account.',
-            [
-              {
-                text: 'OK',
-              },
-            ],
-          )
-        })
-        .catch((error) => {
-          // Handle error
-          setValue({
-            ...value,
-            error: error.message
+
+        // Create a new document in the "emails" collection with the user's email
+        const emailsCollection = collection(db, 'emails');
+        addDoc(emailsCollection, { email: value.email })
+          .then((docRef) => {
+            console.log('Document written with ID: ', docRef.id);
+          })
+          .catch((error) => {
+            console.error('Error adding document: ', error);
           });
+      })
+      .catch((error) => {
+        // Handle error
+        setValue({
+          ...value,
+          error: error.message
         });
-   
-      // Create a new document in the "emails" collection with the user's email
-      const emailsCollection = collection(db, 'emails');
-      addDoc(emailsCollection, { email: value.email })
-       .then((docRef) => {
-        console.log('Document written with ID: ', docRef.id);
-       })
-       .catch((error) => {
-        console.error('Error adding document: ', error);
-       });      
-    })
-    .catch((error) => {
-      // Handle error
-      setValue({
-        ...value,
-        error: error.message
       });
-    });   
   }
 
   return (
@@ -126,7 +126,7 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
               autoCapitalize='none'
             />
 
-              <View style={{position: 'relative'}}>
+            <View style={{ position: 'relative' }}>
               <Input
                 placeholder='Password'
                 value={value.password}
@@ -134,12 +134,12 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
                 secureTextEntry={!isPasswordVisible}
                 autoCapitalize='none'
               />
-              <TouchableOpacity style={{position: 'absolute', right: 10}} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
+              <TouchableOpacity style={{ position: 'absolute', right: 10 }} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
                 <MaterialCommunityIcons name={isPasswordVisible ? "eye-off" : "eye"} size={28} color={COLORS.black} />
               </TouchableOpacity>
-              </View>
+            </View>
 
-              <View style={{position: 'relative'}}>
+            <View style={{ position: 'relative' }}>
               <Input
                 placeholder='Confirm password'
                 value={value.cfmPassword}
@@ -147,10 +147,10 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({navigation}) => {
                 secureTextEntry={!isCfmPasswordVisible}
                 autoCapitalize='none'
               />
-              <TouchableOpacity style={{position: 'absolute', right: 10}} onPress={() => setIsCfmPasswordVisible(!isCfmPasswordVisible)}>
+              <TouchableOpacity style={{ position: 'absolute', right: 10 }} onPress={() => setIsCfmPasswordVisible(!isCfmPasswordVisible)}>
                 <MaterialCommunityIcons name={isCfmPasswordVisible ? "eye-off" : "eye"} size={28} color={COLORS.black} />
               </TouchableOpacity>
-              </View>
+            </View>
             <View style={{ padding: 8 }}>
               <TouchableOpacity onPress={signUp}>
                 <Text>Sign Up</Text>

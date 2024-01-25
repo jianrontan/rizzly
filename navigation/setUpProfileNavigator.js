@@ -12,7 +12,6 @@ import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
-import ProfileScreen from '../screens/ProfileScreen';
 import Name from '../setUpScreens/NameS';
 import Birthday from '../setUpScreens/Birthday';
 import Gender from '../setUpScreens/Gender';
@@ -66,7 +65,6 @@ export default function SetUpProfile() {
             <Stack.Screen name="Height" component={Height} />
             <Stack.Screen name="Ethnicity" component={Ethnicity} />
             <Stack.Screen name="Religion" component={Religion} />
-            <Stack.Screen name="Profile Screen" component={ProfileScreen} />
         </Stack.Navigator>
     )
 };
