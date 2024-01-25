@@ -316,11 +316,11 @@ const HomeScreen = () => {
                                     style={styles.image}
                                 />
                                 <View style={styles.userInfoContainer}>
-                                    <Text style={styles.userName}>{user.name || 'No name'}</Text>
+                                    <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
                                     <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
                                     <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
-                                    <Text style={styles.userDetails}>Bio: {user.bio || 'No bio'} </Text>
                                     <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
+                                    <Text style={styles.userDetails}>Height: {user.cmHeight + ' cm' || 'No Height'}  </Text>
                                     <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
                                         <Text style={styles.likeButton}>Like</Text>
                                     </TouchableOpacity>
@@ -339,11 +339,13 @@ const HomeScreen = () => {
                             <View style={[styles.modalContent, {height: availableSpace}]}>
                                 {selectedUser && (
                                     <>
-                                        <Text style={styles.modalinfo}>{selectedUser.name || 'No name'}</Text>
+                                        <Text style={styles.modalinfo}>{selectedUser.firstName + ' ' + selectedUser.lastName || 'No name'}</Text>
                                         <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
                                         <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
                                         <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
                                         <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
+                                        <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
+                                        <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
                                         <Text style={styles.modalinfo}>
                                             Distance: ~{currentUserData && selectedUser && haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)}km
                                         </Text>

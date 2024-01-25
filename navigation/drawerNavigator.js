@@ -15,7 +15,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../screens/Settings';
-import ProfileScreen from '../screens/ProfileScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import ViewProfile from '../screens/ViewProfile';
 import Orientation from '../screens/Orientation';

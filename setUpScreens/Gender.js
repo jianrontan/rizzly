@@ -134,7 +134,7 @@ export default function Gender({ navigation }) {
                     listMode='SCROLLVIEW'
                 />
 
-                <View style={{paddingBottom: 500}}></View>
+                <View style={{ paddingBottom: 500 }}></View>
 
                 <Spinner
                     visible={submitting}

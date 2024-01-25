@@ -23,12 +23,22 @@ const MatchesScreen = ({ navigation }) => {
           // Query for documents where the 'likes' array contains the current user's ID
           const likesQuery = query(usersCollection, where('likes', 'array-contains', currentUser.uid));
           const likesSnapshot = await getDocs(likesQuery);
-          const likesUsers = likesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          const likesUsers = likesSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            // Exclude the datePickerValue field
+            const { datePickerValue, ...restOfData } = data;
+            return { id: doc.id, ...restOfData };
+          });
    
           // Query for documents where the 'likedBy' array contains the current user's ID
           const likedByQuery = query(usersCollection, where('likedBy', 'array-contains', currentUser.uid));
           const likedBySnapshot = await getDocs(likedByQuery);
-          const likedByUsers = likedBySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          const likedByUsers = likedBySnapshot.docs.map((doc) => {
+            const data = doc.data();
+            // Exclude the datePickerValue field
+            const { datePickerValue, ...restOfData } = data;
+            return { id: doc.id, ...restOfData };
+          });
    
           // Combine the results locally
           const matchedUsers = likesUsers.filter((likeUser) =>
@@ -85,7 +95,6 @@ const MatchesScreen = ({ navigation }) => {
     }, [matches, dispatch])
   );
 
-
   return (
     <View>
       <Text>Matches Screen</Text>
@@ -100,7 +109,7 @@ const MatchesScreen = ({ navigation }) => {
               navigation.navigate('ChatRoom', {
                 chatRoomID,
                 userId: match.id,
-                userName: match.name,
+                userName: match.firstName,
               });
 
               if (!openedChatrooms.includes(chatRoomID)) {
@@ -142,7 +151,7 @@ const MatchesScreen = ({ navigation }) => {
               }}
               style={styles.avatar}
             />
-            <Text>{match.name}</Text>
+            <Text>{match.firstName}</Text>
             {unreadMessages[chatRoomID] && <Text style={{ color: 'red', fontSize: 30 }}> You have a new message </Text>}
           </TouchableOpacity>
         );

@@ -50,7 +50,7 @@ const LikesScreen = () => {
             dispatch(setLikes(likedUsersIds.length));
 
             return {
-              name: likedUserData?.name || 'N/A',
+              firstName: likedUserData?.firstName || 'N/A',
               imageURL: firstImageURL || 'N/A',
             };
           });
@@ -73,7 +73,7 @@ const LikesScreen = () => {
       {likedUsersData.length > 0 ? (
         likedUsersData.map((user, index) => (
           <View key={index}>
-            <Text>Username: {user.name}</Text>
+            <Text>Username: {user.firstName}</Text>
             <Image
               source={{ uri: user.imageURL }}
               style={{ width: 100, height: 100 }} // Add your desired styling here
