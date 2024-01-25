@@ -48,6 +48,7 @@ const HomeScreen = () => {
     const headerHeight = useHeaderHeight();
     // console.log("headerHeight: ", headerHeight);
     const statusBarHeight = StatusBar.currentHeight;
+    // console.log("statusBarHeight: ", statusBarHeight);
     const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
     // console.log("cardHeight: ", cardHeight);
     // console.log("availableSpace: ", availableSpace);
