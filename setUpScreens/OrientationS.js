@@ -146,7 +146,7 @@ export default function Orientation({ navigation }) {
                     indicatorStyle={{
 
                     }}
-                    textContent='Saving...'
+                    textContent='Loading...'
                     textStyle={{
                         fontFamily: FONT.bold,
                         fontSize: SIZES.medium,
