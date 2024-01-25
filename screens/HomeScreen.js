@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import {
     View,
     Text,
@@ -10,9 +10,12 @@ import {
     TouchableOpacity,
     FlatList,
     Dimensions,
+    StatusBar,
 } from 'react-native';
-import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot} from 'firebase/firestore';
+import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
 import { Swipeable } from 'react-native-gesture-handler';
@@ -22,9 +25,10 @@ import { haversineDistance } from '../screens/haversine';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
 
-const { width, height } = Dimensions.get('window');
+const width = Dimensions.get('window').width;
+const height = Dimensions.get('window').height;
 const cardWidth = width;
-const cardHeight = height - 170;
+const cardHeight = height - 105;
 
 const HomeScreen = () => {
     const [users, setUsers] = useState([]);
@@ -38,57 +42,67 @@ const HomeScreen = () => {
     const [currentIndex, setCurrentIndex] = useState(0)
     const [paused, setPaused] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
+
+    const tabNavigatorHeight = useContext(BottomTabBarHeightContext);
+    // console.log("tabNavigatorHeight: ", tabNavigatorHeight);
+    const headerHeight = useHeaderHeight();
+    // console.log("headerHeight: ", headerHeight);
+    const statusBarHeight = StatusBar.currentHeight;
+    const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
+    // console.log("cardHeight: ", cardHeight);
+    // console.log("availableSpace: ", availableSpace);
+
     const dispatch = useDispatch();
 
     useFocusEffect(
         React.useCallback(() => {
-          const fetchUnreadChatsCount = async () => {
-            const currentUser = auth.currentUser;
-            const usersCollection = collection(db, 'profiles');
-       
-            // Query for documents where the 'likes' array contains the current user's ID
-            const likesQuery = query(usersCollection, where('likes', 'array-contains', currentUser.uid));
-            const likesSnapshot = await getDocs(likesQuery);
-            const likesUsers = likesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-       
-            // Query for documents where the 'likedBy' array contains the current user's ID
-            const likedByQuery = query(usersCollection, where('likedBy', 'array-contains', currentUser.uid));
-            const likedBySnapshot = await getDocs(likedByQuery);
-            const likedByUsers = likedBySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-       
-            // Combine the results locally
-            const matchedUsers = likesUsers.filter((likeUser) =>
-              likedByUsers.some((likedByUser) => likedByUser.id === likeUser.id)
-            );
-       
-            matchedUsers.forEach((match) => {
-              const chatRoomID = [currentUser.uid, match.id].sort().join('_');
-              const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
-       
-              let unreadCount = 0; // Add this line to initialize the counter
-       
-              const unsubscribe = onSnapshot(messagesCollection, (snapshot) => {
-                const hasUnread = snapshot.docs.some((doc) => {
-                  const messageData = doc.data();
-                  // If the message is unread and was sent by another user, increment the counter
-                  if (messageData.senderId !== currentUser.uid && !messageData.read) {
-                    unreadCount++;
-                  }
-                  return messageData.senderId !== currentUser.uid && !messageData.read;
+            const fetchUnreadChatsCount = async () => {
+                const currentUser = auth.currentUser;
+                const usersCollection = collection(db, 'profiles');
+
+                // Query for documents where the 'likes' array contains the current user's ID
+                const likesQuery = query(usersCollection, where('likes', 'array-contains', currentUser.uid));
+                const likesSnapshot = await getDocs(likesQuery);
+                const likesUsers = likesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+                // Query for documents where the 'likedBy' array contains the current user's ID
+                const likedByQuery = query(usersCollection, where('likedBy', 'array-contains', currentUser.uid));
+                const likedBySnapshot = await getDocs(likedByQuery);
+                const likedByUsers = likedBySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+                // Combine the results locally
+                const matchedUsers = likesUsers.filter((likeUser) =>
+                    likedByUsers.some((likedByUser) => likedByUser.id === likeUser.id)
+                );
+
+                matchedUsers.forEach((match) => {
+                    const chatRoomID = [currentUser.uid, match.id].sort().join('_');
+                    const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
+
+                    let unreadCount = 0; // Add this line to initialize the counter
+
+                    const unsubscribe = onSnapshot(messagesCollection, (snapshot) => {
+                        const hasUnread = snapshot.docs.some((doc) => {
+                            const messageData = doc.data();
+                            // If the message is unread and was sent by another user, increment the counter
+                            if (messageData.senderId !== currentUser.uid && !messageData.read) {
+                                unreadCount++;
+                            }
+                            return messageData.senderId !== currentUser.uid && !messageData.read;
+                        });
+
+                        // Dispatch the count to your redux store
+                        dispatch(setUnreadChatroomsCount(unreadCount));
+                    });
+
+                    // Clean up the listener when the component unmounts
+                    return () => unsubscribe();
                 });
-       
-                // Dispatch the count to your redux store
-                dispatch(setUnreadChatroomsCount(unreadCount));
-              });
-       
-              // Clean up the listener when the component unmounts
-              return () => unsubscribe();
-            });
-          };
-       
-          fetchUnreadChatsCount();
+            };
+
+            fetchUnreadChatsCount();
         }, [dispatch])
-       );
+    );
 
     useEffect(() => {
         const fetchInitialLikesCount = async () => {
@@ -252,7 +266,7 @@ const HomeScreen = () => {
         const offsetY = event.nativeEvent.contentOffset.y;
 
         // Calculate the current index based on the scroll offset
-        const newIndex = Math.round(offsetY / cardHeight);
+        const newIndex = Math.round(offsetY / availableSpace);
 
         // If the current index is greater than the previous index, it means the user has swiped to the next user
         if (newIndex > currentIndex) {
@@ -277,7 +291,7 @@ const HomeScreen = () => {
     const renderItem = ({ item: user }) => {
         if (user.id === 'no-more-users') {
             return (
-                <View style={{ width: cardWidth, height: cardHeight }}>
+                <View style={{ width: cardWidth, height: availableSpace }}>
                     <NoMoreUserScreen />
                 </View>
             );
@@ -287,7 +301,7 @@ const HomeScreen = () => {
 
         return (
             <Swipeable onSwipeableRightComplete={() => handleDislikeClick(user.id)}>
-                <View style={styles.cardContainer}>
+                <View style={[styles.cardContainer, {width: cardWidth, height: availableSpace}]}>
                     <Swiper
                         style={[styles.swiper]}
                         index={0}
@@ -321,8 +335,8 @@ const HomeScreen = () => {
                         <Feather name="chevron-up" size={30} color="white" style={styles.arrowIcon} />
                     </TouchableOpacity>
                     <Modal animationType="slide" transparent={true} visible={modalVisible}>
-                        <View style={styles.modalContainer}>
-                            <View style={styles.modalContent}>
+                        <View style={[styles.modalContainer, {height: availableSpace}]}>
+                            <View style={[styles.modalContent, {height: availableSpace}]}>
                                 {selectedUser && (
                                     <>
                                         <Text style={styles.modalinfo}>{selectedUser.name || 'No name'}</Text>
@@ -348,7 +362,7 @@ const HomeScreen = () => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             {paused ? (
                 pausedRender
             ) : (
@@ -367,7 +381,7 @@ const HomeScreen = () => {
                     pagingEnabled
                 />
             )}
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -391,11 +405,8 @@ const styles = StyleSheet.create({
     },
     cardContainer: {
         flex: 1,
-        borderRadius: 10,
         overflow: 'hidden',
         backgroundColor: 'white', // Set the background color of the cards
-        width: cardWidth,
-        height: cardHeight,
     },
     image: {
         flex: 1,
@@ -430,16 +441,13 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        height: cardHeight,
         width: cardWidth,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
         backgroundColor: 'white',
-        height: cardHeight,
         width: cardWidth,
         padding: 20,
-        borderRadius: 10,
         alignItems: 'center',
     },
     arrowIcon: {

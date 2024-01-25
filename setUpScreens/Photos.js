@@ -277,13 +277,13 @@ const Photos = ({ navigation }) => {
                             style: 'destructive',
                             onPress: () => {
                                 dispatch(setHasUnsavedChangesExport(false));
-                                navigation.navigate('Birthday');
+                                navigation.navigate('Preferred Genders');
                             },
                         },
                     ]);
                     return true;
                 } else {
-                    navigation.navigate('Birthday');
+                    navigation.navigate('Preferred Genders');
                     return true;
                 }
             };

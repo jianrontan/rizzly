@@ -102,7 +102,7 @@ export default function Birthday({ navigation }) {
             return;
         }
         navigation.dispatch(
-            navigation.navigate("Photos")
+            navigation.navigate("Gender")
         );
     };
 

@@ -42,6 +42,7 @@ export default function MyLocation({ navigation }) {
 
     const [location, setLocation] = useState([])
     const [place, setPlace] = useState('');
+    const [have, setHave] = useState('');
     const makeLocation = async () => {
         setSubmitting(true);
         let { status } = await Location.requestForegroundPermissionsAsync();
@@ -54,7 +55,7 @@ export default function MyLocation({ navigation }) {
                 accuracy: Location.Accuracy.High,
             });
             setLocation(location);
-
+            setHave(location);
             // Get place from coordinates
             const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
             setPlace(place); // Update place state variable
@@ -94,6 +95,7 @@ export default function MyLocation({ navigation }) {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
                 setPlace(holdData.location || '');
+                setHave(holdData.location || '');
                 setIsLoading(false);
             } else {
                 console.log('No such document!');
@@ -113,7 +115,7 @@ export default function MyLocation({ navigation }) {
 
     // Next
     const next = () => {
-        if (location.length === 0) {
+        if (have.length === 0) {
             Alert.alert(
                 "Location Required",
                 "Please set your location.",
