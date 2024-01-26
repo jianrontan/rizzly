@@ -183,7 +183,7 @@ const HomeScreen = () => {
     }, [currentUserData]);
 
     const fetchData = async () => {
-            setIsLoading(true);
+        setIsLoading(true);
         try {
             if (!currentUserData) {
                 // Handle the case where currentUserData is null
@@ -233,7 +233,7 @@ const HomeScreen = () => {
         } catch (error) {
             console.error('Error fetching data:', error);
         }
-            setIsLoading(false);
+        setIsLoading(false);
     };
 
     useEffect(() => {
@@ -512,11 +512,11 @@ const HomeScreen = () => {
         <GestureHandlerRootView style={{ flex: 1 }}>
             <View style={styles.container}>
                 {loading ? <ActivityIndicator /> : (
-                paused ? (
+                    paused ? (
                         pausedRender
                     ) : (
                         <>
-                        <FlatList
+                            <FlatList
                                 data={users}
                                 keyExtractor={(user) => user.id}
                                 renderItem={renderItem}
@@ -531,9 +531,9 @@ const HomeScreen = () => {
                                 pagingEnabled
                             />
                             {renderModal()}
-                    </>
-                )
-            )}
+                        </>
+                    )
+                )}
 
                 <Spinner
                     visible={isLoading}
