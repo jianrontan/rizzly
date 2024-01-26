@@ -321,9 +321,7 @@ const HomeScreen = () => {
 
     // FIX SWIPING FUNCTIONS ABOVE
 
-    useEffect(() => {
-        console.log(allowSwipe);
-    }, [allowSwipe])
+    console.log(allowSwipe);
 
     const renderItem = ({ item: user }) => {
         if (user.id === 'no-more-users') {
@@ -339,9 +337,9 @@ const HomeScreen = () => {
         return (
             <Swipeable
                 onSwipeableRightComplete={() => handleDislikeClick(user.id)}
-                enabled={allowSwipe.vertical}
+                enabled={allowSwipe.horizontal}
                 onSwipeableOpen={(direction) => {
-                    onSwipeStart('vertical');
+                    onSwipeStart('horizontal');
                 }}
                 onSwipeableClose={() => {
                     onSwipeComplete();
@@ -349,9 +347,9 @@ const HomeScreen = () => {
             >
                 <View style={[styles.cardContainer, { width: cardWidth, height: availableSpace }]}>
                     <Swiper
-                        scrollEnabled={allowSwipe.horizontal}
+                        scrollEnabled={allowSwipe.vertical}
                         onIndexChanged={() => {
-                            onSwipeStart('horizontal');
+                            onSwipeStart('vertical');
                             console.log("swiped horizontally");
                         }}
                         style={[styles.swiper]}
