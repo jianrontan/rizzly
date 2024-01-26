@@ -1,17 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
-import {
-    View,
-    Text,
-    Image,
-    Modal,
-    Button,
-    StyleSheet,
-    SafeAreaView,
-    TouchableOpacity,
-    FlatList,
-    Dimensions,
-    StatusBar,
-} from 'react-native';
+import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
+import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
@@ -43,6 +32,7 @@ const HomeScreen = () => {
     const [previousIndex, setPreviousIndex] = useState(0);
     const [fetchedUsers, setFetchedUsers] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
+    const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0)
     const [paused, setPaused] = useState(false);
@@ -59,7 +49,30 @@ const HomeScreen = () => {
     // console.log("availableSpace: ", availableSpace);
 
     const dispatch = useDispatch();
+    const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
+    const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
+    const [distanceRange, setDistanceRange] = useState([1, 10])
+    const [loading, setLoading] = useState(false);
 
+    const isUserWithinRanges = (user) => {
+        const userHeight = user.cmHeight;
+        const userAge = user.age;
+
+        // Check if the user's height falls within the height range
+        if (userHeight < heightRange[0] || userHeight > heightRange[1]) {
+            return false;
+        }
+
+        // Check if the user's age falls within the age range
+        if (userAge < ageRange[0] || userAge > ageRange[1]) {
+            return false;
+        }
+
+        // If the user passes all checks, they are within the ranges
+        return true;
+    };
+
+    // This is to update number of unread chats before users clicks matchesscreen
     useFocusEffect(
         React.useCallback(() => {
             const fetchUnreadChatsCount = async () => {
@@ -109,7 +122,7 @@ const HomeScreen = () => {
             fetchUnreadChatsCount();
         }, [dispatch])
     );
-
+    // This is to update user like count before likesscreen is pressed
     useEffect(() => {
         const fetchInitialLikesCount = async () => {
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
@@ -169,60 +182,64 @@ const HomeScreen = () => {
         setPaused(isUserPaused);
     }, [currentUserData]);
 
-    useEffect(() => {
-        const fetchData = async () => {
+    const fetchData = async () => {
             setIsLoading(true);
-            try {
-                if (!currentUserData) {
-                    // Handle the case where currentUserData is null
-                    return;
+        try {
+            if (!currentUserData) {
+                // Handle the case where currentUserData is null
+                return;
+            }
+
+            const usersCollection = collection(db, 'profiles');
+            const snapshot = await getDocs(usersCollection);
+            let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+            // Filter users based on the ranges set by the user in the modal
+            let filteredUsers = usersData.filter(isUserWithinRanges);
+
+            // Filter users based on gender and current user's orientation
+            filteredUsers = filteredUsers.filter((user) => {
+                const userGender = user.gender?.toLowerCase?.();
+
+                if (currentUserData.orientation) {
+                    const { male, female, nonBinary } = currentUserData.orientation;
+
+                    if (userGender === 'female' && female) {
+                        return true;
+                    } else if (userGender === 'male' && male) {
+                        return true;
+                    } else if (userGender === 'nonbinary' && nonBinary) {
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
 
-                const usersCollection = collection(db, 'profiles');
-                const snapshot = await getDocs(usersCollection);
-                let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+                return true;
+            });
 
-                // Filter users based on gender and current user's orientation
-                let filteredUsers = usersData.filter((user) => {
-                    const userGender = user.gender?.toLowerCase?.();
+            // Exclude the current user and swiped up users from the list
+            filteredUsers = filteredUsers.filter(
+                (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
+            );
 
-                    if (currentUserData.orientation) {
-                        const { male, female, nonBinary } = currentUserData.orientation;
+            // Exclude users who have blocked the current user
+            filteredUsers = filteredUsers.filter(
+                (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
+            );
 
-                        if (userGender === 'female' && female) {
-                            return true;
-                        } else if (userGender === 'male' && male) {
-                            return true;
-                        } else if (userGender === 'nonbinary' && nonBinary) {
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
-
-                    return true;
-                });
-
-                // Exclude the current user and swiped up users from the list
-                filteredUsers = filteredUsers.filter(
-                    (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
-                );
-
-                // Exclude users who have blocked the current user
-                filteredUsers = filteredUsers.filter(
-                    (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
-                );
-
-                // Always include the "No More Users" item at the end of the users array
-                setUsers([...filteredUsers]);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
+            // Always include the "No More Users" item at the end of the users array
+            setUsers([...filteredUsers]);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
             setIsLoading(false);
-        };
+    };
 
+    useEffect(() => {
         fetchData();
-    }, [currentUserData, swipedUpUsers]);
+    }, [currentUserData]);
+
 
     const handleLikeClick = async (likedUserId) => {
         try {
@@ -242,6 +259,9 @@ const HomeScreen = () => {
             setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
         } catch (error) {
             console.error('Error adding like:', error);
+        }
+        if (!swipedUpUsers.includes(likedUserId)) {
+            setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
         }
     };
 
@@ -282,7 +302,8 @@ const HomeScreen = () => {
         if (newIndex > currentIndex) {
             const dislikedUserId = users[currentIndex]?.id;
 
-            if (dislikedUserId) {
+            // Only call handleDislikeClick if the user hasn't been swiped up yet
+            if (dislikedUserId && !swipedUpUsers.includes(dislikedUserId)) {
                 handleDislikeClick(dislikedUserId);
             }
         }
@@ -297,6 +318,75 @@ const HomeScreen = () => {
             <Text>To unpause, you can go back to pause account and turn the switch back to off </Text>
         </View>
     )
+
+    const renderModal = () => {
+        const handleHeightChange = (values) => {
+            setHeightRange(values);
+        };
+
+        const handleAgeChange = (values) => {
+            setAgeRange(values);
+        };
+
+        const handleDistanceChange = (values) => {
+            setDistanceRange(values);
+        }
+        return (
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={filterModalVisible}
+                onRequestClose={() => {
+                    setFilterModalVisible(!filterModalVisible);
+                }}
+            >
+                <View style={styles.filterModalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.sliderLabel}>Height Range</Text>
+                        <MultiSlider
+                            values={heightRange}
+                            sliderLength={300}
+                            onValuesChangeFinish={handleHeightChange}
+                            min={100}
+                            max={250}
+                            step={1}
+                            allowOverlap={false}
+                            snapped={true}
+                        />
+                        <Text style={styles.sliderValue}>{heightRange[0]} - {heightRange[1]} cm</Text>
+                        <Text style={styles.sliderLabel}>Age Range</Text>
+                        <MultiSlider
+                            values={ageRange}
+                            sliderLength={200}
+                            onValuesChangeFinish={handleAgeChange}
+                            min={18}
+                            max={100}
+                            step={1}
+                            allowOverlap={false}
+                            snapped={true}
+                        />
+                        <Text style={styles.sliderValue}>Between {ageRange[0]} and {ageRange[1]} years old</Text>
+                        <Text style={styles.sliderLabel}>Distance Range</Text>
+                        <MultiSlider
+                            values={distanceRange}
+                            sliderLength={200}
+                            onValuesChangeFinish={handleDistanceChange}
+                            min={1}
+                            max={50}
+                            step={1}
+                            allowOverlap={false}
+                            snapped={true}
+                        />
+                        <Text style={styles.sliderValue}>From {distanceRange[0]} to {distanceRange[1]} km away</Text>
+                        <Button title="Close Modal" onPress={() => {
+                            setFilterModalVisible(false);
+                            fetchData(); // Refresh the users list
+                        }} />
+                    </View>
+                </View>
+            </Modal>
+        );
+    };
 
     // FIX SWIPING FUNCTIONS BELOW
 
@@ -379,6 +469,10 @@ const HomeScreen = () => {
                             </View>
                         ))}
                     </Swiper>
+                    {/* TouchableOpacity for filter modal button */}
+                    <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
+                        <Feather name="chevron-down" size={30} color="black" />
+                    </TouchableOpacity>
                     <TouchableOpacity onPress={() => {
                         setSelectedUser(user); // Pass the user object directly
                         setModalVisible(true);
@@ -417,24 +511,29 @@ const HomeScreen = () => {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <View style={styles.container}>
-                {paused ? (
-                    pausedRender
-                ) : (
-                    <FlatList
-                        data={users}
-                        keyExtractor={(user) => user.id}
-                        renderItem={renderItem}
-                        onScroll={handleScroll}
-                        scrollEventThrottle={16}
-                        onEndReached={() => {
-                            if (users[users.length - 1]?.id !== 'no-more-users') {
-                                setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
-                            }
-                        }}
-                        onEndReachedThreshold={0}
-                        pagingEnabled
-                    />
-                )}
+                {loading ? <ActivityIndicator /> : (
+                paused ? (
+                        pausedRender
+                    ) : (
+                        <>
+                        <FlatList
+                                data={users}
+                                keyExtractor={(user) => user.id}
+                                renderItem={renderItem}
+                                onScroll={handleScroll}
+                                scrollEventThrottle={16}
+                                onEndReached={() => {
+                                    if (users[users.length - 1]?.id !== 'no-more-users') {
+                                        setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+                                    }
+                                }}
+                                onEndReachedThreshold={0}
+                                pagingEnabled
+                            />
+                            {renderModal()}
+                    </>
+                )
+            )}
 
                 <Spinner
                     visible={isLoading}
@@ -530,7 +629,28 @@ const styles = StyleSheet.create({
     modalinfo: {
         color: 'black',
         fontSize: 16,
-    }
+    },
+    filterModalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: cardHeight,
+        width: cardWidth,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        color: 'black',
+        zIndex: 3, // Ensure filter modal container appears above everything
+    },
+    filterButton: {
+        position: 'absolute',
+        top: 10, // Adjust as needed
+        right: 10, // Adjust as needed
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        borderRadius: 20,
+        padding: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1, // Ensure filter button appears above the images
+    },
 });
 
 export default HomeScreen;

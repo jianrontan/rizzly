@@ -101,8 +101,24 @@ export default function Birthday({ navigation }) {
             );
             return;
         }
-        navigation.dispatch(
-            navigation.navigate("Gender")
+        Alert.alert(
+            "Confirmation",
+            `Your age is ${age}. Are you sure you want to proceed?`,
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel"
+                },
+                {
+                    text: "Yes",
+                    onPress: async () => {
+                        await handleSubmit();
+                        navigation.dispatch(
+                            navigation.navigate("Gender")
+                        );
+                    }
+                }
+            ]
         );
     };
 
@@ -110,7 +126,7 @@ export default function Birthday({ navigation }) {
     const calculateAge = (birthday) => {
         const today = new Date();
         const [day, month, year] = birthday.split("/");
-        const birthDate = new Date(year, month - 1, day);
+        const birthDate = new Date(year, month - 1, day); // months are 0-based in JavaScript
         let age = today.getFullYear() - birthDate.getFullYear();
         const m = today.getMonth() - birthDate.getMonth();
 
@@ -123,9 +139,9 @@ export default function Birthday({ navigation }) {
 
     const onChangeDate = (event, selectedDate) => {
         const currentDate = selectedDate || date;
-        let tempDate = new Date(currentDate); // 2006-01-20T16:00:00.000Z
-        let fDate = `${tempDate.getDate()}/${tempDate.getMonth() + 1}/${tempDate.getFullYear()}`; // 20/1/2006
-        let textDate = `${tempDate.getDate()}-${tempDate.getMonth() + 1}-${tempDate.getFullYear()}`; // 19-1-2006
+        let tempDate = new Date(currentDate);
+        let fDate = `${tempDate.getDate()}/${tempDate.getMonth() + 1}/${tempDate.getFullYear()}`;
+        let textDate = `${tempDate.getDate()}-${tempDate.getMonth() + 1}-${tempDate.getFullYear()}`;
         setShow(false);
         if (event.type === 'set') {
             setBirthday(fDate);
@@ -141,7 +157,6 @@ export default function Birthday({ navigation }) {
             const userAge = calculateAge(birthday);
             setAge(userAge)
             setNewDateSet(false);
-            handleSubmit();
         }
     }, [newDateSet, birthday]);
 

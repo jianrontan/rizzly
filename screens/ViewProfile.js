@@ -5,6 +5,10 @@ import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { Dimensions } from 'react-native'
+import { Feather } from '@expo/vector-icons';
+import { Modal } from 'react-native';
+import { Button } from 'react-native-elements';
+import Swiper from 'react-native-swiper';
 
 import { COLORS, SIZES, FONT } from '../constants';
 
@@ -15,6 +19,7 @@ const cardHeight = height - 170;
 const ViewProfile = ({ navigation }) => {
     const auth = getAuth();
     const [currentUserData, setCurrentUserData] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
 
     const fetchCurrentUser = async () => {
         try {
@@ -63,17 +68,31 @@ const ViewProfile = ({ navigation }) => {
             fetchCurrentUser();
         }, [])
     );
-
+    let allImages = [];
+    if (currentUserData) {
+        allImages = currentUserData.imageURLs;
+    }
+    
     return (
         <SafeAreaView style={styles.container}>
             {currentUserData && (
                 <View style={styles.cardContainer}>
-                    <Image
-                        source={{ uri: currentUserData.imageURLs[0] }}
-                        onLoad={() => console.log('Image loaded')}
-                        onError={(error) => console.log('Error loading image: ', error)}
-                        style={styles.image}
-                    />
+                    <Swiper
+                        style={[styles.swiper]}
+                        index={0}
+                        loop={false}
+                    >
+                        {allImages.map((imageUrl, imageIndex) => (
+                            <View key={imageIndex} style={{ flex: 1 }}>
+                                <Image
+                                    source={{ uri: imageUrl }}
+                                    onLoad={() => console.log('Image loaded')}
+                                    onError={(error) => console.log('Error loading image: ', error)}
+                                    style={styles.image}
+                                />
+                            </View>
+                        ))}
+                    </Swiper>
                     <View style={styles.userInfoContainer}>
                         <Text style={styles.userName}>{currentUserData.firstName || 'No name'}</Text>
                         <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}`}</Text>
@@ -86,6 +105,34 @@ const ViewProfile = ({ navigation }) => {
                     </View>
                 </View>
             )}
+            <TouchableOpacity onPress={() => {
+                setModalVisible(true);
+            }}>
+                <Feather name="chevron-up" size={30} color="white" style={styles.arrowIcon} />
+            </TouchableOpacity>
+            <Modal animationType="slide" transparent={true} visible={modalVisible}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        {currentUserData && (
+                            <>
+                                <Text style={styles.modalinfo}>{currentUserData.firstName + ' ' + currentUserData.lastName || 'No name'}</Text>
+                                <Text style={styles.modalinfo}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}`}</Text>
+                                <Text style={styles.modalinfo}>Number of retakes: {currentUserData.retakes || 'No retakes'} </Text>
+                                <Text style={styles.modalinfo}>Bio: {currentUserData.bio || 'No bio'} </Text>
+                                <Text style={styles.modalinfo}>Location: {currentUserData.location || 'No location'}</Text>
+                                <Text style={styles.modalinfo}>Ethnicity: {currentUserData.ethnicity || 'No specified ethnicity'}</Text>
+                                <Text style={styles.modalinfo}>Religion: {currentUserData.religion || 'No specified religion'}</Text>
+                                <Text style={styles.modalinfo}>
+                                    Distance: This will display the estimated distance you are from the other party in km
+                                </Text>
+                            </>
+                        )}
+                        <Button title="Close Modal" onPress={() => {
+                            setModalVisible(false);
+                        }} />
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 
@@ -95,34 +142,55 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
+    likeButton: {
+        position: 'absolute',
+        bottom: 10,
+        right: 10,
+        backgroundColor: 'green',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 5,
+        color: 'white',
+    },
+
+    swiperItem: {
+        flex: 1,
+    },
     cardContainer: {
         flex: 1,
-        borderRadius: 1,
-        backgroundColor: COLORS.white,
-        borderRadius: SIZES.borderRadius,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
+        borderRadius: 10,
+        overflow: 'hidden',
+        backgroundColor: 'white', // Set the background color of the cards
+        width: cardWidth,
+        height: cardHeight,
     },
     image: {
-        flex: 1, 
+        flex: 1,
         resizeMode: 'cover',
     },
     userInfoContainer: {
-        marginTop: SIZES.padding,
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: '30%',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        padding: 10,
+        borderBottomLeftRadius: 10,
+        borderBottomRightRadius: 10,
     },
+
     userName: {
-        color: 'black',
+        color: 'white',
         fontSize: 18,
         fontWeight: 'bold',
     },
     userDetails: {
-        color: 'black',
+        color: 'white',
+        fontSize: 16,
+    },
+    userAge: {
+        color: 'white',
         fontSize: 16,
     },
     modalContainer: {
