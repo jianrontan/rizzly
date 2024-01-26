@@ -1,16 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-    View,
-    Text,
-    Image,
-    Modal,
-    Button,
-    StyleSheet,
-    SafeAreaView,
-    TouchableOpacity,
-    FlatList,
-    Dimensions,
-} from 'react-native';
+import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions } from 'react-native';
+import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import { db, auth } from '../firebase/firebase';
@@ -34,12 +24,13 @@ const HomeScreen = () => {
     const [previousIndex, setPreviousIndex] = useState(0);
     const [fetchedUsers, setFetchedUsers] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
+    const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0)
     const [paused, setPaused] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
     const dispatch = useDispatch();
-
+    // This is to update number of unread chats before users clicks matchesscreen
     useFocusEffect(
         React.useCallback(() => {
             const fetchUnreadChatsCount = async () => {
@@ -89,7 +80,7 @@ const HomeScreen = () => {
             fetchUnreadChatsCount();
         }, [dispatch])
     );
-
+    // This is to update user like count before likesscreen is pressed
     useEffect(() => {
         const fetchInitialLikesCount = async () => {
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
@@ -274,6 +265,76 @@ const HomeScreen = () => {
         </View>
     )
 
+    const renderModal = () => {
+        const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
+        const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
+        const [distanceRange, setDistanceRange] = useState([1,10])
+
+        const handleHeightChange = (values) => {
+            setHeightRange(values);
+        };
+
+        const handleAgeChange = (values) => {
+            setAgeRange(values);
+        };
+
+        const handleDistanceChange = (values) => {
+            setDistanceRange(values);
+        }
+        return (
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={filterModalVisible}
+                onRequestClose={() => {
+                    setFilterModalVisible(!filterModalVisible);
+                }}
+            >
+                <View style={styles.filterModalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.sliderLabel}>Height Range</Text>
+                        <MultiSlider
+                            values={heightRange}
+                            sliderLength={300}
+                            onValuesChangeFinish={handleHeightChange}
+                            min={100}
+                            max={250}
+                            step={1}
+                            allowOverlap={false}
+                            snapped={true}
+                        />
+                        <Text style={styles.sliderValue}>{heightRange[0]} - {heightRange[1]} cm</Text>
+                        <Text style={styles.sliderLabel}>Age Range</Text>
+                        <MultiSlider
+                            values={ageRange}
+                            sliderLength={200}
+                            onValuesChangeFinish={handleAgeChange}
+                            min={18}
+                            max={100}
+                            step={1}
+                            allowOverlap={false}
+                            snapped={true}
+                        />
+                        <Text style={styles.sliderValue}>Between {ageRange[0]} and {ageRange[1]} years old</Text>
+                        <Text style={styles.sliderLabel}>Distance Range</Text>
+                        <MultiSlider
+                            values={distanceRange}
+                            sliderLength={200}
+                            onValuesChangeFinish={handleDistanceChange}
+                            min={1}
+                            max={50}
+                            step={1}
+                            allowOverlap={false}
+                            snapped={true}
+                        />
+                        <Text style={styles.sliderValue}>From {distanceRange[0]} to {distanceRange[1]} km away</Text>
+                        <Button title="Close Modal" onPress={() => setFilterModalVisible(false)} />
+                    </View>
+                </View>
+            </Modal>
+        );
+    };
+
     const renderItem = ({ item: user }) => {
         if (user.id === 'no-more-users') {
             return (
@@ -314,6 +375,10 @@ const HomeScreen = () => {
                             </View>
                         ))}
                     </Swiper>
+                    {/* TouchableOpacity for filter modal button */}
+                    <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
+                        <Feather name="chevron-down" size={30} color="black" />
+                    </TouchableOpacity>
                     <TouchableOpacity onPress={() => {
                         setSelectedUser(user); // Pass the user object directly
                         setModalVisible(true);
@@ -354,20 +419,23 @@ const HomeScreen = () => {
             {paused ? (
                 pausedRender
             ) : (
-                <FlatList
-                    data={users}
-                    keyExtractor={(user) => user.id}
-                    renderItem={renderItem}
-                    onScroll={handleScroll}
-                    scrollEventThrottle={16}
-                    onEndReached={() => {
-                        if (users[users.length - 1]?.id !== 'no-more-users') {
-                            setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
-                        }
-                    }}
-                    onEndReachedThreshold={0}
-                    pagingEnabled
-                />
+                <>
+                    <FlatList
+                        data={users}
+                        keyExtractor={(user) => user.id}
+                        renderItem={renderItem}
+                        onScroll={handleScroll}
+                        scrollEventThrottle={16}
+                        onEndReached={() => {
+                            if (users[users.length - 1]?.id !== 'no-more-users') {
+                                setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+                            }
+                        }}
+                        onEndReachedThreshold={0}
+                        pagingEnabled
+                    />
+                    {renderModal()}
+                </>
             )}
         </SafeAreaView>
     );
@@ -452,7 +520,28 @@ const styles = StyleSheet.create({
     modalinfo: {
         color: 'black',
         fontSize: 16,
-    }
+    },
+    filterModalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: cardHeight,
+        width: cardWidth,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        color: 'black',
+        zIndex: 3, // Ensure filter modal container appears above everything
+    },
+    filterButton: {
+        position: 'absolute',
+        top: 10, // Adjust as needed
+        right: 10, // Adjust as needed
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        borderRadius: 20,
+        padding: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1, // Ensure filter button appears above the images
+    },
 });
 
 export default HomeScreen;
