@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions } from 'react-native';
+import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
@@ -30,6 +30,29 @@ const HomeScreen = () => {
     const [paused, setPaused] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
     const dispatch = useDispatch();
+    const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
+    const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
+    const [distanceRange, setDistanceRange] = useState([1, 10])
+    const [loading, setLoading] = useState(false);
+
+    const isUserWithinRanges = (user) => {
+        const userHeight = user.cmHeight;
+        const userAge = user.age;
+
+        // Check if the user's height falls within the height range
+        if (userHeight < heightRange[0] || userHeight > heightRange[1]) {
+            return false;
+        }
+
+        // Check if the user's age falls within the age range
+        if (userAge < ageRange[0] || userAge > ageRange[1]) {
+            return false;
+        }
+
+        // If the user passes all checks, they are within the ranges
+        return true;
+    };
+
     // This is to update number of unread chats before users clicks matchesscreen
     useFocusEffect(
         React.useCallback(() => {
@@ -138,58 +161,64 @@ const HomeScreen = () => {
         setPaused(isUserPaused);
     }, [currentUserData]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                if (!currentUserData) {
-                    // Handle the case where currentUserData is null
-                    return;
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            if (!currentUserData) {
+                // Handle the case where currentUserData is null
+                return;
+            }
+
+            const usersCollection = collection(db, 'profiles');
+            const snapshot = await getDocs(usersCollection);
+            let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+            // Filter users based on the ranges set by the user in the modal
+            let filteredUsers = usersData.filter(isUserWithinRanges);
+
+            // Filter users based on gender and current user's orientation
+            filteredUsers = filteredUsers.filter((user) => {
+                const userGender = user.gender?.toLowerCase?.();
+
+                if (currentUserData.orientation) {
+                    const { male, female, nonBinary } = currentUserData.orientation;
+
+                    if (userGender === 'female' && female) {
+                        return true;
+                    } else if (userGender === 'male' && male) {
+                        return true;
+                    } else if (userGender === 'nonbinary' && nonBinary) {
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
 
-                const usersCollection = collection(db, 'profiles');
-                const snapshot = await getDocs(usersCollection);
-                let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+                return true;
+            });
 
-                // Filter users based on gender and current user's orientation
-                let filteredUsers = usersData.filter((user) => {
-                    const userGender = user.gender?.toLowerCase?.();
+            // Exclude the current user and swiped up users from the list
+            filteredUsers = filteredUsers.filter(
+                (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
+            );
 
-                    if (currentUserData.orientation) {
-                        const { male, female, nonBinary } = currentUserData.orientation;
+            // Exclude users who have blocked the current user
+            filteredUsers = filteredUsers.filter(
+                (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
+            );
 
-                        if (userGender === 'female' && female) {
-                            return true;
-                        } else if (userGender === 'male' && male) {
-                            return true;
-                        } else if (userGender === 'nonbinary' && nonBinary) {
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
+            // Always include the "No More Users" item at the end of the users array
+            setUsers([...filteredUsers]);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+        setLoading(false);
+    };
 
-                    return true;
-                });
-
-                // Exclude the current user and swiped up users from the list
-                filteredUsers = filteredUsers.filter(
-                    (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
-                );
-
-                // Exclude users who have blocked the current user
-                filteredUsers = filteredUsers.filter(
-                    (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
-                );
-
-                // Always include the "No More Users" item at the end of the users array
-                setUsers([...filteredUsers]);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        };
-
+    useEffect(() => {
         fetchData();
-    }, [currentUserData, swipedUpUsers]);
+    }, [currentUserData]);
+
 
     const handleLikeClick = async (likedUserId) => {
         try {
@@ -209,6 +238,9 @@ const HomeScreen = () => {
             setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
         } catch (error) {
             console.error('Error adding like:', error);
+        }
+        if (!swipedUpUsers.includes(likedUserId)) {
+            setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
         }
     };
 
@@ -232,9 +264,12 @@ const HomeScreen = () => {
 
                 // Also remove the disliked user from the swipedUpUsers array
                 setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== dislikedUserId));
-            }, 10000);
+            }, 3000000);
         } catch (error) {
             console.error('Error adding dislike:', error);
+        }
+        if (!swipedUpUsers.includes(dislikedUserId)) {
+            setUsers((prevUsers) => prevUsers.filter((user) => user.id !== dislikedUserId));
         }
     };
 
@@ -249,7 +284,8 @@ const HomeScreen = () => {
         if (newIndex > currentIndex) {
             const dislikedUserId = users[currentIndex]?.id;
 
-            if (dislikedUserId) {
+            // Only call handleDislikeClick if the user hasn't been swiped up yet
+            if (dislikedUserId && !swipedUpUsers.includes(dislikedUserId)) {
                 handleDislikeClick(dislikedUserId);
             }
         }
@@ -266,10 +302,6 @@ const HomeScreen = () => {
     )
 
     const renderModal = () => {
-        const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
-        const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
-        const [distanceRange, setDistanceRange] = useState([1,10])
-
         const handleHeightChange = (values) => {
             setHeightRange(values);
         };
@@ -328,7 +360,10 @@ const HomeScreen = () => {
                             snapped={true}
                         />
                         <Text style={styles.sliderValue}>From {distanceRange[0]} to {distanceRange[1]} km away</Text>
-                        <Button title="Close Modal" onPress={() => setFilterModalVisible(false)} />
+                        <Button title="Close Modal" onPress={() => {
+                            setFilterModalVisible(false);
+                            fetchData(); // Refresh the users list
+                        }} />
                     </View>
                 </View>
             </Modal>
@@ -416,26 +451,28 @@ const HomeScreen = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {paused ? (
-                pausedRender
-            ) : (
-                <>
-                    <FlatList
-                        data={users}
-                        keyExtractor={(user) => user.id}
-                        renderItem={renderItem}
-                        onScroll={handleScroll}
-                        scrollEventThrottle={16}
-                        onEndReached={() => {
-                            if (users[users.length - 1]?.id !== 'no-more-users') {
-                                setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
-                            }
-                        }}
-                        onEndReachedThreshold={0}
-                        pagingEnabled
-                    />
-                    {renderModal()}
-                </>
+            {loading ? <ActivityIndicator /> : (
+                paused ? (
+                    pausedRender
+                ) : (
+                    <>
+                        <FlatList
+                            data={users}
+                            keyExtractor={(user) => user.id}
+                            renderItem={renderItem}
+                            onScroll={handleScroll}
+                            scrollEventThrottle={16}
+                            onEndReached={() => {
+                                if (users[users.length - 1]?.id !== 'no-more-users') {
+                                    setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+                                }
+                            }}
+                            onEndReachedThreshold={0}
+                            pagingEnabled
+                        />
+                        {renderModal()}
+                    </>
+                )
             )}
         </SafeAreaView>
     );
