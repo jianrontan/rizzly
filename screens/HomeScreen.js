@@ -428,8 +428,8 @@ const HomeScreen = () => {
 
         return (
             <Swipeable
-                onSwipeableRightComplete={() => handleDislikeClick(user.id)}
-                enabled={allowSwipe.vertical}
+                // onSwipeableRightComplete={() => handleDislikeClick(user.id)}
+                enabled={false}
                 onSwipeableOpen={(direction) => {
                     onSwipeStart('vertical');
                 }}
@@ -439,7 +439,7 @@ const HomeScreen = () => {
             >
                 <View style={[styles.cardContainer, { width: cardWidth, height: availableSpace }]}>
                     <Swiper
-                        scrollEnabled={allowSwipe.horizontal}
+                        scrollEnabled={true}
                         onIndexChanged={() => {
                             onSwipeStart('horizontal');
                             console.log("swiped horizontally");

@@ -17,6 +17,8 @@ import { COLORS, SIZES, FONT, icons } from '../constants';
 
 export default function Birthday({ navigation }) {
 
+    // Shift age confirmation alert to onPick of birthday
+
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
@@ -50,6 +52,7 @@ export default function Birthday({ navigation }) {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
                 setBirthday(holdData.birthday || '');
+                setAge(holdData.age || null);
                 const timestamp = holdData.datePickerValue;
                 if (timestamp) {
                     const dateObject = timestamp.toDate();
