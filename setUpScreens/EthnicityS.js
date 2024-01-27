@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useMemo } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback, Animated } from 'react-native';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
 import { useFocusEffect, CommonActions } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
@@ -13,6 +12,7 @@ import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
 import DropDownPicker from 'react-native-dropdown-picker';
 import CheckBox from 'react-native-check-box';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 import { setHasUnsavedChangesExport } from '../redux/actions';
 import { COLORS, SIZES, FONT } from '../constants';
@@ -26,21 +26,17 @@ const EthnicityCheckbox = React.memo(({ item, onToggle, isChecked }) => (
 
 export default function Ethnicity({ navigation }) {
 
-    //Back to top button 
-    const [scrollY, setScrollY] = useState(new Animated.Value(0));
-    const scrollRef = useRef();
-    const height = Dimensions.get('window').height
-
-    const throttledScrollHandler = useMemo(() => {
-        return Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: false }
-        );
-    }, []);
-
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
+
+    //Back to top button 
+    const [showButton, setShowButton] = useState(false);
+    const scrollRef = useRef(null);
+    const handleScroll = (event) => {
+        const scrollPosition = event.nativeEvent.contentOffset.y;
+        setShowButton(scrollPosition > 50);
+    }
 
     // Ethnicities
     const [ethnicity, setEthnicity] = useState([]);
@@ -249,13 +245,7 @@ export default function Ethnicity({ navigation }) {
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-            <ScrollView
-                ref={scrollRef}
-                showsVerticalScrollIndicator={false}
-                overScrollMode='never'
-                onScroll={throttledScrollHandler}
-                scrollEventThrottle={16}
-            >
+            <ScrollView ref={scrollRef} onScroll={handleScroll} scrollEventThrottle={16} showsVerticalScrollIndicator={false} overScrollMode='never'>
                 <View style={styles.buttonsContainer}>
                     <TouchableOpacity>
                         <Text style={styles.heading}>
@@ -321,28 +311,16 @@ export default function Ethnicity({ navigation }) {
                         color: 'white',
                     }}
                 />
-
+                {showButton && (
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => scrollRef.current.scrollTo({ y: 0, animated: true })}
+                    >
+                        <Icon name="arrow-up" size={20} color="#fff" />
+                    </TouchableOpacity>
+                )}
             </ScrollView>
-            {scrollY._value > 200 && (
-                <TouchableOpacity
-                    style={{
-                        position: 'absolute',
-                        bottom: 20,
-                        right: 20,
-                        zIndex: 1000,
-                        backgroundColor: '#000',
-                        padding: 10,
-                        borderRadius: 5,
-                    }}
-                    onPress={() => {
-                        scrollRef.current.scrollTo({ x: 0, y: 0, animated: true });
-                    }}
-                >
-                    <Text style={{ color: '#fff' }}>Back to Top</Text>
-                </TouchableOpacity>
-            )}
-
-        </SafeAreaView >
+        </SafeAreaView>
     )
 
 };
@@ -436,5 +414,17 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         borderBottomColor: "gray",
         borderBottomWidth: 1,
+    },
+    button: {
+        position: 'absolute',
+        bottom: 5,
+        right: 50,
+        zIndex: 1000,
+        backgroundColor: '#000',
+        padding: 10,
+        borderRadius: 5,
+    },
+    text: {
+        color: '#fff',
     },
 });

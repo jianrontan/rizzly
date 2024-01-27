@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot } from 'firebase/firestore';
@@ -34,6 +34,7 @@ const HomeScreen = () => {
     const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
     const [distanceRange, setDistanceRange] = useState([1, 10])
     const [loading, setLoading] = useState(false);
+    const flatListRef = useRef(null);
 
     const isUserWithinRanges = (user) => {
         const userHeight = user.cmHeight;
@@ -273,12 +274,19 @@ const HomeScreen = () => {
         }
     };
 
-
     const handleScroll = (event) => {
         const offsetY = event.nativeEvent.contentOffset.y;
 
+        // Check if the user is scrolling back up
+        if (offsetY < scrollOffset) {
+            // Scroll back up detected, set the scroll position back to the previous value
+            // This prevents scrolling back up
+            flatListRef.current.scrollToOffset({ offset: scrollOffset, animated: false });
+            return;
+        }
+
         // Calculate the current index based on the scroll offset
-        const newIndex = Math.round(offsetY / cardHeight);
+        const newIndex = Math.round((offsetY / cardHeight) - 1);
 
         // If the current index is greater than the previous index, it means the user has swiped to the next user
         if (newIndex > currentIndex) {
@@ -292,6 +300,7 @@ const HomeScreen = () => {
 
         // Update the previous index and scroll offset
         setCurrentIndex(newIndex);
+        setScrollOffset(offsetY); // Update the scroll offset
     };
 
     const pausedRender = (
@@ -457,6 +466,7 @@ const HomeScreen = () => {
                 ) : (
                     <>
                         <FlatList
+                            ref={flatListRef}
                             data={users}
                             keyExtractor={(user) => user.id}
                             renderItem={renderItem}
@@ -469,6 +479,8 @@ const HomeScreen = () => {
                             }}
                             onEndReachedThreshold={0}
                             pagingEnabled
+                            showsVerticalScrollIndicator={false}
+                            alwaysBounceVertical={false}
                         />
                         {renderModal()}
                     </>
