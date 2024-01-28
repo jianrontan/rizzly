@@ -198,6 +198,13 @@ const HomeScreen = () => {
                 return true;
             });
 
+            // Calculate distance for each user and filter based on distance range
+            filteredUsers = filteredUsers.filter((user) => {
+                const distance = haversineDistance(currentUserData.latitude, currentUserData.longitude, user.latitude, user.longitude);
+                return distance >= distanceRange[0] && distance <= distanceRange[1];
+            });
+
+
             // Exclude the current user and swiped up users from the list
             filteredUsers = filteredUsers.filter(
                 (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
@@ -207,6 +214,9 @@ const HomeScreen = () => {
             filteredUsers = filteredUsers.filter(
                 (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
             );
+
+            // Limit the number of users to render to the first 10
+            filteredUsers = filteredUsers.slice(0, 10);
 
             // Always include the "No More Users" item at the end of the users array
             setUsers([...filteredUsers]);
