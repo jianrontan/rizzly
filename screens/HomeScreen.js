@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useRef, useContext } from 'react';
 import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot } from 'firebase/firestore';
@@ -52,6 +52,7 @@ const HomeScreen = () => {
     const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
     const [distanceRange, setDistanceRange] = useState([1, 10])
     const [loading, setLoading] = useState(false);
+    const flatListRef = useRef(null);
 
     const isUserWithinRanges = (user) => {
         const userHeight = user.cmHeight;
@@ -217,6 +218,13 @@ const HomeScreen = () => {
                 return true;
             });
 
+            // Calculate distance for each user and filter based on distance range
+            filteredUsers = filteredUsers.filter((user) => {
+                const distance = haversineDistance(currentUserData.latitude, currentUserData.longitude, user.latitude, user.longitude);
+                return distance >= distanceRange[0] && distance <= distanceRange[1];
+            });
+
+
             // Exclude the current user and swiped up users from the list
             filteredUsers = filteredUsers.filter(
                 (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
@@ -226,6 +234,9 @@ const HomeScreen = () => {
             filteredUsers = filteredUsers.filter(
                 (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
             );
+
+            // Limit the number of users to render to the first 10
+            filteredUsers = filteredUsers.slice(0, 10);
 
             // Always include the "No More Users" item at the end of the users array
             setUsers([...filteredUsers]);
@@ -290,9 +301,16 @@ const HomeScreen = () => {
         }
     };
 
-
     const handleScroll = (event) => {
         const offsetY = event.nativeEvent.contentOffset.y;
+
+        // Check if the user is scrolling back up
+        if (offsetY < scrollOffset) {
+            // Scroll back up detected, set the scroll position back to the previous value
+            // This prevents scrolling back up
+            flatListRef.current.scrollToOffset({ offset: scrollOffset, animated: false });
+            return;
+        }
 
         // Calculate the current index based on the scroll offset
         const newIndex = Math.round(offsetY / availableSpace);
@@ -309,6 +327,7 @@ const HomeScreen = () => {
 
         // Update the previous index and scroll offset
         setCurrentIndex(newIndex);
+        setScrollOffset(offsetY); // Update the scroll offset
     };
 
     const pausedRender = (
@@ -521,7 +540,8 @@ const HomeScreen = () => {
                     ) : (
                         <>
                             <FlatList
-                                data={users}
+                                ref={flatListRef}
+                            data={users}
                                 keyExtractor={(user) => user.id}
                                 renderItem={renderItem}
                                 onScroll={handleScroll}
@@ -533,7 +553,9 @@ const HomeScreen = () => {
                                 }}
                                 onEndReachedThreshold={0}
                                 pagingEnabled
-                            />
+                                showsVerticalScrollIndicator={false}
+                            alwaysBounceVertical={false}
+                        />
                             {renderModal()}
                         </>
                     )
