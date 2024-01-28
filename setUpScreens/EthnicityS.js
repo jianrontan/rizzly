@@ -211,7 +211,11 @@ export default function Ethnicity({ navigation }) {
 
     // Function
     const handleSelectEthnicity = useCallback((selectedEthnicity) => {
+        // Count the current number of checked items excluding the one being toggled
+        const checkedCount = Object.values(checkedState).filter(Boolean).length - (checkedState[selectedEthnicity] ? 1 : 0);
+
         setCheckedState((prevState) => {
+            // Update logic for 'Prefer not to say' remains the same
             if (prevState['Prefer not to say'] && selectedEthnicity !== 'Prefer not to say') {
                 const newState = { ...prevState, 'Prefer not to say': false };
                 return { ...newState, [selectedEthnicity]: true };
@@ -221,6 +225,14 @@ export default function Ethnicity({ navigation }) {
                     return { ...state, [key]: false };
                 }, {});
                 return { ...clearedState, 'Prefer not to say': true };
+            }
+            // Prevent changing the checked state if it would exceed the limit of 8
+            if (checkedCount >= 8 && !prevState[selectedEthnicity]) {
+                Alert.alert(
+                    "Maximum number exceeded",
+                    "You may choose up to 8 ethnicities."
+                );
+                return prevState; // Return the current state without changes
             }
             return { ...prevState, [selectedEthnicity]: !prevState[selectedEthnicity] };
         });
@@ -233,19 +245,17 @@ export default function Ethnicity({ navigation }) {
                     return currentEthnicities.filter(ethnicity => ethnicity !== selectedEthnicity);
                 } else {
                     const withoutPreferNotToSay = currentEthnicities.filter(ethnicity => ethnicity !== 'Prefer not to say');
+                    // Reintroduce the check to ensure the backend array doesn't exceed 8 elements
                     if (withoutPreferNotToSay.length < 8) {
                         return [...withoutPreferNotToSay, selectedEthnicity];
                     } else {
-                        Alert.alert(
-                            "Maximum number exceeded",
-                            "You may choose up to 8 ethnicities."
-                        );
+                        // If the array already has 8 items, return it without changes
                         return currentEthnicities;
                     }
                 }
             }
         });
-    }, []);
+    }, [checkedState]);
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>

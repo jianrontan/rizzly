@@ -5,10 +5,9 @@ import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, q
 import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useHeaderHeight } from '@react-navigation/elements';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
-import { Swipeable } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
@@ -266,29 +265,29 @@ const HomeScreen = () => {
     };
 
     const handleDislikeClick = async (dislikedUserId) => {
-        // try {
-        //     const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+        try {
+            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
-        //     // Add the disliked user to the current user's document
-        //     await updateDoc(currentUserDocRef, {
-        //         dislikes: arrayUnion(dislikedUserId),
-        //     });
+            // Add the disliked user to the current user's document
+            await updateDoc(currentUserDocRef, {
+                dislikes: arrayUnion(dislikedUserId),
+            });
 
-        //     // Add the disliked user to the swipedUpUsers array
-        //     setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, dislikedUserId]);
+            // Add the disliked user to the swipedUpUsers array
+            setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, dislikedUserId]);
 
-        //     // After 10 seconds, remove the disliked user from the current user's document
-        //     setTimeout(async () => {
-        //         await updateDoc(currentUserDocRef, {
-        //             dislikes: arrayRemove(dislikedUserId),
-        //         });
+            // After 10 seconds, remove the disliked user from the current user's document
+            setTimeout(async () => {
+                await updateDoc(currentUserDocRef, {
+                    dislikes: arrayRemove(dislikedUserId),
+                });
 
-        //         // Also remove the disliked user from the swipedUpUsers array
-        //         setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== dislikedUserId));
-        //     }, 1000000000);
-        // } catch (error) {
-        //     console.error('Error adding dislike:', error);
-        // }
+                // Also remove the disliked user from the swipedUpUsers array
+                setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== dislikedUserId));
+            }, 100000000);
+        } catch (error) {
+            console.error('Error adding dislike:', error);
+        }
     };
 
 
@@ -390,6 +389,8 @@ const HomeScreen = () => {
 
     // FIX SWIPING FUNCTIONS BELOW
 
+    const [swipeableEnabled, setSwipeableEnabled] = useState(false);
+
     const [allowSwipe, setAllowSwipe] = useState({
         vertical: true,
         horizontal: true,
@@ -399,14 +400,17 @@ const HomeScreen = () => {
     const onSwipeStart = (direction) => {
         if (direction === 'vertical') {
             setAllowSwipe({ vertical: true, horizontal: false });
+            setSwipeableEnabled(true);
         } else if (direction === 'horizontal') {
             setAllowSwipe({ vertical: false, horizontal: true });
+            setSwipeableEnabled(false);
         }
     };
 
     // Handler for when a swipe is complete
     const onSwipeComplete = () => {
         setAllowSwipe({ vertical: true, horizontal: true });
+        setSwipeableEnabled(true);
     };
 
     // FIX SWIPING FUNCTIONS ABOVE
@@ -428,8 +432,8 @@ const HomeScreen = () => {
 
         return (
             <Swipeable
-                // onSwipeableRightComplete={() => handleDislikeClick(user.id)}
-                enabled={false}
+                onSwipeableRightComplete={() => handleDislikeClick(user.id)}
+                enabled={swipeableEnabled}
                 onSwipeableOpen={(direction) => {
                     onSwipeStart('vertical');
                 }}
@@ -452,7 +456,7 @@ const HomeScreen = () => {
                             <View key={imageIndex} style={{ flex: 1 }}>
                                 <Image
                                     source={{ uri: imageUrl }}
-                                    onLoad={() => console.log('Image loaded')}
+                                    onLoad={() => {}}
                                     onError={(error) => console.log('Error loading image: ', error)}
                                     style={styles.image}
                                 />

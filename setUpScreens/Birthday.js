@@ -29,7 +29,7 @@ export default function Birthday({ navigation }) {
     // Birthday
     const [date, setDate] = useState(new Date(new Date().getFullYear() - 18, new Date().getMonth(), new Date().getDate()));
     const [birthday, setBirthday] = useState('');
-    const [dateText, setDateText] = useState('Pick Your Birthday');
+    const [dateText, setDateText] = useState(' Click To Pick Your Birthday');
     const [datePickerValue, setDatePickerValue] = useState(date);
     const [newDateSet, setNewDateSet] = useState(false);
     const [mode, setMode] = useState('date');
