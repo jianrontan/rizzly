@@ -268,6 +268,8 @@ export default function Ethnicity({ navigation }) {
                         </View>
                     </TouchableOpacity>
                 </View>
+                
+                <View style={styles.rowTop}></View>
 
                 {!isLoading &&
                     (ethnicities.map((item) => (
@@ -345,6 +347,10 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderColor: 'grey',
         padding: 10,
+    },
+    rowTop: {
+        borderBottomWidth: 1,
+        borderColor: 'grey',
     },
     wrapper: {
         flex: 1,

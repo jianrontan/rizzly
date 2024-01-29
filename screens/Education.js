@@ -15,28 +15,22 @@ import CheckBox from 'react-native-check-box';
 
 import { COLORS, SIZES, FONT } from '../constants';
 
-export default function Religion({ navigation }) {
+export default function Education({ navigation }) {
 
     // Authentication
     const auth = getAuth();
     const userId = auth.currentUser.uid;
 
-    // Religions
-    const [religion, setReligion] = useState('Prefer not to say');
-    const religions = [
-        'Agnostic',
-        'Atheist',
-        'Buddhist',
-        'Catholic',
-        'Christian',
-        'Hindu',
-        'Jewish',
-        'Muslim',
-        'Taoist',
-        'Sikh',
-        'Zoroastrian',
-        'Other',
-        'Prefer not to say',
+    // Education
+    const [education, setEducation] = useState("");
+    const selection = [
+        "Postgraduate",
+        "Undergraduate",
+        "A-Level",
+        "Polytechnic",
+        "Secondary School",
+        "Primary School",
+        "Prefer not to say",
     ];
 
     // Update
@@ -56,7 +50,7 @@ export default function Religion({ navigation }) {
             if (docSnap.exists()) {
                 const holdData = docSnap.data();
 
-                setReligion(holdData.religion || 'Prefer not to say');
+                setEducation(holdData.education || '');
 
                 setIsLoading(false);
             } else {
@@ -76,12 +70,12 @@ export default function Religion({ navigation }) {
     );
 
     // Submitting
-    const handleSubmit = async (newReligion) => {
+    const handleSubmit = async (newSelection) => {
         setSubmitting(true);
         const userDocRef = doc(db, 'profiles', userId);
         try {
             await updateDoc(userDocRef, {
-                religion: newReligion,
+                education: newSelection,
             });
         } catch (e) {
             console.error("Error submitting: ", e);
@@ -90,9 +84,11 @@ export default function Religion({ navigation }) {
         setSubmitting(false);
     };
 
-    const handleSelectReligion = (newReligion) => {
-        setReligion(newReligion);
-        handleSubmit(newReligion);
+    // Function
+    const handleSelection = (newSelection) => {
+        const selectionToSet = education === newSelection ? '' : newSelection;
+        setEducation(selectionToSet);
+        handleSubmit(selectionToSet);
     };
 
     return (
@@ -101,26 +97,29 @@ export default function Religion({ navigation }) {
 
                 <View style={styles.buttonsContainer}>
                     <TouchableOpacity>
-                        <Text style={styles.heading}>Pick 'Prefer not to say' to hide your religion</Text>
+                        <Text style={styles.heading}>
+                            Select your highest education level / education level in the process of attaining{"\n"}{"\n"}
+                            Pick 'Prefer not to say' to hide your answer
+                        </Text>
                     </TouchableOpacity>
                 </View>
-                
+
                 <View style={styles.rowTop}></View>
 
                 {!isLoading &&
-                    (religions.map((item) => (
+                    (selection.map((item) => (
                         <TouchableOpacity
                             style={styles.row}
                             key={item}
                             onPress={() => {
-                                handleSelectReligion(item);
+                                handleSelection(item);
                             }}
                         >
                             <Text style={styles.textStyle2}>{item}</Text>
                             <CheckBox
-                                isChecked={religion === item}
+                                isChecked={education === item}
                                 onClick={() => {
-                                    handleSelectReligion(item);
+                                    handleSelection(item);
                                 }}
                             />
                         </TouchableOpacity>
