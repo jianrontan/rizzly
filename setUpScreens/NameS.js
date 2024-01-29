@@ -73,10 +73,27 @@ export default function Name({ navigation }) {
         setSubmitting(true);
         const userDocRef = doc(db, 'profiles', userId);
         try {
-            await setDoc(userDocRef, {
+            const docSnap = await getDoc(userDocRef);
+            let updates = {
                 firstName: firstName,
                 lastName: lastName,
-            }, { merge: true });
+            };
+            // Check if the document exists and if cmHeight and ftHeight are missing, then set them
+            if (docSnap.exists()) {
+                let data = docSnap.data();
+                if (data.cmHeight === undefined) {
+                    updates.cmHeight = 175; // Default cmHeight
+                }
+                if (data.ftHeight === undefined) {
+                    updates.ftHeight = "5'9\""; // Default ftHeight
+                }
+            } else {
+                // If the document doesn't exist, include default heights in the update
+                updates.cmHeight = 175;
+                updates.ftHeight = "5'9\"";
+            }
+            // Perform the update with either new or existing heights
+            await setDoc(userDocRef, updates, { merge: true });
         } catch (e) {
             console.error("Error submitting: ", e);
             setError(e.message);

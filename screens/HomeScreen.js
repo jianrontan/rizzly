@@ -27,13 +27,17 @@ const HomeScreen = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [currentUserData, setCurrentUserData] = useState(null);
     const [swipedUpUsers, setSwipedUpUsers] = useState([]);
+
+    const [scrolling, setScrolling] = useState(false);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [scrollCounter, setScrollCounter] = useState(0);
+
     const [scrollOffset, setScrollOffset] = useState(0);
     const [previousIndex, setPreviousIndex] = useState(0);
     const [fetchedUsers, setFetchedUsers] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
-    const [currentIndex, setCurrentIndex] = useState(0)
     const [paused, setPaused] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
 
@@ -249,6 +253,8 @@ const HomeScreen = () => {
             console.error('Error fetching data:', error);
         }
         setIsLoading(false);
+        setScrollCounter(0);
+        flatListRef.current.scrollToOffset({ offset: 0, animated: false });
     };
 
     useEffect(() => {
@@ -280,6 +286,7 @@ const HomeScreen = () => {
     };
 
     const handleDislikeClick = async (dislikedUserId) => {
+        console.log("called dislike");
         try {
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
@@ -305,33 +312,46 @@ const HomeScreen = () => {
         }
     };
 
-    const handleScroll = (event) => {
-        const offsetY = event.nativeEvent.contentOffset.y;
+    const [currentProfiles, setCurrentProfiles] = useState([]);
 
-        // Check if the user is scrolling back up
-        if (offsetY < scrollOffset) {
-            // Scroll back up detected, set the scroll position back to the previous value
-            // This prevents scrolling back up
-            flatListRef.current.scrollToOffset({ offset: scrollOffset, animated: false });
-            return;
+    useEffect(() => {
+        if (users.length >= 2) {
+            setCurrentProfiles([users[0], users[1]]);
+        } else if (users.length === 1) {
+            setCurrentProfiles([users[0]]);
         }
+    }, [users]);
 
-        // Calculate the current index based on the scroll offset
-        const newIndex = Math.round(offsetY / availableSpace);
+    const onScroll = (event) => {
+        let offsetY = event.nativeEvent.contentOffset.y;
+        console.log(offsetY);
 
-        // If the current index is greater than the previous index, it means the user has swiped to the next user
-        if (newIndex > currentIndex) {
-            const dislikedUserId = users[currentIndex]?.id;
-
-            // Only call handleDislikeClick if the user hasn't been swiped up yet
-            if (dislikedUserId && !swipedUpUsers.includes(dislikedUserId)) {
+        if (offsetY >= availableSpace) {
+            // setScrollCounter(scrollCounter + 1);
+            if (currentProfiles.length > 0) {
+                const dislikedUserId = currentProfiles[0].id; // Assuming the first profile is the one to dislike
                 handleDislikeClick(dislikedUserId);
             }
+            console.log("prevent going back")
+            const remainingUsers = users.slice(1);
+            setUsers(remainingUsers);
+            setCurrentProfiles([users[0], users[1]]);
+            flatListRef.current.scrollToOffset({ offset: 0, animated: false });
         }
+    };
 
-        // Update the previous index and scroll offset
-        setCurrentIndex(newIndex);
-        setScrollOffset(offsetY); // Update the scroll offset
+    // useEffect(() => {
+    //     console.log('scrollCounter: ', scrollCounter);
+    // }, [scrollCounter]);
+
+    const onScrollStart = () => {
+        setScrolling(true);
+        console.log('SCROLLING ON');
+    };
+
+    const onScrollEnd = (event) => {
+        setScrolling(false);
+        console.log('SCROLLING OFF');
     };
 
     const pausedRender = (
@@ -369,7 +389,7 @@ const HomeScreen = () => {
                             values={heightRange}
                             sliderLength={300}
                             onValuesChangeFinish={handleHeightChange}
-                            min={100}
+                            min={50}
                             max={250}
                             step={1}
                             allowOverlap={false}
@@ -463,7 +483,7 @@ const HomeScreen = () => {
 
         return (
             <Swipeable
-                onSwipeableRightComplete={() => handleDislikeClick(user.id)}
+                // onSwipeableRightComplete={() => handleDislikeClick(user.id)}
                 enabled={swipeableEnabled}
                 onSwipeableOpen={(direction) => {
                     onSwipeStart('vertical');
@@ -544,7 +564,7 @@ const HomeScreen = () => {
                         </View>
                     </View>
                 </Modal>
-            </Swipeable >
+            </Swipeable>
         );
     };
 
@@ -558,10 +578,12 @@ const HomeScreen = () => {
                         <>
                             <FlatList
                                 ref={flatListRef}
-                                data={users}
+                                data={currentProfiles}
                                 keyExtractor={(user) => user.id}
                                 renderItem={renderItem}
-                                onScroll={handleScroll}
+                                onScroll={onScroll}
+                                // onScrollBeginDrag={onScrollStart}
+                                // onScrollEndDrag={onScrollEnd}
                                 scrollEventThrottle={16}
                                 onEndReached={() => {
                                     if (users[users.length - 1]?.id !== 'no-more-users') {
@@ -569,7 +591,6 @@ const HomeScreen = () => {
                                     }
                                 }}
                                 onEndReachedThreshold={0}
-                                pagingEnabled
                                 showsVerticalScrollIndicator={false}
                                 alwaysBounceVertical={false}
                             />

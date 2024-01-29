@@ -67,10 +67,20 @@ export default function Orientation({ navigation }) {
 
     // Next
     const next = () => {
+        if (orientation == null || orientationError !== '') {
+            Alert.alert(
+                "Invalid Selection",
+                `Please select at least one gender`,
+                [{ text: "OK" }]
+            );
+            return;
+        }
         navigation.dispatch(
             navigation.navigate("Photos")
         );
     };
+
+    console.log(orientation);
 
     // Function
     const handleOrientation = (id, isSelected) => {
