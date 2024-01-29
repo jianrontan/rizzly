@@ -142,6 +142,8 @@ export default function Religion({ navigation }) {
                         </View>
                     </TouchableOpacity>
                 </View>
+                
+                <View style={styles.rowTop}></View>
 
                 {!isLoading &&
                     (religions.map((item) => (
@@ -212,6 +214,10 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderColor: 'grey',
         padding: 10,
+    },
+    rowTop: {
+        borderBottomWidth: 1,
+        borderColor: 'grey',
     },
     wrapper: {
         flex: 1,

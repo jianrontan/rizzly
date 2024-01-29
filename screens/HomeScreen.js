@@ -475,7 +475,7 @@ const HomeScreen = () => {
                             <View key={imageIndex} style={{ flex: 1 }}>
                                 <Image
                                     source={{ uri: imageUrl }}
-                                    onLoad={() => {}}
+                                    onLoad={() => { }}
                                     onError={(error) => console.log('Error loading image: ', error)}
                                     style={styles.image}
                                 />
@@ -496,11 +496,14 @@ const HomeScreen = () => {
                     <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
                         <Feather name="chevron-down" size={30} color="black" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => {
-                        setSelectedUser(user); // Pass the user object directly
-                        setModalVisible(true);
-                    }}>
-                        <Feather name="chevron-up" size={30} color="white" style={styles.arrowIcon} />
+                    <TouchableOpacity
+                        onPress={() => {
+                            setSelectedUser(user); // Pass the user object directly
+                            setModalVisible(true);
+                        }}
+                        style={styles.arrowIcon}
+                    >
+                        <Feather name="chevron-up" size={30} color="white" />
                     </TouchableOpacity>
                     <Modal animationType="slide" transparent={true} visible={modalVisible}>
                         <View style={[styles.modalContainer, { height: availableSpace }]}>
@@ -541,7 +544,7 @@ const HomeScreen = () => {
                         <>
                             <FlatList
                                 ref={flatListRef}
-                            data={users}
+                                data={users}
                                 keyExtractor={(user) => user.id}
                                 renderItem={renderItem}
                                 onScroll={handleScroll}
@@ -554,8 +557,8 @@ const HomeScreen = () => {
                                 onEndReachedThreshold={0}
                                 pagingEnabled
                                 showsVerticalScrollIndicator={false}
-                            alwaysBounceVertical={false}
-                        />
+                                alwaysBounceVertical={false}
+                            />
                             {renderModal()}
                         </>
                     )

@@ -22,6 +22,8 @@ import AboutMe from '../screens/AboutMe';
 import Height from '../screens/Height';
 import Ethnicity from '../screens/Ethnicity';
 import Religion from '../screens/Religion';
+import Children from '../screens/Children';
+import Education from '../screens/Education';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
@@ -96,6 +98,14 @@ export default function EditProfileStack() {
             <Stack.Screen
                 name="Religion"
                 component={Religion}
+            />
+            <Stack.Screen
+                name="Children"
+                component={Children}
+            />
+            <Stack.Screen
+                name="Education"
+                component={Education}
             />
         </Stack.Navigator>
     )

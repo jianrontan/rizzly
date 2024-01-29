@@ -26,15 +26,20 @@ export default function EditProfileScreen({ navigation }) {
     // Data
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [fullNameString, setFullNameString] = useState('');
     const [gender, setGender] = useState('');
     const [orientation, setOrientation] = useState(null);
     const [orientationString, setOrientationString] = useState('');
     const [location, setLocation] = useState('');
+    const [locationString, setLocationString] = useState('');
     const [cmHeight, setCmHeight] = useState(null);
     const [ftHeight, setFtHeight] = useState(null);
     const [ethnicity, setEthnicity] = useState([]);
     const [ethnicityString, setEthnicityString] = useState('');
     const [religion, setReligion] = useState('');
+    const [children, setChildren] = useState('');
+    const [education, setEducation] = useState('');
 
     // Loading
     const [isLoading, setIsLoading] = useState(true);
@@ -47,13 +52,16 @@ export default function EditProfileScreen({ navigation }) {
                 const holdData = docSnap.data();
                 setFirstName(holdData.firstName || '');
                 setLastName(holdData.lastName || '');
+                setFullName(`${holdData.firstName} ${holdData.lastName}` || '');
                 setGender(holdData.gender || '');
                 setOrientation(holdData.orientation || null);
                 setLocation(holdData.location || '');
-                setCmHeight(holdData.cmHeight || '');
+                setCmHeight(`${holdData.cmHeight} cm` || '');
                 setFtHeight(holdData.ftHeight || '');
                 setEthnicity(holdData.ethnicity || []);
                 setReligion(holdData.religion || '');
+                setChildren(holdData.children || '');
+                setEducation(holdData.education || '');
 
                 setIsLoading(false);
             } else {
@@ -91,20 +99,33 @@ export default function EditProfileScreen({ navigation }) {
         }
     }, [orientation]);
 
-    // Function to process the ethnicity array and return a formatted string
+    // Format strings
     const getEthnicityString = (ethnicityArray) => {
         const cleanedItems = ethnicityArray.map(item =>
             item.replace(/\s*\([^)]*\)/, '').trim()
         );
-
         let ethnicityString = cleanedItems.join(', ');
-
         if (ethnicityString.length > 25) {
             ethnicityString = `${ethnicityString.substring(0, 22)}...`;
         }
-
         return ethnicityString;
     };
+
+    const getLocationString = () => {
+        let locationString = location;
+        if (location.length > 25) {
+            locationString = `${locationString.substring(0, 22)}...`;
+        }
+        return locationString;
+    }
+
+    const getFullNameString = () => {
+        let fullNameString = fullName;
+        if (fullName.length > 25) {
+            fullNameString = `${fullNameString.substring(0, 22)}...`;
+        }
+        return fullNameString;
+    }
 
     useEffect(() => {
         if (ethnicity.length > 0) {
@@ -112,6 +133,20 @@ export default function EditProfileScreen({ navigation }) {
             setEthnicityString(newEthnicityString);
         }
     }, [ethnicity]);
+
+    useEffect(() => {
+        if (location.length > 0) {
+            const newLocationString = getLocationString(location);
+            setLocationString(newLocationString);
+        }
+    }, [location]);
+
+    useEffect(() => {
+        if (fullName.length > 0) {
+            const newFullNameString = getFullNameString(fullName);
+            setFullNameString(newFullNameString);
+        }
+    }, [fullName]);
 
     // Navigate
     const navigateName = () => {
@@ -141,6 +176,12 @@ export default function EditProfileScreen({ navigation }) {
     const navigateReligion = () => {
         navigation.navigate('Religion');
     }
+    const navigateChildren = () => {
+        navigation.navigate('Children');
+    }
+    const navigateEducation = () => {
+        navigation.navigate('Education');
+    }
 
     return (
         <SafeAreaView>
@@ -150,7 +191,7 @@ export default function EditProfileScreen({ navigation }) {
                     <TouchableOpacity onPress={navigateName}>
                         <Text style={styles.tabText}>My Name</Text>
                     </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{firstName} {lastName}</Text>
+                    <Text style={styles.tabInfoText}>{fullNameString}</Text>
                 </View>
 
                 <View style={styles.borderLine}></View>
@@ -185,7 +226,7 @@ export default function EditProfileScreen({ navigation }) {
                     <TouchableOpacity onPress={navigateLocation}>
                         <Text style={styles.tabText}>My Location</Text>
                     </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{location}</Text>
+                    <Text style={styles.tabInfoText}>{locationString}</Text>
                 </View>
 
                 <View style={styles.borderLine}></View>
@@ -202,7 +243,7 @@ export default function EditProfileScreen({ navigation }) {
                     <TouchableOpacity onPress={navigateHeight}>
                         <Text style={styles.tabText}>Height</Text>
                     </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{cmHeight} cm</Text>
+                    <Text style={styles.tabInfoText}>{cmHeight}</Text>
                 </View>
 
                 <View style={styles.borderLine}></View>
@@ -226,16 +267,26 @@ export default function EditProfileScreen({ navigation }) {
                 <View style={styles.borderLine}></View>
 
                 <View style={styles.tabView}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={navigateChildren}>
                         <Text style={styles.tabText}>Children</Text>
                     </TouchableOpacity>
+                    <Text style={styles.tabInfoText}>{children}</Text>
+                </View>
+
+                <View style={styles.borderLine}></View>
+
+                <View style={styles.tabView}>
+                    <TouchableOpacity onPress={navigateEducation}>
+                        <Text style={styles.tabText}>Education</Text>
+                    </TouchableOpacity>
+                    <Text style={styles.tabInfoText}>{education}</Text>
                 </View>
 
                 <View style={styles.borderLine}></View>
 
                 <View style={styles.tabView}>
                     <TouchableOpacity>
-                        <Text style={styles.tabText}>Education</Text>
+                        <Text style={styles.tabText}>Work</Text>
                     </TouchableOpacity>
                 </View>
 
