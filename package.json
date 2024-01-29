@@ -11,7 +11,7 @@
   "dependencies": {
     "@firebase/firestore": "^4.4.0",
     "@react-native-async-storage/async-storage": "1.18.2",
-    "@react-native-community/datetimepicker": "7.2.0",
+    "@react-native-community/datetimepicker": "^7.2.0",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/drawer": "^6.6.6",
     "@react-navigation/native": "^6.1.9",
@@ -32,6 +32,8 @@
     "firebase": "^10.6.0",
     "react": "18.2.0",
     "react-native": "0.72.6",
+    "react-native-chart-kit": "^6.12.0",
+    "react-native-datepicker": "^1.7.2",
     "react-native-dotenv": "^3.4.9",
     "react-native-draggable-flatlist": "^4.0.1",
     "react-native-elements": "^3.4.3",

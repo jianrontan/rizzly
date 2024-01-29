@@ -4,8 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import Home from "../screens/HomeScreen";
-import ChatStack from "./chatNavigator";
-import LikesScreen from "../screens/LikesScreen";
+import ForumScreen from "../screens/ForumScreen";
 import ScreenHeaderBtn from "../components/button/ScreenHeaderBtn";
 import { COLORS, FONT, icons } from "../constants";
 import appStyles from "../components/app/app.style"
@@ -27,7 +26,7 @@ export default function BottomTabStack({ navigation }) {
                     </View>
                 ),
                 headerTitle: () => (
-                    <Text style={appStyles.headerFont}>App</Text>
+                    <Text style={appStyles.headerFont}>Diabeto</Text>
                 ),
                 headerTitleAlign: 'center',
             }}>
@@ -44,25 +43,13 @@ export default function BottomTabStack({ navigation }) {
                 }}
             />
             <Tab.Screen
-                name="Likes"
-                component={LikesScreen}
-                options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <MaterialCommunityIcons name="heart" color={color} size={size} />
-                    ),
-                    tabBarLabel: 'Likes',
-                    tabBarLabelStyle: appStyles.bottomTabLabel,
-                    tabBarActiveTintColor: '#824444',
-                }}
-            />
-            <Tab.Screen
-                name="Chats"
-                component={ChatStack}
+                name="Forum"
+                component={ForumScreen}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons name="chat" color={color} size={size} />
                     ),
-                    tabBarLabel: 'Chats',
+                    tabBarLabel: 'Forum',
                     tabBarLabelStyle: appStyles.bottomTabLabel,
                     tabBarActiveTintColor: '#824444',
                 }}

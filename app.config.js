@@ -2,8 +2,8 @@ import 'dotenv/config';
 
 export default {
   "expo": {
-    "name": "Rizzly",
-    "slug": "Rizzly",
+    "name": "Diabeto",
+    "slug": "Diabeto",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

@@ -11,9 +11,13 @@ import { db } from '../firebase/firebase';
 
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../drawer/settings';
-import ProfileScreen from '../screens/ProfileScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
+import CarbCountingScreen from '../screens/CarbCountScreen';
+import LabReportScreen from '../screens/LabReportScreen';
+import SensitivityScreen from '../screens/SensitivityScreen';
+import HypoScreen from '../screens/HypoScreen';
+import HyperScreen from '../screens/HyperScreen';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
+import Insulin from '../screens/Insulin';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
@@ -89,15 +93,9 @@ export default function DrawerStack() {
             } else {
                 setDoc(userDocRef, {
                     name: null,
-                    age: null,
                     gender: null,
-                    orientation: {
-                        "male": false,
-                        "female": false,
-                        "nonBinary": false,
-                    },
+                    type: null, 
                     complete: false,
-                    id: userId
                 });
                 setLoading(false);
             }
@@ -196,9 +194,13 @@ export default function DrawerStack() {
                 })}
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Profile" component={ProfileScreen} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Edit Profile" component={EditProfileScreen} />
                 <Drawer.Screen name="Settings" component={SettingsScreen} />
+                <Drawer.Screen name="Lab Reports" component={LabReportScreen} />
+                <Drawer.Screen name="Carb Counting" component={CarbCountingScreen} />
+                <Drawer.Screen name="Sensitivity Calculation" component={SensitivityScreen} />
+                <Drawer.Screen name="Hypoglycaemia" component={HypoScreen} />
+                <Drawer.Screen name="Hyperglycaemia" component={HyperScreen} />
+                <Drawer.Screen name="Insulin" component={Insulin}/>
             </Drawer.Navigator>
         </NavigationContainer>
     )
