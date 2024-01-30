@@ -1,69 +1,56 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { db } from '../firebase/firebase';
+import { doc, updateDoc } from '@firebase/firestore';
+import { getAuth } from 'firebase/auth';
+
+const auth = getAuth();
 
 const SensitivityScreen = () => {
-  const [currentBloodSugar, setCurrentBloodSugar] = useState('');
-  const [targetBloodSugar, setTargetBloodSugar] = useState('');
   const [totalDailyDose, setTotalDailyDose] = useState('');
   const [isf, setISF] = useState('');
-  const [correctionInsulinDose, setCorrectionInsulinDose] = useState('');
 
-  const calculateISF = () => {
+  const calculateISF = async () => {
     if (totalDailyDose) {
-      const calculatedISF = 1800 / parseFloat(totalDailyDose);
+      const calculatedISF = 1500 / parseFloat(totalDailyDose);
       setISF(calculatedISF.toFixed(2));
+
+      // Update Firebase database with ISF value
+      const userId = auth.currentUser.uid; 
+      const userDocRef = doc(db, 'profiles', userId);
+      
+      try {
+        await updateDoc(userDocRef, { ISF: calculatedISF.toFixed(2) });
+        console.log('ISF updated successfully');
+      } catch (error) {
+        console.error('Error updating ISF:', error);
+      }
     } else {
       setISF('');
     }
   };
 
-  const calculateCorrectionInsulinDose = () => {
-    if (currentBloodSugar && targetBloodSugar && isf) {
-      const correctionDose =
-        (parseFloat(currentBloodSugar) - parseFloat(targetBloodSugar)) / parseFloat(isf);
-      setCorrectionInsulinDose(correctionDose.toFixed(2));
-    } else {
-      setCorrectionInsulinDose('');
-    }
-  };
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Insulin Sensitivity and Correction</Text>
-      <Text style={styles.info}>
-        Insulin sensitivity refers to how responsive your body's cells are to insulin. It's a
-        measure of how effectively insulin helps lower your blood sugar levels.
-      </Text>
-      <Text style={styles.subtitle}>Calculate Insulin Sensitivity Factor (ISF)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Total Daily Dose (TDD) of Insulin (units)"
-        keyboardType="numeric"
-        value={totalDailyDose}
-        onChangeText={(text) => setTotalDailyDose(text)}
-      />
-      <Button title="Calculate ISF" onPress={calculateISF} />
-      {isf !== '' && <Text style={styles.result}>ISF: {isf} mg/dL per unit</Text>}
-      <Text style={styles.subtitle}>Calculate Correction Insulin Dose</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Current Blood Sugar (mg/dL)"
-        keyboardType="numeric"
-        value={currentBloodSugar}
-        onChangeText={(text) => setCurrentBloodSugar(text)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Target Blood Sugar (mg/dL)"
-        keyboardType="numeric"
-        value={targetBloodSugar}
-        onChangeText={(text) => setTargetBloodSugar(text)}
-      />
-      <Button title="Calculate Correction Insulin Dose" onPress={calculateCorrectionInsulinDose} />
-      {correctionInsulinDose !== '' && (
-        <Text style={styles.result}>Correction Insulin Dose: {correctionInsulinDose} units</Text>
-      )}
-    </View>
+    <KeyboardAwareScrollView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Insulin Sensitivity</Text>
+        <Text style={styles.info}>
+          Insulin sensitivity refers to how responsive your body's cells are to insulin. It's a
+          measure of how effectively insulin helps lower your blood sugar levels.
+        </Text>
+        <Text style={styles.subtitle}>Calculate Insulin Sensitivity Factor (ISF)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Total Daily Dose (TDD) of Insulin (units)"
+          keyboardType="numeric"
+          value={totalDailyDose}
+          onChangeText={(text) => setTotalDailyDose(text)}
+        />
+        <Button title="Calculate ISF" onPress={calculateISF} />
+        {isf !== '' && <Text style={styles.result}>ISF: {isf} mg/dL per unit</Text>}
+      </View>
+    </KeyboardAwareScrollView>
   );
 };
 

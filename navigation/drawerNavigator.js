@@ -18,6 +18,7 @@ import HypoScreen from '../screens/HypoScreen';
 import HyperScreen from '../screens/HyperScreen';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import Insulin from '../screens/Insulin';
+import CorrectionScreen from '../screens/Correction';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
@@ -198,9 +199,10 @@ export default function DrawerStack() {
                 <Drawer.Screen name="Lab Reports" component={LabReportScreen} />
                 <Drawer.Screen name="Carb Counting" component={CarbCountingScreen} />
                 <Drawer.Screen name="Sensitivity Calculation" component={SensitivityScreen} />
+                <Drawer.Screen name="Correction" component={CorrectionScreen}/>
                 <Drawer.Screen name="Hypoglycaemia" component={HypoScreen} />
                 <Drawer.Screen name="Hyperglycaemia" component={HyperScreen} />
-                <Drawer.Screen name="Insulin" component={Insulin}/>
+                <Drawer.Screen name="All About Insulin" component={Insulin}/>
             </Drawer.Navigator>
         </NavigationContainer>
     )
