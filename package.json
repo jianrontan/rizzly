@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@firebase/firestore": "^4.4.0",
-    "@react-native-async-storage/async-storage": "1.18.2",
+    "@react-native-async-storage/async-storage": "^1.21.0",
     "@react-native-community/datetimepicker": "^7.2.0",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/drawer": "^6.6.6",
@@ -41,6 +41,7 @@
     "react-native-gesture-handler": "~2.12.0",
     "react-native-gifted-chat": "^2.4.0",
     "react-native-google-places-autocomplete": "^2.5.6",
+    "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-maps": "^1.8.3",
     "react-native-reanimated": "~3.3.0",
     "react-native-select-dropdown": "^3.4.0",

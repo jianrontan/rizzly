@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { LineChart } from 'react-native-chart-kit';
+import { db, auth } from '../firebase/firebase';
 
 const HomeScreen = () => {
  const [glucoseLevel, setGlucoseLevel] = useState('');
