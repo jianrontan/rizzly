@@ -11,7 +11,7 @@
   "dependencies": {
     "@firebase/firestore": "^4.4.0",
     "@react-native-async-storage/async-storage": "^1.21.0",
-    "@react-native-community/datetimepicker": "^7.2.0",
+    "@react-native-community/datetimepicker": "^7.6.2",
     "@react-navigation/bottom-tabs": "^6.5.11",
     "@react-navigation/drawer": "^6.6.6",
     "@react-navigation/native": "^6.1.9",
@@ -43,6 +43,7 @@
     "react-native-google-places-autocomplete": "^2.5.6",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-maps": "^1.8.3",
+    "react-native-modal-datetime-picker": "^17.1.0",
     "react-native-reanimated": "~3.3.0",
     "react-native-select-dropdown": "^3.4.0",
     "react-native-svg": "13.9.0",
