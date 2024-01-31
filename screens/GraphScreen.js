@@ -1,77 +1,92 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
+import { getAuth } from 'firebase/auth';
 
-const HomeScreen = () => {
- const [glucoseLevel, setGlucoseLevel] = useState('');
- const [timeOfDay, setTimeOfDay] = useState(new Date());
- const [show, setShow] = useState(false);
- const [data, setData] = useState({
-    labels: ['1', '2', '3', '4', '5', '6'],
-    datasets: [
-      {
-        data: [20, 45, 28, 80, 99, 43],
-      },
-    ],
- });
+const auth = getAuth();
+const userId = auth.currentUser.uid;
 
- const handleAddData = () => {
-    // Add the new data to the datasets array
-    // You need to implement data storage and retrieval here
-    // For demo purposes, we're just updating the state directly
-    setData({
-      labels: [...data.labels, '7'],
-      datasets: [
-        {
-          data: [...data.datasets[0].data, parseInt(glucoseLevel)],
-        },
-      ],
-    });
- };
+const GraphScreen = () => {
+  const [data, setData] = useState({});
 
- const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || timeOfDay;
-    setTimeOfDay(currentDate);
-    setShow(false);
- };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const docRef = doc(db, 'profiles', userId); 
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const userData = docSnap.data();
+          // Extract blood glucose levels and timestamps from userData
+          const bloodGlucoseLevels = userData.bloodSugarLevels || [];
+          const timestamps = userData.times || [];
+          console.log("Blood Glucose Levels:", bloodGlucoseLevels);
+          console.log("Timestamps:", timestamps);
+          // Format data for chart library
+          const chartData = {
+            labels: timestamps.map(timestamp => timestamp.toDate().toLocaleTimeString()), // Format timestamp as desired
+            datasets: [
+              {
+                data: bloodGlucoseLevels,
+              },
+            ],
+          };
+          console.log("Chart Data:", chartData);
+          setData(chartData);
+        } else {
+          console.log('No such document!');
+        }
+      } catch (error) {
+        console.error('Error getting document:', error);
+      }
+    };
 
- return (
-    <View>
-      <Text>Blood Glucose Level:</Text>
-      <TextInput
-        value={glucoseLevel}
-        onChangeText={setGlucoseLevel}
-        keyboardType="numeric"
-      />
-      <Text>Time of the Day:</Text>
-      <Button title="Select Time" onPress={() => setShow(true)} />
-      {show && (
-        <DateTimePicker
-          testID="dateTimePicker"
-          value={timeOfDay}
-          mode="time"
-          display="default"
-          onChange={onChange}
-        />
-      )}
-      <Button title="Add Data" onPress={handleAddData} />
-      <LineChart
-        data={data}
-        width={300}
-        height={200}
-        yAxisLabel="Blood Glucose"
-        verticalLabelRotation={30}
-        chartConfig={{
-          backgroundGradientFrom: '#ffffff',
-          backgroundGradientTo: '#ffffff',
-          decimalPlaces: 0,
-          color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
-        }}
-        bezier
-      />
+    fetchData();
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Blood Glucose Levels Over Time</Text>
+      <View style={styles.chartContainer}>
+        {data.labels && data.datasets && (
+          <LineChart
+            data={data}
+            width={350}
+            height={220}
+            chartConfig={{
+              backgroundGradientFrom: '#fff',
+              backgroundGradientTo: '#fff',
+              decimalPlaces: 2, // optional, defaults to 2dp
+              color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+              style: {
+                borderRadius: 16,
+              },
+            }}
+            bezier
+          />
+        )}
+      </View>
     </View>
- );
+  );
 };
 
-export default HomeScreen;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  chartContainer: {
+    alignItems: 'center',
+  },
+});
+
+export default GraphScreen;

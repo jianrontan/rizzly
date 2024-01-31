@@ -5,6 +5,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 import Home from "../screens/HomeScreen";
 import ForumScreen from "../screens/ForumScreen";
+import Graph from "../screens/GraphScreen";
 import ScreenHeaderBtn from "../components/button/ScreenHeaderBtn";
 import { COLORS, FONT, icons } from "../constants";
 import appStyles from "../components/app/app.style"
@@ -38,6 +39,18 @@ export default function BottomTabStack({ navigation }) {
                         <MaterialCommunityIcons name="home" color={color} size={size} />
                     ),
                     tabBarLabel: 'Home',
+                    tabBarLabelStyle: appStyles.bottomTabLabel,
+                    tabBarActiveTintColor: '#824444',
+                }}
+            />
+            <Tab.Screen
+                name="Graph"
+                component={Graph}
+                options={{
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialCommunityIcons name="graph" color={color} size={size} />
+                    ),
+                    tabBarLabel: 'Graph',
                     tabBarLabelStyle: appStyles.bottomTabLabel,
                     tabBarActiveTintColor: '#824444',
                 }}
