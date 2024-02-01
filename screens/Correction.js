@@ -7,7 +7,6 @@ import { db, auth } from '../firebase/firebase';
 const CorrectionScreen = () => {
   const [currentBloodSugar, setCurrentBloodSugar] = useState('');
   const [targetBloodSugar, setTargetBloodSugar] = useState('');
-  const [totalDailyDose, setTotalDailyDose] = useState('');
   const [isf, setISF] = useState('');
   const [correctionInsulinDose, setCorrectionInsulinDose] = useState('');
   const [fetchingISF, setFetchingISF] = useState(false);
