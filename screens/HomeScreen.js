@@ -93,11 +93,12 @@ const HomeScreen = () => {
               is24Hour={true}
               display="default"
               onChange={handleDateChange}
+              maximumDate={new Date()}
             />
           )}
           <Button title="Close" onPress={hideDatePicker} />
           <View style={styles.switchContainer}>
-            <Text style={styles.switchLabel}>Took food? </Text>
+            <Text style={styles.switchLabel}>Consumed food? </Text>
             <Switch
               title="Consumed food?"
               trackColor={{ false: "#767577", true: "#81b0ff" }}
@@ -109,7 +110,7 @@ const HomeScreen = () => {
             <Text style={styles.switchText}>{hasEaten ? 'Yes' : 'No'}</Text>
           </View>
           <View style={styles.switchContainer}>
-            <Text style={styles.switchLabel}>Took Insulin? </Text>
+            <Text style={styles.switchLabel}>Took Your Insulin? </Text>
             <Switch
               title="Took Insulin?"
               trackColor={{ false: "#767577", true: "#81b0ff" }}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 
 const InsulinScreen = () => {
   return (
@@ -26,7 +26,7 @@ const InsulinScreen = () => {
       <Text style={styles.subDescription}>
         Short-acting insulin starts working within 30 minutes to 1 hour after injection, peaks in about 2 to 3 hours, and generally lasts for about 3 to 6 hours, depending on the specific type.
       </Text>
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={() => Linking.openURL('https://www.betterhealth.vic.gov.au/health/conditionsandtreatments/diabetes-and-insulin')}>
         <Text style={styles.buttonText}>Learn More</Text>
       </TouchableOpacity>
       <Text> </Text>

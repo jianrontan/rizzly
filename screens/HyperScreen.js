@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 const HyperScreen = ({ navigation }) => {
-  const navigateToSensitivityScreen = () => {
-    navigation.navigate('SensitivityScreen');
+  const navigateToCorrectionScreen = () => {
+    navigation.navigate('Correction');
   };
 
   const navigateToCarbCountingScreen = () => {
@@ -20,7 +20,7 @@ const HyperScreen = ({ navigation }) => {
       <Text style={styles.description}>Urinating, excessive thirst and lethargy are symptoms of high blood glucose</Text>
       <TouchableOpacity
         style={styles.button}
-        onPress={navigateToSensitivityScreen}>
+        onPress={navigateToCorrectionScreen}>
         <Text style={styles.buttonText}>Calculate how much bolus(short acting insulin) to give</Text>
       </TouchableOpacity>
       <TouchableOpacity
