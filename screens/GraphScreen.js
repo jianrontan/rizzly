@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import { VictoryChart, VictoryLine, VictoryZoomContainer, VictoryTooltip, VictoryScatter, VictoryAxis } from 'victory-native';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, toDate } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { Picker } from '@react-native-picker/picker';
+import { useFocusEffect } from '@react-navigation/native';
 
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
@@ -33,77 +34,162 @@ const GraphScreen = () => {
   let date = new Date();
   console.log(getWeekNumber(date));
 
-  const filterData = (filterType) => {
-    const currentDate = new Date();
-    const startOfWeek = new Date(currentDate);
-    startOfWeek.setHours(0, 0, 0, 0);
-    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+  const fetchData = async () => {
+    const userUid = auth.currentUser.uid;
+    const docRef = doc(db, 'profiles', userUid);
+    const docSnap = await getDoc(docRef);
 
-    const endOfWeek = new Date(currentDate);
-    endOfWeek.setHours(23, 59, 59, 999);
-    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    if (docSnap.exists()) {
+      const userData = docSnap.data();
+      const bloodSugarLevels = userData?.bloodSugarLevels || [];
+      const timestamps = userData?.times || [];
 
-    const filteredTimestamps = timestamps.filter(timestamp => {
-      const date = new Date(timestamp);
-      return date >= startOfWeek && date <= endOfWeek;
-    });
-    const filteredBloodGlucoseLevels = filteredTimestamps.map(timestamp => {
-      const index = bloodSugarLevels.indexOf(timestamp);
-      return bloodSugarLevels[index];
-    });
+      if (selectedFilter === "day") { // Check if the selected filter is "Today"
+        // Filter timestamps to include only today's timestamps
+        const today = new Date();
+        const todayTimestamps = timestamps.filter(timestamp => {
+          const date = timestamp.toDate();
+          return (
+            date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear()
+          );
+        });
 
-    const filteredData = filteredTimestamps.map((timestamp, index) => ({
-      timestamp,
-      bloodGlucoseLevel: filteredBloodGlucoseLevels[index],
-    }));
+        // Extract blood sugar levels corresponding to today's timestamps
+        const todayBloodSugarLevels = todayTimestamps.map((timestamp, index) => bloodSugarLevels[index]);
 
-    return filteredData;
+        // Process data points for today
+        const dataPoints = todayTimestamps.map((timestamp, index) => {
+          const date = timestamp.toDate();
+          const hour = date.getHours();
+          const bloodGlucoseLevel = todayBloodSugarLevels[index];
+
+          console.log('Timestamp:', timestamp, 'Blood Glucose Level:', bloodGlucoseLevel);
+
+          return { x: hour, y: bloodGlucoseLevel };
+        });
+
+        setGroupedData(dataPoints);
+      } else if (selectedFilter === "week") { // Fetch data for "This Week"
+        // Filter timestamps to include only timestamps from this week
+        const today = new Date();
+        const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1); // Start of the current week (Monday)
+        const endOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 7); // End of the current week (Sunday)
+
+        const thisWeekTimestamps = timestamps.filter(timestamp => {
+          const date = timestamp.toDate();
+          return date >= startOfWeek && date <= endOfWeek;
+        });
+
+        // Extract blood sugar levels corresponding to this week's timestamps
+        const thisWeekBloodSugarLevels = thisWeekTimestamps.map((timestamp, index) => bloodSugarLevels[index]);
+
+        // Process data points for this week
+        const dataPoints = thisWeekTimestamps.map((timestamp, index) => {
+          const date = timestamp.toDate();
+          const dayOfWeek = date.getDay(); // Get the day of the week (0 for Sunday, 1 for Monday, ..., 6 for Saturday)
+          const bloodGlucoseLevel = thisWeekBloodSugarLevels[index];
+
+          console.log('Timestamp:', timestamp, 'Blood Glucose Level:', bloodGlucoseLevel);
+
+          return { x: dayOfWeek === 0 ? 7 : dayOfWeek, y: bloodGlucoseLevel }; // Convert Sunday (0) to 7 for plotting purposes
+        });
+
+        setGroupedData(dataPoints);
+      }
+    }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const userUid = auth.currentUser.uid;
-      const docRef = doc(db, 'profiles', userUid);
-      const docSnap = await getDoc(docRef);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [selectedFilter])
+  );
 
-      if (docSnap.exists()) {
-        const userData = docSnap.data();
-        console.log('User Data:', userData);
-        const bloodSugarLevels = userData?.bloodSugarLevels || [];
-        const timestamps = userData?.times || [];
-        console.log('Blood Sugar Levels:', bloodSugarLevels);
-        console.log('Timestamps:', timestamps);
-
-        setTimestamps(timestamps);
-        setBloodSugarLevels(bloodSugarLevels);
-
-        const groupedData = timestamps.reduce((acc, timestamp, index) => {
-          const timestampInSeconds = timestamp.seconds; // Extract seconds from timestamp
-          const timestampInMillis = timestampInSeconds * 1000; // Convert seconds to milliseconds
-          const date = new Date(timestampInMillis); // Create Date object using milliseconds
-          const hour = date.getHours().toString(); // Convert hour to string
-          const bloodGlucoseLevel = bloodSugarLevels[index];
-          console.log('Hour:', hour);
-          console.log('Blood Glucose Level:', bloodGlucoseLevel);
-          if (!acc[hour]) {
-            acc[hour] = {
-              bloodGlucoseLevels: [],
-              count: 0,
-            };
-          }
-          acc[hour].bloodGlucoseLevels.push(bloodGlucoseLevel);
-          acc[hour].count += 1;
-          return acc;
-        }, {});
-
-        setGroupedData(Object.values(groupedData));
-        console.log('Grouped Data:', Object.values(groupedData));
-      }
-      console.log('Grouped Data:', groupedData);
-    };
-
-    fetchData();
-  }, []);
+  const renderGraph = () => {
+    if (selectedFilter === "day") {
+      // Render data for "Today"
+      return (
+        <VictoryChart
+          containerComponent={<VictoryZoomContainer />}
+          domain={{ y: [0, 25], x: [0, 24] }}
+          style={styles.graph}
+        >
+          {groupedData.length > 0 && <VictoryLine data={groupedData} x="x" y="y" />}
+          <VictoryAxis
+            label="Hours"
+            style={{
+              axisLabel: { padding: 30 }
+            }}
+            tickFormat={(x) => {
+              const hours = ((x % 24) + 24) % 24;
+              const period = hours >= 12 ? 'pm' : 'am';
+              const formattedHours = hours % 12 || 12;
+              return `${formattedHours} ${period}`;
+            }}
+          />
+          <VictoryAxis
+            dependentAxis
+            label="Blood Glucose Levels"
+            style={{
+              axisLabel: { padding: 30 }
+            }}
+          />
+        </VictoryChart>
+      );
+    } else if (selectedFilter === "week") {
+      // Render data for "This Week"
+      return (
+        <VictoryChart
+          containerComponent={<VictoryZoomContainer />}
+          domain={{ y: [0, 25], x: [1, 7] }} // Set x-axis domain for days of the week (1 to 7)
+          style={styles.graph}
+        >
+          {groupedData.length > 0 && <VictoryLine data={groupedData} x="x" y="y" />}
+          <VictoryAxis
+            label="Day"
+            tickFormat={(x) => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][x - 1]}
+            style={{
+              axisLabel: { padding: 30 }
+            }}
+          />
+          <VictoryAxis
+            dependentAxis
+            label="Blood Glucose Levels"
+            style={{
+              axisLabel: { padding: 30 }
+            }}
+          />
+        </VictoryChart>
+      );
+    } else if (selectedFilter === "month") {
+      // Render data for "This Month"
+      const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate(); // Get number of days in current month
+      return (
+        <VictoryChart
+          containerComponent={<VictoryZoomContainer />}
+          domain={{ y: [0, 25], x: [1, daysInMonth] }} // Set x-axis domain for days of the month (1 to number of days in month)
+          style={styles.graph}
+        >
+          {groupedData.length > 0 && <VictoryLine data={groupedData} x="x" y="y" />}
+          <VictoryAxis
+            label="Days in a Month"
+            style={{
+              axisLabel: { padding: 30 }
+            }}
+          />
+          <VictoryAxis
+            dependentAxis
+            label="Blood Glucose Levels"
+            style={{
+              axisLabel: { padding: 30 }
+            }}
+          />
+        </VictoryChart>
+      );
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -111,51 +197,13 @@ const GraphScreen = () => {
         selectedValue={selectedFilter}
         onValueChange={(itemValue) => {
           setSelectedFilter(itemValue);
-          setGroupedData(filterData(itemValue));
         }}
       >
         <Picker.Item label="Today" value="day" />
         <Picker.Item label="This Week" value="week" />
         <Picker.Item label="This Month" value="month" />
       </Picker>
-      <VictoryChart
-        containerComponent={<VictoryZoomContainer />}
-        domain={{ y: [0, 25] }}
-        style={styles.graph}
-      >
-        <VictoryAxis
-          label="Time"
-          tickFormat={(x) => `${x}:00`} // Format the tick labels
-          style={{
-            axisLabel: { padding: 30 }
-          }}
-        />
-        <VictoryAxis
-          dependentAxis
-          label="Blood Glucose Levels"
-          style={{
-            axisLabel: { padding: 30 }
-          }}
-        />
-        <VictoryLine
-          data={groupedData.flatMap((hourData, hour) =>
-            hourData.bloodGlucoseLevels.map((bloodGlucoseLevel) => ({
-              x: hour, // Use hourIndex as x-value
-              y: bloodGlucoseLevel,
-            }))
-          )}
-        />
-        <VictoryScatter
-          data={groupedData.flatMap((hourData, hour) =>
-            hourData.bloodGlucoseLevels.map((bloodGlucoseLevel) => ({
-              x: hour,
-              y: bloodGlucoseLevel,
-              label: `${bloodGlucoseLevel} mg/dl` // Add this line
-            }))
-          )}
-          labels={({ datum }) => `Blood Glucose Level: ${datum.y} mg/dl`} // Add this line
-        />
-      </VictoryChart>
+      {renderGraph()}
     </View>
   );
 };
