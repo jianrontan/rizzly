@@ -11,6 +11,7 @@ import {
   SET_LIKES,
   SET_MATCHES_COUNT,
   SET_UNREAD_CHATROOMS_COUNT,
+  SET_UNITS,
 } from "./actions";
 
 const editProfileState = {
@@ -26,6 +27,8 @@ const editProfileState = {
   viewProfileChangesVal: false,
   aboutMeChangesVal: false,
   saveChangesVal: false,
+  isMetric: false,
+  isMiles: false,
 }
 
 export function editProfileReducer(state = editProfileState, action) {
@@ -71,7 +74,7 @@ export function editProfileReducer(state = editProfileState, action) {
         saveChangesVal: action.payload
       }
     case SET_MATCHES_REDUX:
-      console.log(action.payload); 
+      console.log(action.payload);
       return {
         ...state,
         matchesVal: action.payload
@@ -92,7 +95,13 @@ export function editProfileReducer(state = editProfileState, action) {
         ...state,
         chatVal: action.payload
       }
+    case SET_UNITS:
+      return {
+        ...state,
+        isMetric: action.payload.isMetric,
+        isMiles: action.payload.isMiles,
+      };
     default:
       return state;
   }
-}
+};

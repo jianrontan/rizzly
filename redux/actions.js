@@ -10,6 +10,7 @@ export const SET_MATCHES_REDUX = 'SET_MATCHES_REDUX';
 export const SET_LIKES = 'SET_LIKES';
 export const SET_MATCHES_COUNT = 'SET_MATCHES_COUNT';
 export const SET_UNREAD_CHATROOMS_COUNT = 'SET_UNREAD_CHATROOMS_COUNT'
+export const SET_UNITS = 'SET_UNITS'
 
 export const setCurrentOrientation = currentOrientationVal => {
   return dispatch => {
@@ -119,3 +120,8 @@ export const setUnreadChatroomsCount = chatVal => {
     });
   };
 };
+
+export const setUnits = ({ isMetric, isMiles }) => ({
+  type: 'SET_UNITS',
+  payload: { isMetric, isMiles },
+});

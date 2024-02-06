@@ -79,39 +79,41 @@ export default function MyLocation({ navigation }) {
     const [location, setLocation] = useState([])
     const [place, setPlace] = useState('');
     const [have, setHave] = useState('');
-    const makeLocation = async () => {
-        setSubmitting(true);
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-            alert('Permission to access location was denied');
-            return;
-        }
-        try {
-            const location = await Location.getCurrentPositionAsync({
-                accuracy: Location.Accuracy.High,
-            });
-            setLocation(location);
-            setHave(location);
-            // Get place from coordinates
-            const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
-            setPlace(place); // Update place state variable
+const makeLocation = async () => {
+    setSubmitting(true);
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+        alert('Permission to access location was denied');
+        return;
+    }
+    try {
+        const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.High,
+        });
+        setLocation(location);
+        setHave(location);
+        // Get place from coordinates
+        const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
+        setPlace(place); // Update place state variable
 
-            // Update user document with location information
-            const userId = auth.currentUser.uid;
-            const userDocRef = doc(db, 'profiles', userId);
+        // Update user document with location information
+        const userId = auth.currentUser.uid;
+        const userDocRef = doc(db, 'profiles', userId);
 
-            // Update user document with location details
-            updateDoc(userDocRef, {
-                location: place,
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-            });
-        } catch (error) {
-            console.error('Error getting location:', error);
-            // Handle error as needed
-        }
-        setSubmitting(false);
-    };
+        // Update user document with location details
+        updateDoc(userDocRef, {
+            location: place,
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+        });
+    } catch (error) {
+        console.error('Error getting location:', error);
+        alert('Unable to retrieve your location. Please try again later.');
+        // Handle error as needed
+    }
+    setSubmitting(false);
+};
+
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>

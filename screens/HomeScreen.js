@@ -1,62 +1,43 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
-import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
-import { useHeaderHeight } from '@react-navigation/elements';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
-import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+import { Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
-import Spinner from 'react-native-loading-spinner-overlay';
+import { setUnits } from '../redux/actions';
 
-import { FONT, COLORS, SIZES, icons } from '../constants';
-
-const width = Dimensions.get('window').width;
-const height = Dimensions.get('window').height;
+const { width, height } = Dimensions.get('window');
 const cardWidth = width;
-const cardHeight = height - 105;
+const cardHeight = height - 170;
 
 const HomeScreen = () => {
     const [users, setUsers] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [currentUserData, setCurrentUserData] = useState(null);
     const [swipedUpUsers, setSwipedUpUsers] = useState([]);
-
-    const [scrolling, setScrolling] = useState(false);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [scrollCounter, setScrollCounter] = useState(0);
-
     const [scrollOffset, setScrollOffset] = useState(0);
     const [previousIndex, setPreviousIndex] = useState(0);
     const [fetchedUsers, setFetchedUsers] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
+    const [currentIndex, setCurrentIndex] = useState(0)
     const [paused, setPaused] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
-
-    const tabNavigatorHeight = useContext(BottomTabBarHeightContext);
-    // console.log("tabNavigatorHeight: ", tabNavigatorHeight);
-    const headerHeight = useHeaderHeight();
-    // console.log("headerHeight: ", headerHeight);
-    const statusBarHeight = StatusBar.currentHeight;
-    // console.log("statusBarHeight: ", statusBarHeight);
-    const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
-    // console.log("cardHeight: ", cardHeight);
-    // console.log("availableSpace: ", availableSpace);
-
     const dispatch = useDispatch();
     const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
     const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
     const [distanceRange, setDistanceRange] = useState([1, 10])
     const [loading, setLoading] = useState(false);
     const flatListRef = useRef(null);
+    const isMetric = useSelector(state => state.editProfileReducer.isMetric);
+    const isMiles = useSelector(state => state.editProfileReducer.isMiles);
 
     const isUserWithinRanges = (user) => {
         const userHeight = user.cmHeight;
@@ -140,7 +121,6 @@ const HomeScreen = () => {
     }, [dispatch, auth.currentUser]);
 
     const fetchCurrentUser = async () => {
-        setIsLoading(true);
         try {
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
             const currentUserDoc = await getDoc(currentUserDocRef);
@@ -163,7 +143,6 @@ const HomeScreen = () => {
         } catch (error) {
             console.error('Error fetching current user data:', error);
         }
-        setIsLoading(false);
     };
 
     useEffect(() => {
@@ -187,7 +166,7 @@ const HomeScreen = () => {
     }, [currentUserData]);
 
     const fetchData = async () => {
-        setIsLoading(true);
+        setLoading(true);
         try {
             if (!currentUserData) {
                 // Handle the case where currentUserData is null
@@ -242,24 +221,18 @@ const HomeScreen = () => {
             // Limit the number of users to render to the first 10
             filteredUsers = filteredUsers.slice(0, 10);
 
-            if (filteredUsers.length === 0) {
-                // If no users match the filter criteria, set the users state with a single object representing the "No More Users" screen
-                setUsers([{ id: 'no-more-users' }]);
-            } else {
-                // Set the users state with the filtered users
-                setUsers([...filteredUsers]);
-            }
+            // Always include the "No More Users" item at the end of the users array
+            setUsers([...filteredUsers]);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
-        setIsLoading(false);
-        setScrollCounter(0);
-        flatListRef.current.scrollToOffset({ offset: 0, animated: false });
+        setLoading(false);
     };
 
     useEffect(() => {
         fetchData();
     }, [currentUserData]);
+
 
     const handleLikeClick = async (likedUserId) => {
         try {
@@ -286,7 +259,6 @@ const HomeScreen = () => {
     };
 
     const handleDislikeClick = async (dislikedUserId) => {
-        console.log("called dislike");
         try {
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
@@ -306,52 +278,42 @@ const HomeScreen = () => {
 
                 // Also remove the disliked user from the swipedUpUsers array
                 setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== dislikedUserId));
-            }, 100000000);
+            }, 3000000);
         } catch (error) {
             console.error('Error adding dislike:', error);
         }
+        if (!swipedUpUsers.includes(dislikedUserId)) {
+            setUsers((prevUsers) => prevUsers.filter((user) => user.id !== dislikedUserId));
+        }
     };
 
-    const [currentProfiles, setCurrentProfiles] = useState([]);
+    const handleScroll = (event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
 
-    useEffect(() => {
-        if (users.length >= 2) {
-            setCurrentProfiles([users[0], users[1]]);
-        } else if (users.length === 1) {
-            setCurrentProfiles([users[0]]);
+        // Check if the user is scrolling back up
+        if (offsetY < scrollOffset) {
+            // Scroll back up detected, set the scroll position back to the previous value
+            // This prevents scrolling back up
+            flatListRef.current.scrollToOffset({ offset: scrollOffset, animated: false });
+            return;
         }
-    }, [users]);
 
-    const onScroll = (event) => {
-        let offsetY = event.nativeEvent.contentOffset.y;
-        console.log(offsetY);
+        // Calculate the current index based on the scroll offset
+        const newIndex = Math.round((offsetY / cardHeight) - 1);
 
-        if (offsetY >= availableSpace) {
-            // setScrollCounter(scrollCounter + 1);
-            if (currentProfiles.length > 0) {
-                const dislikedUserId = currentProfiles[0].id; // Assuming the first profile is the one to dislike
+        // If the current index is greater than the previous index, it means the user has swiped to the next user
+        if (newIndex > currentIndex) {
+            const dislikedUserId = users[currentIndex]?.id;
+
+            // Only call handleDislikeClick if the user hasn't been swiped up yet
+            if (dislikedUserId && !swipedUpUsers.includes(dislikedUserId)) {
                 handleDislikeClick(dislikedUserId);
             }
-            console.log("prevent going back")
-            const remainingUsers = users.slice(1);
-            setUsers(remainingUsers);
-            setCurrentProfiles([users[0], users[1]]);
-            flatListRef.current.scrollToOffset({ offset: 0, animated: false });
         }
-    };
 
-    // useEffect(() => {
-    //     console.log('scrollCounter: ', scrollCounter);
-    // }, [scrollCounter]);
-
-    const onScrollStart = () => {
-        setScrolling(true);
-        console.log('SCROLLING ON');
-    };
-
-    const onScrollEnd = (event) => {
-        setScrolling(false);
-        console.log('SCROLLING OFF');
+        // Update the previous index and scroll offset
+        setCurrentIndex(newIndex);
+        setScrollOffset(offsetY); // Update the scroll offset
     };
 
     const pausedRender = (
@@ -389,13 +351,15 @@ const HomeScreen = () => {
                             values={heightRange}
                             sliderLength={300}
                             onValuesChangeFinish={handleHeightChange}
-                            min={50}
+                            min={100}
                             max={250}
                             step={1}
                             allowOverlap={false}
                             snapped={true}
                         />
-                        <Text style={styles.sliderValue}>{heightRange[0]} - {heightRange[1]} cm</Text>
+                        <Text style={styles.sliderValue}>
+                            {isMetric ? `${heightRange[0]} - ${heightRange[1]} cm` : `${convertHeight(heightRange[0])} - ${convertHeight(heightRange[1])} ft`}
+                        </Text>
                         <Text style={styles.sliderLabel}>Age Range</Text>
                         <MultiSlider
                             values={ageRange}
@@ -430,50 +394,22 @@ const HomeScreen = () => {
         );
     };
 
-    // FIX SWIPING FUNCTIONS BELOW
-
-    const [swipeableEnabled, setSwipeableEnabled] = useState(false);
-
-    const [allowSwipe, setAllowSwipe] = useState({
-        vertical: true,
-        horizontal: true,
-    });
-
-    // Handlers for starting swipe gestures
-    const onSwipeStart = (direction) => {
-        if (direction === 'vertical') {
-            setAllowSwipe({ vertical: true, horizontal: false });
-            setSwipeableEnabled(true);
-        } else if (direction === 'horizontal') {
-            setAllowSwipe({ vertical: false, horizontal: true });
-            setSwipeableEnabled(false);
-        }
+    const convertHeight = (cm) => {
+        const inches = cm / 2.54;
+        const feet = Math.floor(inches / 12);
+        const remainingInches = Math.round(inches % 12);
+        return `${feet}' ${remainingInches}"`;
     };
 
-    // Handler for when a swipe is complete
-    const onSwipeComplete = () => {
-        setAllowSwipe({ vertical: true, horizontal: true });
-        setSwipeableEnabled(true);
+    const convertDistance = (km) => {
+        const miles = km * 0.621371;
+        return miles;
     };
-
-    // FIX SWIPING FUNCTIONS ABOVE
-
-    useEffect(() => {
-        console.log(allowSwipe);
-    }, [allowSwipe])
 
     const renderItem = ({ item: user }) => {
-        if (!users.length) {
-            return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>No more users to display.</Text>
-                </View>
-            );
-        }
-
         if (user.id === 'no-more-users') {
             return (
-                <View style={{ width: cardWidth, height: availableSpace }}>
+                <View style={{ width: cardWidth, height: cardHeight }}>
                     <NoMoreUserScreen />
                 </View>
             );
@@ -482,142 +418,102 @@ const HomeScreen = () => {
         const allImages = user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
 
         return (
-            <Swipeable
-                // onSwipeableRightComplete={() => handleDislikeClick(user.id)}
-                enabled={swipeableEnabled}
-                onSwipeableOpen={(direction) => {
-                    onSwipeStart('vertical');
-                }}
-                onSwipeableClose={() => {
-                    onSwipeComplete();
-                }}
-            >
-                <View style={[styles.cardContainer, { width: cardWidth, height: availableSpace }]}>
-                    <View style={{ flex: 1 }}>
-                        <Swiper
-                            scrollEnabled={true}
-                            onIndexChanged={() => {
-                                onSwipeStart('horizontal');
-                                console.log("swiped horizontally");
-                            }}
-                            style={[styles.swiper]}
-                            index={0}
-                            loop={false}
-                        >
-                            {allImages.map((imageUrl, imageIndex) => (
-                                <View key={imageIndex} style={{ flex: 1 }}>
-                                    <Image
-                                        source={{ uri: imageUrl }}
-                                        onLoad={() => { }}
-                                        onError={(error) => console.log('Error loading image: ', error)}
-                                        style={styles.image}
-                                    />
+            <Swipeable onSwipeableRightComplete={() => handleDislikeClick(user.id)}>
+                <View style={styles.cardContainer}>
+                    <Swiper
+                        style={[styles.swiper]}
+                        index={0}
+                        loop={false}
+                    >
+                        {allImages.map((imageUrl, imageIndex) => (
+                            <View key={imageIndex} style={{ flex: 1 }}>
+                                <Image
+                                    source={{ uri: imageUrl }}
+                                    onLoad={() => console.log('Image loaded')}
+                                    onError={(error) => console.log('Error loading image: ', error)}
+                                    style={styles.image}
+                                />
+                                <View style={styles.userInfoContainer}>
+                                    <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
+                                    <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
+                                    <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
+                                    <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
+                                    <Text style={styles.userDetails}>Height: {isMetric ? user.cmHeight + ' cm' : convertHeight(user.cmHeight) + ' ft'}</Text>
+                                    <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
+                                        <Text style={styles.likeButton}>Like</Text>
+                                    </TouchableOpacity>
                                 </View>
-                            ))}
-                        </Swiper>
-                        <View style={styles.userInfoContainer}>
-                            <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
-                            <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
-                            <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
-                            <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
-                            <Text style={styles.userDetails}>Height: {user.cmHeight + ' cm' || 'No Height'}  </Text>
-                            <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
-                                <Text style={styles.likeButton}>Like</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-                {/* TouchableOpacity for filter modal button */}
-                <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
-                    <Feather name="chevron-down" size={30} color="black" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => {
+                            </View>
+                        ))}
+                    </Swiper>
+                    {/* TouchableOpacity for filter modal button */}
+                    <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
+                        <Feather name="chevron-down" size={30} color="black" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => {
                         setSelectedUser(user); // Pass the user object directly
                         setModalVisible(true);
-                    }}
-                    style={styles.arrowIcon}
-                >
-                    <Feather name="chevron-up" size={30} color="white" />
-                </TouchableOpacity>
-                <Modal animationType="slide" transparent={true} visible={modalVisible}>
-                    <View style={[styles.modalContainer, { height: availableSpace }]}>
-                        <View style={[styles.modalContent, { height: availableSpace }]}>
-                            {selectedUser && (
-                                <>
-                                    <Text style={styles.modalinfo}>{selectedUser.firstName + ' ' + selectedUser.lastName || 'No name'}</Text>
-                                    <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
-                                    <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
-                                    <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
-                                    <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
-                                    <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
-                                    <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
-                                    <Text style={styles.modalinfo}>
-                                        Distance: ~{currentUserData && selectedUser && haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)}km
-                                    </Text>
-                                </>
-                            )}
-                            <Button title="Close Modal" onPress={() => {
-                                setModalVisible(false);
-                                setSelectedUser(null);
-                            }} />
+                    }}>
+                        <Feather name="chevron-up" size={30} color="white" style={styles.arrowIcon} />
+                    </TouchableOpacity>
+                    <Modal animationType="slide" transparent={true} visible={modalVisible}>
+                        <View style={styles.modalContainer}>
+                            <View style={styles.modalContent}>
+                                {selectedUser && (
+                                    <>
+                                        <Text style={styles.modalinfo}>{selectedUser.firstName + ' ' + selectedUser.lastName || 'No name'}</Text>
+                                        <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
+                                        <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
+                                        <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
+                                        <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
+                                        <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
+                                        <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
+                                        <Text style={styles.modalinfo}>
+                                            Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)).toFixed(2) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
+                                        </Text>
+                                    </>
+                                )}
+                                <Button title="Close Modal" onPress={() => {
+                                    setModalVisible(false);
+                                    setSelectedUser(null);
+                                }} />
+                            </View>
                         </View>
-                    </View>
-                </Modal>
+                    </Modal>
+                </View>
             </Swipeable>
         );
     };
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <View style={styles.container}>
-                {loading ? <ActivityIndicator /> : (
-                    paused ? (
-                        pausedRender
-                    ) : (
-                        <>
-                            <FlatList
-                                ref={flatListRef}
-                                data={currentProfiles}
-                                keyExtractor={(user) => user.id}
-                                renderItem={renderItem}
-                                onScroll={onScroll}
-                                // onScrollBeginDrag={onScrollStart}
-                                // onScrollEndDrag={onScrollEnd}
-                                scrollEventThrottle={16}
-                                onEndReached={() => {
-                                    if (users[users.length - 1]?.id !== 'no-more-users') {
-                                        setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
-                                    }
-                                }}
-                                onEndReachedThreshold={0}
-                                showsVerticalScrollIndicator={false}
-                                alwaysBounceVertical={false}
-                            />
-                            {/* Filter modal button */}
-                            <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
-                                <Feather name="chevron-down" size={30} color="black" />
-                            </TouchableOpacity>
-                        </>
-                    )
-                )}
-
-                <Spinner
-                    visible={isLoading}
-                    animation='fade'
-                    overlayColor="rgba(0, 0, 0, 0.25)"
-                    color="white"
-                    textContent='Loading...'
-                    textStyle={{
-                        fontFamily: FONT.bold,
-                        fontSize: SIZES.medium,
-                        fontWeight: 'normal',
-                        color: 'white',
-                    }}
-                />
-            </View>
-            {renderModal()}
-        </GestureHandlerRootView>
+        <SafeAreaView style={styles.container}>
+            {loading ? <ActivityIndicator /> : (
+                paused ? (
+                    pausedRender
+                ) : (
+                    <>
+                        <FlatList
+                            ref={flatListRef}
+                            data={users}
+                            keyExtractor={(user) => user.id}
+                            renderItem={renderItem}
+                            onScroll={handleScroll}
+                            scrollEventThrottle={16}
+                            onEndReached={() => {
+                                if (users[users.length - 1]?.id !== 'no-more-users') {
+                                    setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+                                }
+                            }}
+                            onEndReachedThreshold={0}
+                            pagingEnabled
+                            showsVerticalScrollIndicator={false}
+                            alwaysBounceVertical={false}
+                        />
+                        {renderModal()}
+                    </>
+                )
+            )}
+        </SafeAreaView>
     );
 }
 
@@ -641,8 +537,11 @@ const styles = StyleSheet.create({
     },
     cardContainer: {
         flex: 1,
+        borderRadius: 10,
         overflow: 'hidden',
         backgroundColor: 'white', // Set the background color of the cards
+        width: cardWidth,
+        height: cardHeight,
     },
     image: {
         flex: 1,
@@ -677,13 +576,16 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        height: cardHeight,
         width: cardWidth,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
         backgroundColor: 'white',
+        height: cardHeight,
         width: cardWidth,
         padding: 20,
+        borderRadius: 10,
         alignItems: 'center',
     },
     arrowIcon: {
