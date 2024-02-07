@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, SafeAreaView, StyleSheet, Text, TouchableOpacity, Image } from 'react-native';
+import React, { useEffect, useState, useContext } from 'react';
+import { View, SafeAreaView, StyleSheet, Text, TouchableOpacity, Image, StatusBar } from 'react-native';
+import { useHeaderHeight } from '@react-navigation/elements';
 import { useFocusEffect } from '@react-navigation/native';
 import { getDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
@@ -8,18 +9,25 @@ import { Dimensions } from 'react-native'
 import { Feather } from '@expo/vector-icons';
 import { Modal } from 'react-native';
 import { Button } from 'react-native-elements';
+import { Swipeable } from 'react-native-gesture-handler';
 import Swiper from 'react-native-swiper';
 
 import { COLORS, SIZES, FONT } from '../constants';
 
-const { width, height } = Dimensions.get('window');
+const width = Dimensions.get('window').width;
+const height = Dimensions.get('window').height;
 const cardWidth = width;
-const cardHeight = height - 170;
 
 const ViewProfile = ({ navigation }) => {
     const auth = getAuth();
     const [currentUserData, setCurrentUserData] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
+
+    // Dimensions
+    const tabNavigatorHeight = 50;
+    const headerHeight = useHeaderHeight();
+    const statusBarHeight = StatusBar.currentHeight;
+    const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
 
     const fetchCurrentUser = async () => {
         try {
@@ -70,17 +78,24 @@ const ViewProfile = ({ navigation }) => {
     );
     let allImages = [];
     if (currentUserData) {
-        allImages = currentUserData.imageURLs;
+        allImages = currentUserData.selfieURLs ? [currentUserData.selfieURLs, ...currentUserData.imageURLs] : currentUserData.imageURLs;
     }
-    
+
+    // Swiping
+
     return (
         <SafeAreaView style={styles.container}>
             {currentUserData && (
-                <View style={styles.cardContainer}>
+                <View style={[styles.cardContainer, { height: availableSpace }]}>
                     <Swiper
-                        style={[styles.swiper]}
+                        scrollEnabled={true}
+                        style={styles.swiper}
                         index={0}
                         loop={false}
+                        showsButtons={true}
+                        onIndexChanged={() => {
+                            console.log("swiped horizontally");
+                        }}
                     >
                         {allImages.map((imageUrl, imageIndex) => (
                             <View key={imageIndex} style={{ flex: 1 }}>
@@ -88,31 +103,29 @@ const ViewProfile = ({ navigation }) => {
                                     source={{ uri: imageUrl }}
                                     onLoad={() => console.log('Image loaded')}
                                     onError={(error) => console.log('Error loading image: ', error)}
-                                    style={styles.image}
+                                    style={[styles.image, { bottom: (availableSpace - (cardWidth * 4 / 3)) / 2 }]}
                                 />
                             </View>
                         ))}
                     </Swiper>
-                    <View style={styles.userInfoContainer}>
+                    <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) }]}>
                         <Text style={styles.userName}>{currentUserData.firstName || 'No name'}</Text>
                         <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}`}</Text>
                         <Text style={styles.userDetails}>Number of retakes: {currentUserData.retakes || 'No retakes'} </Text>
-                        <Text style={styles.userDetails}>Bio: {currentUserData.bio || 'No bio'} </Text>
                         <Text style={styles.userDetails}>Location: {currentUserData.location || 'No Location'} </Text>
-                        <Text style={styles.userDetails}>Age: {currentUserData.age || 'No age'} </Text>
-                        <Text style={styles.userDetails}>Ethnicity: {currentUserData.ethnicity.join(', ') || 'No ethnicity'} </Text>
-                        <Text style={styles.userDetails}>Religion: {currentUserData.religion || 'No religion'} </Text>
+                        <Text style={styles.userDetails}>Height: {`${currentUserData.cmHeight} cm` || 'No Height'} </Text>
                     </View>
                 </View>
-            )}
+            )
+            }
             <TouchableOpacity onPress={() => {
                 setModalVisible(true);
             }}>
                 <Feather name="chevron-up" size={30} color="white" style={styles.arrowIcon} />
             </TouchableOpacity>
             <Modal animationType="slide" transparent={true} visible={modalVisible}>
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
+                <View style={[styles.modalContainer, { height: availableSpace }]}>
+                    <View style={[styles.modalContent, { height: availableSpace }]}>
                         {currentUserData && (
                             <>
                                 <Text style={styles.modalinfo}>{currentUserData.firstName + ' ' + currentUserData.lastName || 'No name'}</Text>
@@ -133,9 +146,8 @@ const ViewProfile = ({ navigation }) => {
                     </View>
                 </View>
             </Modal>
-        </SafeAreaView>
+        </SafeAreaView >
     );
-
 };
 
 const styles = StyleSheet.create({
@@ -152,34 +164,31 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         color: 'white',
     },
-
-    swiperItem: {
+    swiper: {
         flex: 1,
     },
     cardContainer: {
         flex: 1,
-        borderRadius: 10,
         overflow: 'hidden',
-        backgroundColor: 'white', // Set the background color of the cards
+        backgroundColor: 'white',
         width: cardWidth,
-        height: cardHeight,
     },
     image: {
         flex: 1,
-        resizeMode: 'cover',
+        width: '100%',
+        height: '100%',
+        resizeMode: 'contain',
     },
     userInfoContainer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        height: '30%',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundColor: 'black',
         padding: 10,
         borderBottomLeftRadius: 10,
         borderBottomRightRadius: 10,
     },
-
     userName: {
         color: 'white',
         fontSize: 18,
@@ -197,13 +206,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        height: cardHeight,
         width: cardWidth,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
         backgroundColor: 'white',
-        height: cardHeight,
         width: cardWidth,
         padding: 20,
         borderRadius: 10,

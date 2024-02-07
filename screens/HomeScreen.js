@@ -20,7 +20,7 @@ import { FONT, COLORS, SIZES, icons } from '../constants';
 const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 const cardWidth = width;
-const cardHeight = height - 105;
+let cardHeight = 0;
 
 const HomeScreen = () => {
     const [users, setUsers] = useState([]);
@@ -50,6 +50,7 @@ const HomeScreen = () => {
     const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
     // console.log("cardHeight: ", cardHeight);
     // console.log("availableSpace: ", availableSpace);
+    cardHeight = availableSpace;
 
     const dispatch = useDispatch();
     const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
@@ -457,10 +458,6 @@ const HomeScreen = () => {
     };
 
     // FIX SWIPING FUNCTIONS ABOVE
-
-    useEffect(() => {
-        console.log(allowSwipe);
-    }, [allowSwipe])
 
     const renderItem = ({ item: user }) => {
         if (!users.length) {
