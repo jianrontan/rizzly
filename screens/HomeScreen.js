@@ -78,16 +78,21 @@ const HomeScreen = () => {
     }, []);
 
     const isUserWithinRanges = (user) => {
-        const userHeight = user.cmHeight;
+        let userHeight;
+        if (isMetric) {
+            userHeight = user.ftHeight
+        } else {
+            userHeight = user.cmHeight;
+        }
         const userAge = user.age;
 
         // Check if the user's height falls within the height range
-        if (userHeight < heightRange[0] || userHeight > heightRange[1]) {
+        if (userHeight < maxHeight || userHeight > minHeight) {
             return false;
         }
 
         // Check if the user's age falls within the age range
-        if (userAge < ageRange[0] || userAge > ageRange[1]) {
+        if (userAge < maxAge || userAge > minAge) {
             return false;
         }
 
@@ -242,7 +247,7 @@ const HomeScreen = () => {
             // Calculate distance for each user and filter based on distance range
             filteredUsers = filteredUsers.filter((user) => {
                 const distance = haversineDistance(currentUserData.latitude, currentUserData.longitude, user.latitude, user.longitude);
-                return distance >= distanceRange[0] && distance <= distanceRange[1];
+                return distance >= minDistance[0] && distance <= maxDistance[1];
             });
 
 
@@ -467,7 +472,7 @@ const HomeScreen = () => {
     };
 
     const renderItem = ({ item: user }) => {
-        if (user.id === 'no-more-users') {
+        if (users.length === 0) {
             return (
                 <View style={{ width: cardWidth, height: cardHeight }}>
                     <NoMoreUserScreen />
