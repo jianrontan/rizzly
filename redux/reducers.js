@@ -27,7 +27,7 @@ const editProfileState = {
   viewProfileChangesVal: false,
   aboutMeChangesVal: false,
   saveChangesVal: false,
-  isMetric: false,
+  isMetric: false, 
   isMiles: false,
 }
 
@@ -104,4 +104,4 @@ export function editProfileReducer(state = editProfileState, action) {
     default:
       return state;
   }
-};
+}

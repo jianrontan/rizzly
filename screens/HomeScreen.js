@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot, setDoc } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
@@ -29,6 +29,7 @@ const HomeScreen = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [currentIndex, setCurrentIndex] = useState(0)
     const [paused, setPaused] = useState(false);
+    const [noMoreUsers, setNoMoreUsers] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
     const dispatch = useDispatch();
     const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
@@ -38,6 +39,43 @@ const HomeScreen = () => {
     const flatListRef = useRef(null);
     const isMetric = useSelector(state => state.editProfileReducer.isMetric);
     const isMiles = useSelector(state => state.editProfileReducer.isMiles);
+    const [minHeight, setMinHeight] = useState(100); // Default minimum height
+    const [maxHeight, setMaxHeight] = useState(200); // Default maximum height
+    const [minAge, setMinAge] = useState(18);
+    const [maxAge, setMaxAge] = useState(80);
+    const [minDistance, setMinDistance] = useState(1);
+    const [maxDistance, setMaxDistance] = useState(10);
+
+    useEffect(() => {
+        const fetchFilters = async () => {
+            try {
+                const filterDocRef = doc(db, 'filters', auth.currentUser.uid);
+                const filterDocSnapshot = await getDoc(filterDocRef);
+
+                if (filterDocSnapshot.exists()) {
+                    const filterData = filterDocSnapshot.data();
+                    setMinAge(filterData.minAge);
+                    setMaxAge(filterData.maxAge);
+                    setMinHeight(filterData.minHeight);
+                    setMaxHeight(filterData.maxHeight);
+                    setMinDistance(filterData.minDistance);
+                    setMaxDistance(filterData.maxDistance);
+                } else {
+                    // If no filter settings document exists for the current user, use default values
+                    setMinAge(18);
+                    setMaxAge(80);
+                    setMinHeight(100);
+                    setMaxHeight(200);
+                    setMinDistance(1);
+                    setMaxDistance(10);
+                }
+            } catch (error) {
+                console.error('Error fetching filter settings:', error);
+            }
+        };
+
+        fetchFilters();
+    }, []);
 
     const isUserWithinRanges = (user) => {
         const userHeight = user.cmHeight;
@@ -223,6 +261,7 @@ const HomeScreen = () => {
 
             // Always include the "No More Users" item at the end of the users array
             setUsers([...filteredUsers]);
+
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -324,17 +363,6 @@ const HomeScreen = () => {
     )
 
     const renderModal = () => {
-        const handleHeightChange = (values) => {
-            setHeightRange(values);
-        };
-
-        const handleAgeChange = (values) => {
-            setAgeRange(values);
-        };
-
-        const handleDistanceChange = (values) => {
-            setDistanceRange(values);
-        }
         return (
             <Modal
                 animationType="slide"
@@ -348,46 +376,56 @@ const HomeScreen = () => {
                     <View style={styles.modalContent}>
                         <Text style={styles.sliderLabel}>Height Range</Text>
                         <MultiSlider
-                            values={heightRange}
+                            values={[minHeight, maxHeight]}
                             sliderLength={300}
-                            onValuesChangeFinish={handleHeightChange}
                             min={100}
                             max={250}
                             step={1}
                             allowOverlap={false}
                             snapped={true}
+                            onValuesChange={(values) => {
+                                setMinHeight(values[0]);
+                                setMaxHeight(values[1]);
+                            }}
                         />
                         <Text style={styles.sliderValue}>
-                            {isMetric ? `${heightRange[0]} - ${heightRange[1]} cm` : `${convertHeight(heightRange[0])} - ${convertHeight(heightRange[1])} ft`}
+                            {isMetric ? `${minHeight} - ${maxHeight} cm` : `${convertHeight(minHeight)} - ${convertHeight(maxHeight)} ft`}
                         </Text>
                         <Text style={styles.sliderLabel}>Age Range</Text>
                         <MultiSlider
-                            values={ageRange}
+                            values={[minAge, maxAge]}
                             sliderLength={200}
-                            onValuesChangeFinish={handleAgeChange}
                             min={18}
                             max={100}
                             step={1}
                             allowOverlap={false}
                             snapped={true}
+                            onValuesChange={(values) => {
+                                setMinAge(values[0]);
+                                setMaxAge(values[1]);
+                            }}
                         />
-                        <Text style={styles.sliderValue}>Between {ageRange[0]} and {ageRange[1]} years old</Text>
+                        <Text style={styles.sliderValue}>Between {minAge} and {maxAge} years old</Text>
                         <Text style={styles.sliderLabel}>Distance Range</Text>
                         <MultiSlider
-                            values={distanceRange}
+                            values={[minDistance, maxDistance]}
                             sliderLength={200}
-                            onValuesChangeFinish={handleDistanceChange}
                             min={1}
                             max={50}
                             step={1}
                             allowOverlap={false}
                             snapped={true}
+                            onValuesChange={(values) => {
+                                setMinDistance(values[0]);
+                                setMaxDistance(values[1]);
+                            }}
                         />
                         <Text style={styles.sliderValue}>
-                            {isMiles ? `~ ${distanceRange[0].toFixed(2)} - ${distanceRange[1].toFixed(2)} km away` : `~ ${convertDistance(distanceRange[0]).toFixed(2)} - ${convertDistance(distanceRange[1]).toFixed(2)} miles away`}
+                            {isMiles ? `~ ${convertDistance(minDistance).toFixed(2)} - ${convertDistance(maxDistance).toFixed(2)} miles away` : `~ ${minDistance.toFixed(2)} - ${maxDistance.toFixed(2)} km away`}
                         </Text>
-                        <Button title="Close Modal" onPress={() => {
+                        <Button title="Apply Filter" onPress={() => {
                             setFilterModalVisible(false);
+                            saveFilters(auth.currentUser.uid, minAge, maxAge, minDistance, maxDistance, minHeight, maxHeight);
                             fetchData(); // Refresh the users list
                         }} />
                     </View>
@@ -396,6 +434,26 @@ const HomeScreen = () => {
         );
     };
 
+    const saveFilters = async (uid, minAge, maxAge, minDistance, maxDistance, minHeight, maxHeight) => {
+        try {
+            // Get a reference to the 'filters' collection and the specific document using the user's UID
+            const filterDocRef = doc(db, 'filters', uid);
+
+            // Set the filter data for the document
+            await setDoc(filterDocRef, {
+                minAge: minAge,
+                maxAge: maxAge,
+                minDistance: minDistance,
+                maxDistance: maxDistance,
+                minHeight: minHeight,
+                maxHeight: maxHeight
+            });
+
+            console.log(`Filter settings saved for user ${uid}.`);
+        } catch (error) {
+            console.error(`Failed to save filter settings for user ${uid}:`, error);
+        }
+    };
     const convertHeight = (cm) => {
         const inches = cm / 2.54;
         const feet = Math.floor(inches / 12);
