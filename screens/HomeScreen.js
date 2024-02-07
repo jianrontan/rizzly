@@ -383,7 +383,9 @@ const HomeScreen = () => {
                             allowOverlap={false}
                             snapped={true}
                         />
-                        <Text style={styles.sliderValue}>From {distanceRange[0]} to {distanceRange[1]} km away</Text>
+                        <Text style={styles.sliderValue}>
+                            {isMiles ? `~ ${distanceRange[0].toFixed(2)} - ${distanceRange[1].toFixed(2)} km away` : `~ ${convertDistance(distanceRange[0]).toFixed(2)} - ${convertDistance(distanceRange[1]).toFixed(2)} miles away`}
+                        </Text>
                         <Button title="Close Modal" onPress={() => {
                             setFilterModalVisible(false);
                             fetchData(); // Refresh the users list
