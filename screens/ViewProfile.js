@@ -11,6 +11,7 @@ import { Modal } from 'react-native';
 import { Button } from 'react-native-elements';
 import { Swipeable } from 'react-native-gesture-handler';
 import Swiper from 'react-native-swiper';
+import { SwiperFlatList } from 'react-native-swiper-flatlist';
 
 import { COLORS, SIZES, FONT } from '../constants';
 
@@ -81,24 +82,22 @@ const ViewProfile = ({ navigation }) => {
         allImages = currentUserData.selfieURLs ? [currentUserData.selfieURLs, ...currentUserData.imageURLs] : currentUserData.imageURLs;
     }
 
-    // Swiping
-
     return (
         <SafeAreaView style={styles.container}>
             {currentUserData && (
                 <View style={[styles.cardContainer, { height: availableSpace }]}>
-                    <Swiper
-                        scrollEnabled={true}
-                        style={styles.swiper}
+                    <SwiperFlatList
+                        style={{ height: availableSpace, width: cardWidth }}
                         index={0}
-                        loop={false}
-                        showsButtons={true}
-                        onIndexChanged={() => {
-                            console.log("swiped horizontally");
+                        paginationStyleItem={{
+                            width: 5,
+                            height: 5,
+                            bottom: availableSpace - (cardWidth * 4 / 3)
                         }}
+                        showPagination
                     >
-                        {allImages.map((imageUrl, imageIndex) => (
-                            <View key={imageIndex} style={{ flex: 1 }}>
+                        {allImages.map((imageUrl, index) => (
+                            <View key={index} style={{ height: availableSpace, width: cardWidth }}>
                                 <Image
                                     source={{ uri: imageUrl }}
                                     onLoad={() => console.log('Image loaded')}
@@ -107,7 +106,7 @@ const ViewProfile = ({ navigation }) => {
                                 />
                             </View>
                         ))}
-                    </Swiper>
+                    </SwiperFlatList>
                     <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) }]}>
                         <Text style={styles.userName}>{currentUserData.firstName || 'No name'}</Text>
                         <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}`}</Text>
@@ -116,12 +115,14 @@ const ViewProfile = ({ navigation }) => {
                         <Text style={styles.userDetails}>Height: {`${currentUserData.cmHeight} cm` || 'No Height'} </Text>
                     </View>
                 </View>
-            )
-            }
-            <TouchableOpacity onPress={() => {
-                setModalVisible(true);
-            }}>
-                <Feather name="chevron-up" size={30} color="white" style={styles.arrowIcon} />
+            )}
+            <TouchableOpacity
+                onPress={() => {
+                    setModalVisible(true);
+                }}
+                style={styles.arrowIcon}
+            >
+                <Feather name="chevron-up" size={30} color="black" />
             </TouchableOpacity>
             <Modal animationType="slide" transparent={true} visible={modalVisible}>
                 <View style={[styles.modalContainer, { height: availableSpace }]}>
@@ -184,19 +185,18 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        backgroundColor: 'black',
+        backgroundColor: 'white',
         padding: 10,
-        borderBottomLeftRadius: 10,
-        borderBottomRightRadius: 10,
     },
     userName: {
-        color: 'white',
+        color: 'black',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: FONT.bold
     },
     userDetails: {
-        color: 'white',
+        color: 'black',
         fontSize: 16,
+        fontFamily: FONT.medium
     },
     userAge: {
         color: 'white',
