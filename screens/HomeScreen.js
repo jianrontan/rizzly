@@ -423,7 +423,7 @@ const HomeScreen = () => {
                             }}
                         />
                         <Text style={styles.sliderValue}>
-                            <Text style={styles.sliderValue}>{minHeight} cm - {maxHeight} cm</Text>
+                            {isMetric ? `${convertHeight(minHeight)} - ${convertHeight(maxHeight)} ft` : `${minHeight} - ${maxHeight} cm`}
                         </Text>
                         <Text style={styles.sliderLabel}>Age Range</Text>
                         <MultiSlider
@@ -455,7 +455,7 @@ const HomeScreen = () => {
                             }}
                         />
                         <Text style={styles.sliderValue}>
-                            <Text style={styles.sliderValue}>From {minDistance} to {maxDistance} km away</Text>
+                            {isMiles ? `~ ${convertDistance(minDistance).toFixed(2)} - ${convertDistance(maxDistance).toFixed(2)} miles away` : `~ ${minDistance.toFixed(2)} - ${maxDistance.toFixed(2)} km away`}
                         </Text>
                         <Button title="Apply Filter" onPress={() => {
                             setFilterModalVisible(false);
@@ -470,6 +470,9 @@ const HomeScreen = () => {
 
     const saveFilters = async (uid, minAge, maxAge, minDistance, maxDistance, minHeight, maxHeight) => {
         try {
+            const minHeightCm = isMetric ? minHeight : convertHeightToCm(minHeight);
+            const maxHeightCm = isMetric ? maxHeight : convertHeightToCm(maxHeight);
+
             // Get a reference to the 'filters' collection and the specific document using the user's UID
             const filterDocRef = doc(db, 'filters', uid);
 
@@ -479,8 +482,8 @@ const HomeScreen = () => {
                 maxAge: maxAge,
                 minDistance: minDistance,
                 maxDistance: maxDistance,
-                minHeight: minHeight,
-                maxHeight: maxHeight
+                minHeight: minHeightCm, // Save height as centimeters
+                maxHeight: maxHeightCm, // Save height as centimeters
             });
 
             console.log(`Filter settings saved for user ${uid}.`);
@@ -488,11 +491,17 @@ const HomeScreen = () => {
             console.error(`Failed to save filter settings for user ${uid}:`, error);
         }
     };
+
     const convertHeight = (cm) => {
         const inches = cm / 2.54;
         const feet = Math.floor(inches / 12);
         const remainingInches = Math.round(inches % 12);
         return `${feet}' ${remainingInches}"`;
+    };
+
+    const convertHeightToCm = (ft) => {
+        const cm = ft * 30.48; // 1 foot = 30.48 cm
+        return cm.toFixed(2);
     };
 
     const convertDistance = (km) => {
