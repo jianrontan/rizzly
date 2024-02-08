@@ -7,6 +7,7 @@ import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
+import { SwiperFlatList } from 'react-native-swiper-flatlist';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
@@ -492,27 +493,38 @@ const HomeScreen = () => {
                 <View style={[styles.cardContainer, { width: cardWidth, height: availableSpace }]}>
                     <View style={{ flex: 1 }}>
                         <Swiper
+                            dotStyle={{
+                                width: 5,
+                                height: 5,
+                            }}
+                            activeDotColor='white'
+                            activeDotStyle={{
+                                width: 5,
+                                height: 5,
+                            }}
                             scrollEnabled={true}
                             onIndexChanged={() => {
                                 onSwipeStart('horizontal');
                                 console.log("swiped horizontally");
                             }}
-                            style={[styles.swiper]}
+                            paginationStyle={{
+                                bottom: availableSpace - (cardWidth * 4 / 3) + 5,
+                            }}
                             index={0}
                             loop={false}
                         >
                             {allImages.map((imageUrl, imageIndex) => (
-                                <View key={imageIndex} style={{ flex: 1 }}>
+                                <View key={imageIndex} style={{ height: availableSpace, width: cardWidth }}>
                                     <Image
                                         source={{ uri: imageUrl }}
                                         onLoad={() => { }}
                                         onError={(error) => console.log('Error loading image: ', error)}
-                                        style={styles.image}
+                                        style={[styles.image, { bottom: (availableSpace - (cardWidth * 4 / 3)) / 2 }]}
                                     />
                                 </View>
                             ))}
                         </Swiper>
-                        <View style={styles.userInfoContainer}>
+                        <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) }]}>
                             <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
                             <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
                             <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
@@ -535,7 +547,7 @@ const HomeScreen = () => {
                     }}
                     style={styles.arrowIcon}
                 >
-                    <Feather name="chevron-up" size={30} color="white" />
+                    <Feather name="chevron-up" size={30} color="black" />
                 </TouchableOpacity>
                 <Modal animationType="slide" transparent={true} visible={modalVisible}>
                     <View style={[styles.modalContainer, { height: availableSpace }]}>
@@ -624,17 +636,13 @@ const styles = StyleSheet.create({
     },
     likeButton: {
         position: 'absolute',
-        bottom: 10,
+        bottom: 67,
         right: 10,
         backgroundColor: 'green',
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: 5,
         color: 'white',
-    },
-
-    swiperItem: {
-        flex: 1,
     },
     cardContainer: {
         flex: 1,
@@ -643,28 +651,25 @@ const styles = StyleSheet.create({
     },
     image: {
         flex: 1,
-        resizeMode: 'cover',
+        resizeMode: 'contain',
     },
     userInfoContainer: {
         position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
-        height: '30%',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundColor: 'white',
         padding: 10,
-        borderBottomLeftRadius: 10,
-        borderBottomRightRadius: 10,
     },
-
     userName: {
-        color: 'white',
+        color: 'black',
         fontSize: 18,
-        fontWeight: 'bold',
+        fontFamily: FONT.bold
     },
     userDetails: {
-        color: 'white',
+        color: 'black',
         fontSize: 16,
+        fontFamily: FONT.medium
     },
     userAge: {
         color: 'white',
