@@ -3,6 +3,11 @@ import { View, Text, Switch, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setUnits } from '../redux/actions';
 import { useDispatch, useSelector } from 'react-redux';
+import { doc, setDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { db } from '../firebase/firebase';
+
+const auth = getAuth();
 
 const Units = () => {
     const dispatch = useDispatch();
@@ -20,7 +25,7 @@ const Units = () => {
                     const preferences = JSON.parse(unitPreference);
                     dispatch(setUnits(preferences.isMetric ? 'metric' : 'miles'));
                     setIsMetric(preferences.isMetric);
-                    setIsMiles(!preferences.isMetric);
+                    setIsMiles(preferences.isMiles); // Initialize isMiles state with stored value
                 }
             } catch (error) {
                 console.error('Error fetching unit preferences:', error);
@@ -30,13 +35,31 @@ const Units = () => {
         fetchUnitPreferences();
     }, [dispatch]);
 
-    const toggleUnits = (unit) => {
-        if (unit === 'metric') {
-            setIsMetric(!isMetric);
-        } else {
-            setIsMiles(!isMiles);
+    const saveUnits = async (uid, isMetric, isMiles) => {
+        try {
+            const unitDocRef = doc(db, 'units', uid);
+
+            await setDoc(unitDocRef, {
+                isMiles: isMiles,
+                isMetric: isMetric
+            });
+
+            console.log(`Units saved for user ${uid}.`);
+        } catch (error) {
+            console.error(`Failed to save units for user ${uid}:`, error);
         }
-        dispatch(setUnits({ isMetric: unit === 'metric' ? !isMetric : isMetric, isMiles: unit === 'miles' ? !isMiles : isMiles }));
+    };
+
+    const toggleMetric = () => {
+        setIsMetric(previousState => !previousState);
+        saveUnits(auth.currentUser.uid, !isMetric, isMiles); // Save the updated state
+        dispatch(setUnits({ isMetric: !isMetric, isMiles }));
+    };
+
+    const toggleMiles = () => {
+        setIsMiles(previousState => !previousState);
+        saveUnits(auth.currentUser.uid, isMetric, !isMiles); // Save the updated state
+        dispatch(setUnits({ isMetric, isMiles: !isMiles }));
     };
 
     useEffect(() => {
@@ -51,18 +74,18 @@ const Units = () => {
                     trackColor={{ false: "#767577", true: "#81b0ff" }}
                     thumbColor={isMetric ? "#f5dd4b" : "#f4f3f4"}
                     ios_backgroundColor="#3e3e3e"
-                    onValueChange={() => toggleUnits('metric')}
+                    onValueChange={toggleMetric}
                     value={isMetric}
                 />
-                <Text style={styles.value}>{isMetric ? "cm" : "feet"}</Text>
+                <Text style={styles.value}>{isMetric ? "feet" : "cm"}</Text>
             </View>
-            <View style={styles.switchContainer}>
+            <View style={[styles.switchContainer, { marginTop: 20 }]}>
                 <Text style={styles.label}>Distance:</Text>
                 <Switch
                     trackColor={{ false: "#767577", true: "#81b0ff" }}
                     thumbColor={isMiles ? "#f5dd4b" : "#f4f3f4"}
                     ios_backgroundColor="#3e3e3e"
-                    onValueChange={() => toggleUnits('miles')}
+                    onValueChange={toggleMiles}
                     value={isMiles}
                 />
                 <Text style={styles.value}>{isMiles ? "miles" : "km"}</Text>
@@ -80,7 +103,7 @@ const styles = StyleSheet.create({
     switchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginVertical: 5,
+        marginVertical: 15, // Increased margin
     },
     label: {
         marginRight: 8,

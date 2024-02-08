@@ -11,7 +11,6 @@ import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
-import { setUnits } from '../redux/actions';
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
@@ -22,8 +21,6 @@ const HomeScreen = () => {
     const [currentUserData, setCurrentUserData] = useState(null);
     const [swipedUpUsers, setSwipedUpUsers] = useState([]);
     const [scrollOffset, setScrollOffset] = useState(0);
-    const [previousIndex, setPreviousIndex] = useState(0);
-    const [fetchedUsers, setFetchedUsers] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [filterModalVisible, setFilterModalVisible] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
@@ -32,13 +29,10 @@ const HomeScreen = () => {
     const [noMoreUsers, setNoMoreUsers] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
     const dispatch = useDispatch();
-    const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
-    const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
-    const [distanceRange, setDistanceRange] = useState([1, 10])
     const [loading, setLoading] = useState(false);
     const flatListRef = useRef(null);
-    const isMetric = useSelector(state => state.editProfileReducer.isMetric);
-    const isMiles = useSelector(state => state.editProfileReducer.isMiles);
+    const [isMetric, setIsMetric] = useState(false);
+    const [isMiles, setIsMiles] = useState(false);
     const [minHeight, setMinHeight] = useState(100); // Default minimum height
     const [maxHeight, setMaxHeight] = useState(200); // Default maximum height
     const [minAge, setMinAge] = useState(18);
@@ -60,6 +54,9 @@ const HomeScreen = () => {
                     setMaxHeight(filterData.maxHeight);
                     setMinDistance(filterData.minDistance);
                     setMaxDistance(filterData.maxDistance);
+
+                    // Log the success message here
+                    console.log('Successfully retrieved filter data:', filterData);
                 } else {
                     // If no filter settings document exists for the current user, use default values
                     setMinAge(18);
@@ -77,22 +74,47 @@ const HomeScreen = () => {
         fetchFilters();
     }, []);
 
+    useFocusEffect(
+        React.useCallback(() => {
+            const fetchUnits = async () => {
+                try {
+                    const unitsDocRef = doc(db, 'units', auth.currentUser.uid);
+                    const unitsDocSnapshot = await getDoc(unitsDocRef);
+
+                    if (unitsDocSnapshot.exists()) {
+                        const unitsData = unitsDocSnapshot.data();
+                        setIsMetric(unitsData.isMetric);
+                        setIsMiles(unitsData.isMiles);
+                        console.log('Successfully retrieved units:', unitsData);
+                    } else {
+                        // If no units document exists for the current user, use default values
+                        setIsMetric(false);
+                        setIsMiles(false);
+                    }
+                } catch (error) {
+                    console.error('Error fetching units:', error);
+                }
+            };
+
+            fetchUnits();
+
+            // Cleanup function
+            return () => {
+                // You can perform any cleanup here if needed
+            };
+        }, []) // Empty dependency array means this effect runs only once when the component mounts
+    );
+
     const isUserWithinRanges = (user) => {
-        let userHeight;
-        if (isMetric) {
-            userHeight = user.ftHeight
-        } else {
-            userHeight = user.cmHeight;
-        }
+        const userHeight = user.cmHeight;
         const userAge = user.age;
 
         // Check if the user's height falls within the height range
-        if (userHeight < maxHeight || userHeight > minHeight) {
+        if (userHeight < minHeight || userHeight > maxHeight) {
             return false;
         }
 
-        // Check if the user's age falls within the age range
-        if (userAge < maxAge || userAge > minAge) {
+        if (userAge < minAge || userAge > maxAge) {
             return false;
         }
 
@@ -244,10 +266,11 @@ const HomeScreen = () => {
                 return true;
             });
 
+
             // Calculate distance for each user and filter based on distance range
             filteredUsers = filteredUsers.filter((user) => {
                 const distance = haversineDistance(currentUserData.latitude, currentUserData.longitude, user.latitude, user.longitude);
-                return distance >= minDistance[0] && distance <= maxDistance[1];
+                return distance >= minDistance && distance <= maxDistance;
             });
 
 
@@ -263,6 +286,12 @@ const HomeScreen = () => {
 
             // Limit the number of users to render to the first 10
             filteredUsers = filteredUsers.slice(0, 10);
+
+            if (filteredUsers.length === 0) {
+                setNoMoreUsers(true);
+            } else {
+                setNoMoreUsers(false);
+            }
 
             // Always include the "No More Users" item at the end of the users array
             setUsers([...filteredUsers]);
@@ -394,7 +423,7 @@ const HomeScreen = () => {
                             }}
                         />
                         <Text style={styles.sliderValue}>
-                            {isMetric ? `${minHeight} - ${maxHeight} cm` : `${convertHeight(minHeight)} - ${convertHeight(maxHeight)} ft`}
+                            <Text style={styles.sliderValue}>{minHeight} cm - {maxHeight} cm</Text>
                         </Text>
                         <Text style={styles.sliderLabel}>Age Range</Text>
                         <MultiSlider
@@ -426,7 +455,7 @@ const HomeScreen = () => {
                             }}
                         />
                         <Text style={styles.sliderValue}>
-                            {isMiles ? `~ ${convertDistance(minDistance).toFixed(2)} - ${convertDistance(maxDistance).toFixed(2)} miles away` : `~ ${minDistance.toFixed(2)} - ${maxDistance.toFixed(2)} km away`}
+                            <Text style={styles.sliderValue}>From {minDistance} to {maxDistance} km away</Text>
                         </Text>
                         <Button title="Apply Filter" onPress={() => {
                             setFilterModalVisible(false);
@@ -503,7 +532,7 @@ const HomeScreen = () => {
                                     <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
                                     <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
                                     <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
-                                    <Text style={styles.userDetails}>Height: {isMetric ? user.cmHeight + ' cm' : convertHeight(user.cmHeight) + ' ft'}</Text>
+                                    <Text style={styles.userDetails}>Height: {isMetric ? convertHeight(user.cmHeight) + ' ft' : user.cmHeight + ' cm'}</Text>
                                     <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
                                         <Text style={styles.likeButton}>Like</Text>
                                     </TouchableOpacity>
@@ -552,7 +581,11 @@ const HomeScreen = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {loading ? <ActivityIndicator /> : (
+            {loading ? (
+                <ActivityIndicator />
+            ) : noMoreUsers ? (
+                <NoMoreUserScreen />
+            ) : (
                 paused ? (
                     pausedRender
                 ) : (
