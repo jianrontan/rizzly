@@ -41,6 +41,7 @@ const HomeScreen = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [paused, setPaused] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
+    const [currentUserDislikes, setCurrentUserDislikes] = useState([]);
 
     const tabNavigatorHeight = useContext(BottomTabBarHeightContext);
     // console.log("tabNavigatorHeight: ", tabNavigatorHeight);
@@ -188,6 +189,25 @@ const HomeScreen = () => {
         setPaused(isUserPaused);
     }, [currentUserData]);
 
+    const fetchCurrentUserDislikes = async () => {
+        try {
+            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+            const currentUserDoc = await getDoc(currentUserDocRef);
+
+            if (currentUserDoc.exists()) {
+                const userData = currentUserDoc.data();
+                const dislikesArray = userData.dislikes || [];
+                setCurrentUserDislikes(dislikesArray);
+            }
+        } catch (error) {
+            console.error('Error fetching current user dislikes:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchCurrentUserDislikes();
+    }, []);
+
     const fetchData = async () => {
         setIsLoading(true);
         try {
@@ -233,7 +253,9 @@ const HomeScreen = () => {
 
             // Exclude the current user and swiped up users from the list
             filteredUsers = filteredUsers.filter(
-                (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
+                // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserDislikes.includes(user.id)
+                // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
+                (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
             );
 
             // Exclude users who have blocked the current user
