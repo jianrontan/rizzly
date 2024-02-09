@@ -635,6 +635,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     likeButton: {
+        fontFamily: FONT.medium,
         position: 'absolute',
         bottom: 67,
         right: 10,

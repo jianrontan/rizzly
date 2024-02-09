@@ -40,6 +40,8 @@ export default function EditProfileScreen({ navigation }) {
     const [religion, setReligion] = useState('');
     const [children, setChildren] = useState('');
     const [education, setEducation] = useState('');
+    const [job, setJob] = useState('');
+    const [jobString, setJobString] = useState('');
 
     // Loading
     const [isLoading, setIsLoading] = useState(true);
@@ -62,6 +64,7 @@ export default function EditProfileScreen({ navigation }) {
                 setReligion(holdData.religion || '');
                 setChildren(holdData.children || '');
                 setEducation(holdData.education || '');
+                setJob(holdData.job || '');
 
                 setIsLoading(false);
             } else {
@@ -88,8 +91,6 @@ export default function EditProfileScreen({ navigation }) {
         if (orientation.nonBinary) labels.push("Non-binary");
         return labels.join(", ");
     };
-
-    console.log(ethnicity);
 
     // Update orientation string when orientation changes
     useEffect(() => {
@@ -127,6 +128,14 @@ export default function EditProfileScreen({ navigation }) {
         return fullNameString;
     }
 
+    const getJobString = () => {
+        let jobString = job;
+        if (job.length > 25) {
+            jobString = `${jobString.substring(0, 22)}...`;
+        }
+        return jobString;
+    }
+
     useEffect(() => {
         if (ethnicity.length > 0) {
             const newEthnicityString = getEthnicityString(ethnicity);
@@ -147,6 +156,13 @@ export default function EditProfileScreen({ navigation }) {
             setFullNameString(newFullNameString);
         }
     }, [fullName]);
+
+    useEffect(() => {
+        if (job.length > 0) {
+            const newJobString = getJobString(job);
+            setJobString(newJobString);
+        }
+    }, [job]);
 
     // Navigate
     const navigateName = () => {
@@ -181,6 +197,12 @@ export default function EditProfileScreen({ navigation }) {
     }
     const navigateEducation = () => {
         navigation.navigate('Education');
+    }
+    const navigateWork = () => {
+        navigation.navigate('Work');
+    }
+    const navigateVices = () => {
+        navigation.navigate('Vices');
     }
 
     return (
@@ -285,15 +307,16 @@ export default function EditProfileScreen({ navigation }) {
                 <View style={styles.borderLine}></View>
 
                 <View style={styles.tabView}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={navigateWork}>
                         <Text style={styles.tabText}>Work</Text>
                     </TouchableOpacity>
+                    <Text style={styles.tabInfoText}>{jobString}</Text>
                 </View>
 
                 <View style={styles.borderLine}></View>
 
                 <View style={styles.tabView}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={navigateVices}>
                         <Text style={styles.tabText}>Vices</Text>
                     </TouchableOpacity>
                 </View>
