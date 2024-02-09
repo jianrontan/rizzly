@@ -9,6 +9,7 @@ import { Feather } from '@expo/vector-icons';
 import { Modal } from 'react-native';
 import { Button } from 'react-native-elements';
 import Swiper from 'react-native-swiper';
+import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 
 import { COLORS, SIZES, FONT } from '../constants';
 
@@ -84,7 +85,7 @@ const ViewProfile = ({ navigation }) => {
                     >
                         {allImages.map((imageUrl, imageIndex) => (
                             <View key={imageIndex} style={{ flex: 1 }}>
-                                <Image
+                                <ImageZoom
                                     source={{ uri: imageUrl }}
                                     onLoad={() => console.log('Image loaded')}
                                     onError={(error) => console.log('Error loading image: ', error)}
