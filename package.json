@@ -73,6 +73,7 @@
     "react-native-splash-screen": "^3.3.0",
     "react-native-svg": "13.9.0",
     "react-native-swipe-cards-deck": "^0.3.0",
+    "react-native-swipe-list-view": "^3.2.9",
     "react-native-swiper": "^1.6.0",
     "react-native-switch": "^1.5.1",
     "react-native-switch-selector": "^2.3.0",

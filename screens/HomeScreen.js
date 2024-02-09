@@ -40,6 +40,7 @@ const HomeScreen = () => {
     const [maxAge, setMaxAge] = useState(80);
     const [minDistance, setMinDistance] = useState(1);
     const [maxDistance, setMaxDistance] = useState(10);
+    const [currentUserDislikes, setCurrentUserDislikes] = useState([]);
 
     useEffect(() => {
         const fetchFilters = async () => {
@@ -186,6 +187,25 @@ const HomeScreen = () => {
         fetchInitialLikesCount();
     }, [dispatch, auth.currentUser]);
 
+    const fetchCurrentUserDislikes = async () => {
+        try {
+            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+            const currentUserDoc = await getDoc(currentUserDocRef);
+
+            if (currentUserDoc.exists()) {
+                const userData = currentUserDoc.data();
+                const dislikesArray = userData.dislikes || [];
+                setCurrentUserDislikes(dislikesArray);
+            }
+        } catch (error) {
+            console.error('Error fetching current user dislikes:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchCurrentUserDislikes();
+    }, []);
+
     const fetchCurrentUser = async () => {
         try {
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
@@ -285,17 +305,15 @@ const HomeScreen = () => {
                 return true;
             });
 
-
             // Calculate distance for each user and filter based on distance range
             filteredUsers = filteredUsers.filter((user) => {
                 const distance = haversineDistance(currentUserData.latitude, currentUserData.longitude, user.latitude, user.longitude);
                 return distance >= minDistance && distance <= maxDistance;
             });
 
-
-            // Exclude the current user and swiped up users from the list
+            // Exclude the current user, swiped up users, and users present in dislikes array from the list
             filteredUsers = filteredUsers.filter(
-                (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
+                (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !currentUserDislikes.includes(user.id) && !blockedIDs.includes(user.id)
             );
 
             // Exclude users who have blocked the current user
@@ -320,7 +338,6 @@ const HomeScreen = () => {
         }
         setLoading(false);
     };
-
     useEffect(() => {
         fetchData();
     }, [currentUserData]);
@@ -538,9 +555,10 @@ const HomeScreen = () => {
         }
 
         const allImages = user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
+        console.log(`Displaying user with ID: ${user.id}`);
 
         return (
-            <Swipeable onSwipeableRightComplete={() => handleDislikeClick(user.id)}>
+            <Swipeable>
                 <View style={styles.cardContainer}>
                     <Swiper
                         style={[styles.swiper]}
