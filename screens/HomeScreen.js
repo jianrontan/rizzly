@@ -11,6 +11,7 @@ import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
+import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
@@ -530,11 +531,11 @@ const HomeScreen = () => {
                     >
                         {allImages.map((imageUrl, imageIndex) => (
                             <View key={imageIndex} style={{ flex: 1 }}>
-                                <Image
-                                    source={{ uri: imageUrl }}
-                                    onLoad={() => console.log('Image loaded')}
-                                    onError={(error) => console.log('Error loading image: ', error)}
-                                    style={styles.image}
+                                <ImageZoom
+                                    uri={imageUrl}
+                                    minScale={0.5}
+                                    maxScale={3}
+                                    resizeMode="cover"
                                 />
                                 <View style={styles.userInfoContainer}>
                                     <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
