@@ -41,6 +41,7 @@ const HomeScreen = () => {
     const [minDistance, setMinDistance] = useState(1);
     const [maxDistance, setMaxDistance] = useState(10);
     const [currentUserDislikes, setCurrentUserDislikes] = useState([]);
+    const [lastScrollPosition, setLastScrollPosition] = useState(0);
 
     useEffect(() => {
         const fetchFilters = async () => {
@@ -277,6 +278,17 @@ const HomeScreen = () => {
                 return;
             }
 
+            // Only append user IDs to dislikes array if "No More Users" screen is reached
+            if (noMoreUsers) {
+                for (const user of users) {
+                    if (!isUserDisliked(user.id)) {
+                        // If not disliked, add to dislikes array
+                        await updateDoc(doc(db, 'profiles', auth.currentUser.uid), {
+                            dislikes: arrayUnion(user.id),
+                        });
+                    }
+                }
+            }
             const usersCollection = collection(db, 'profiles');
             const snapshot = await getDocs(usersCollection);
             let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -322,7 +334,7 @@ const HomeScreen = () => {
             );
 
             // Limit the number of users to render to the first 10
-            filteredUsers = filteredUsers.slice(0, 10);
+            filteredUsers = filteredUsers.slice(0, 5);
 
             if (filteredUsers.length === 0) {
                 setNoMoreUsers(true);
@@ -367,33 +379,51 @@ const HomeScreen = () => {
         }
     };
 
+    useEffect(() => {
+        if (users[users.length - 1]?.id === 'no-more-users') {
+            fetchData();
+        }
+    }, [users, noMoreUsers]);
+
     const handleDislikeClick = async (dislikedUserId) => {
-        try {
-            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+        // Check if the dislikedUserId is not 'no-more-users'
+        if (dislikedUserId !== 'no-more-users') {
+            try {
+                const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
-            // Add the disliked user to the current user's document
-            await updateDoc(currentUserDocRef, {
-                dislikes: arrayUnion(dislikedUserId),
-            });
-
-            // Add the disliked user to the swipedUpUsers array
-            setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, dislikedUserId]);
-
-            // After 10 seconds, remove the disliked user from the current user's document
-            setTimeout(async () => {
+                // Add the disliked user to the current user's document
                 await updateDoc(currentUserDocRef, {
-                    dislikes: arrayRemove(dislikedUserId),
+                    dislikes: arrayUnion(dislikedUserId),
                 });
 
-                // Also remove the disliked user from the swipedUpUsers array
-                setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== dislikedUserId));
-            }, 3000000);
-        } catch (error) {
-            console.error('Error adding dislike:', error);
+                // Add the disliked user to the swipedUpUsers array
+                setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, dislikedUserId]);
+
+                // After  10 seconds, remove the disliked user from the current user's document
+                setTimeout(async () => {
+                    await updateDoc(currentUserDocRef, {
+                        dislikes: arrayRemove(dislikedUserId),
+                    });
+
+                    // Also remove the disliked user from the swipedUpUsers array
+                    setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== dislikedUserId));
+                }, 3000000);
+                setCurrentUserDislikes((prevDislikes) => [...prevDislikes, dislikedUserId]);
+            } catch (error) {
+                console.error('Error adding dislike:', error);
+            }
+            if (!swipedUpUsers.includes(dislikedUserId)) {
+                setUsers((prevUsers) => prevUsers.filter((user) => user.id !== dislikedUserId));
+            }
         }
-        if (!swipedUpUsers.includes(dislikedUserId)) {
-            setUsers((prevUsers) => prevUsers.filter((user) => user.id !== dislikedUserId));
-        }
+    };
+
+    useEffect(() => {
+        fetchCurrentUserDislikes();
+    }, [auth.currentUser]);
+
+    const isUserDisliked = (userId) => {
+        return currentUserDislikes.includes(userId);
     };
 
     const handleScroll = (event) => {
@@ -407,22 +437,38 @@ const HomeScreen = () => {
             return;
         }
 
-        // Calculate the current index based on the scroll offset
-        const newIndex = Math.round((offsetY / cardHeight) - 1);
+        // Calculate the current index based on the scroll offset and the number of items per page
+        const newIndex = Math.round(offsetY / (cardHeight * 10)); // Multiply by the number of items per page
+
+        // Log the current user index
+        console.log(`Current user index: ${newIndex}`);
 
         // If the current index is greater than the previous index, it means the user has swiped to the next user
         if (newIndex > currentIndex) {
             const dislikedUserId = users[currentIndex]?.id;
 
-            // Only call handleDislikeClick if the user hasn't been swiped up yet
-            if (dislikedUserId && !swipedUpUsers.includes(dislikedUserId)) {
+            // Call handleDislikeClick regardless of whether the user has been swiped up or not
+            if (dislikedUserId) {
                 handleDislikeClick(dislikedUserId);
+            }
+        } else if (newIndex < 0) {
+            // Iterate through users with indexes <  0
+            for (let i = newIndex; i < 0; i++) {
+                const dislikedUserId = users[Math.abs(i)]?.id;
+
+                // Check if the dislikedUserId is not already in the swipedUpUsers array
+                if (dislikedUserId && !swipedUpUsers.includes(dislikedUserId)) {
+                    // Add the disliked user to Firebase
+                    handleDislikeClick(dislikedUserId);
+                }
             }
         }
 
         // Update the previous index and scroll offset
         setCurrentIndex(newIndex);
+        console.log(`Previous index updated to: ${newIndex}`);
         setScrollOffset(offsetY); // Update the scroll offset
+        console.log(`Scroll offset updated to: ${offsetY}`);
     };
 
     const pausedRender = (
@@ -546,7 +592,15 @@ const HomeScreen = () => {
     };
 
     const renderItem = ({ item: user }) => {
-        if (users.length === 0) {
+        if (!users.length) {
+            return (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text>No more users to display.</Text>
+                </View>
+            );
+        }
+
+        if (user.id === 'no-more-users') {
             return (
                 <View style={{ width: cardWidth, height: cardHeight }}>
                     <NoMoreUserScreen />
@@ -554,9 +608,7 @@ const HomeScreen = () => {
             );
         }
 
-        const allImages = user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
-        console.log(`Displaying user with ID: ${user.id}`);
-
+        const allImages = user && user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
         return (
             <Swipeable>
                 <View style={styles.cardContainer}>
@@ -645,7 +697,7 @@ const HomeScreen = () => {
                             scrollEventThrottle={16}
                             onEndReached={() => {
                                 if (users[users.length - 1]?.id !== 'no-more-users') {
-                                    setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+                                    fetchData();
                                 }
                             }}
                             onEndReachedThreshold={0}
