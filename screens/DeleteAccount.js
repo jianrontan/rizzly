@@ -25,9 +25,28 @@ const DeleteAccountScreen = ({ navigation }) => {
         const credential = EmailAuthProvider.credential(credentials.email, credentials.password);
         await reauthenticateWithCredential(user, credential);
 
-        // Delete user from Firestore
-        const userDoc = doc(db, 'profiles', auth.currentUser.uid);
-        await deleteDoc(userDoc);
+        // Delete user's document from Firestore collections
+        await Promise.all([
+          deleteDoc(doc(db, 'profiles', auth.currentUser.uid)), // Delete from 'profiles'
+          deleteDoc(doc(db, 'filters', auth.currentUser.uid)), // Delete from 'filters'
+          deleteDoc(doc(db, 'emails', auth.currentUser.uid)), // Delete from 'emails'
+          deleteDoc(doc(db, 'units', auth.currentUser.uid)), // Delete from 'units'
+          // Delete user's private chat rooms (assuming each chat room ID contains the user's UID)
+          db.collection('privatechatrooms').where('users', 'array-contains', auth.currentUser.uid)
+            .get().then(querySnapshot => {
+              // Delete each document in the query snapshot
+              querySnapshot.forEach(doc => {
+                // Delete the document
+                deleteDoc(doc.ref);
+
+                // Delete all documents in the 'messages' subcollection of the chat room
+                const messagesCollection = db.collection('privatechatrooms').doc(doc.id).collection('messages');
+                messagesCollection.get().then(snapshot => {
+                  snapshot.docs.forEach(messageDoc => deleteDoc(messageDoc.ref));
+                });
+              });
+            })
+        ]);
 
         // Delete user from Firebase Auth
         await deleteUser(user);

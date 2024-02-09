@@ -27,6 +27,7 @@ import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import SetUpProfile from './setUpProfileNavigator';
 import EditProfileStack from './editProfileNavigator.js';
+import Units from '../screens/Units';
 import appStyles from '../components/app/app.style';
 import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges, setSaveChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';
@@ -346,6 +347,7 @@ export default function DrawerStack() {
                 <Stack.Screen name="DeleteAccount" component={DeleteAccountScreen} />
                 <Stack.Screen name="Contact" component={ContactUsScreen} />
                 <Stack.Screen name="BlockList" component={BlockList} />
+                <Stack.Screen name="Units" component={Units} />
             </Stack.Navigator>
         );
     };

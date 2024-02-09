@@ -77,6 +77,10 @@ export default function SettingsScreen({ navigation }) {
 		navigation.navigate('BlockList')
 	}
 
+	const Units = () => {
+		navigation.navigate('Units')
+	}
+
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
 			<ScrollView showsVerticalScrollIndicator={false}>
@@ -112,6 +116,15 @@ export default function SettingsScreen({ navigation }) {
 					<TouchableOpacity onPress={BlockList}>
 						<View style={styles.settingView}>
 							<Text style={styles.settingText}>Blocked List</Text>
+						</View>
+					</TouchableOpacity>
+					<View style={styles.borderLine}></View>
+				</View>
+
+				<View style={{ flex: 1 }}>
+					<TouchableOpacity onPress={Units}>
+						<View style={styles.settingView}>
+							<Text style={styles.settingText}>Units / Measurement</Text>
 						</View>
 					</TouchableOpacity>
 					<View style={styles.borderLine}></View>
