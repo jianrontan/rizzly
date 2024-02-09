@@ -1,21 +1,27 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot, setDoc } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import { db, auth } from '../firebase/firebase';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import Swiper from 'react-native-swiper';
-import { Swipeable } from 'react-native-gesture-handler';
+import { Swipeable, GestureHandlerRootView } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
 import { useDispatch, useSelector } from 'react-redux';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
+import Spinner from 'react-native-loading-spinner-overlay';
 
-const { width, height } = Dimensions.get('window');
+import { FONT, COLORS, SIZES, icons } from '../constants';
+
+const width = Dimensions.get('window').width;
+const height = Dimensions.get('window').height;
 const cardWidth = width;
-const cardHeight = height - 170;
+let cardHeight = 0;
 
 const HomeScreen = () => {
     const [users, setUsers] = useState([]);
@@ -30,7 +36,6 @@ const HomeScreen = () => {
     const [noMoreUsers, setNoMoreUsers] = useState(false);
     const [blockedIDs, setBlockedIDs] = useState([]);
     const dispatch = useDispatch();
-    const [loading, setLoading] = useState(false);
     const flatListRef = useRef(null);
     const [isMetric, setIsMetric] = useState(false);
     const [isMiles, setIsMiles] = useState(false);
@@ -42,6 +47,23 @@ const HomeScreen = () => {
     const [maxDistance, setMaxDistance] = useState(10);
     const [currentUserDislikes, setCurrentUserDislikes] = useState([]);
     const [lastScrollPosition, setLastScrollPosition] = useState(0);
+    const [isLoading, setIsLoading] = useState(true);
+    const [scrolling, setScrolling] = useState(false);
+    const [scrollCounter, setScrollCounter] = useState(0);
+
+    const [previousIndex, setPreviousIndex] = useState(0);
+    const [fetchedUsers, setFetchedUsers] = useState([]);
+
+    const tabNavigatorHeight = useContext(BottomTabBarHeightContext);
+    // console.log("tabNavigatorHeight: ", tabNavigatorHeight);
+    const headerHeight = useHeaderHeight();
+    // console.log("headerHeight: ", headerHeight);
+    const statusBarHeight = StatusBar.currentHeight;
+    // console.log("statusBarHeight: ", statusBarHeight);
+    const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
+    // console.log("cardHeight: ", cardHeight);
+    // console.log("availableSpace: ", availableSpace);
+    cardHeight = availableSpace;
 
     useEffect(() => {
         const fetchFilters = async () => {
@@ -188,25 +210,6 @@ const HomeScreen = () => {
         fetchInitialLikesCount();
     }, [dispatch, auth.currentUser]);
 
-    const fetchCurrentUserDislikes = async () => {
-        try {
-            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
-            const currentUserDoc = await getDoc(currentUserDocRef);
-
-            if (currentUserDoc.exists()) {
-                const userData = currentUserDoc.data();
-                const dislikesArray = userData.dislikes || [];
-                setCurrentUserDislikes(dislikesArray);
-            }
-        } catch (error) {
-            console.error('Error fetching current user dislikes:', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchCurrentUserDislikes();
-    }, []);
-
     const fetchCurrentUser = async () => {
         try {
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
@@ -348,7 +351,9 @@ const HomeScreen = () => {
         } catch (error) {
             console.error('Error fetching data:', error);
         }
-        setLoading(false);
+        setIsLoading(false);
+        setScrollCounter(0);
+        flatListRef.current.scrollToOffset({ offset: 0, animated: false });
     };
     useEffect(() => {
         fetchData();
@@ -386,89 +391,73 @@ const HomeScreen = () => {
     }, [users, noMoreUsers]);
 
     const handleDislikeClick = async (dislikedUserId) => {
-        // Check if the dislikedUserId is not 'no-more-users'
-        if (dislikedUserId !== 'no-more-users') {
-            try {
-                const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+        console.log("called dislike");
+        try {
+            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
-                // Add the disliked user to the current user's document
+            // Add the disliked user to the current user's document
+            await updateDoc(currentUserDocRef, {
+                dislikes: arrayUnion(dislikedUserId),
+            });
+
+            // Add the disliked user to the swipedUpUsers array
+            setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, dislikedUserId]);
+
+            // After 10 seconds, remove the disliked user from the current user's document
+            setTimeout(async () => {
                 await updateDoc(currentUserDocRef, {
-                    dislikes: arrayUnion(dislikedUserId),
+                    dislikes: arrayRemove(dislikedUserId),
                 });
 
-                // Add the disliked user to the swipedUpUsers array
-                setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, dislikedUserId]);
-
-                // After  10 seconds, remove the disliked user from the current user's document
-                setTimeout(async () => {
-                    await updateDoc(currentUserDocRef, {
-                        dislikes: arrayRemove(dislikedUserId),
-                    });
-
-                    // Also remove the disliked user from the swipedUpUsers array
-                    setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== dislikedUserId));
-                }, 3000000);
-                setCurrentUserDislikes((prevDislikes) => [...prevDislikes, dislikedUserId]);
-            } catch (error) {
-                console.error('Error adding dislike:', error);
-            }
-            if (!swipedUpUsers.includes(dislikedUserId)) {
-                setUsers((prevUsers) => prevUsers.filter((user) => user.id !== dislikedUserId));
-            }
+                // Also remove the disliked user from the swipedUpUsers array
+                setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== dislikedUserId));
+            }, 100000000);
+        } catch (error) {
+            console.error('Error adding dislike:', error);
         }
     };
+
+    const [currentProfiles, setCurrentProfiles] = useState([]);
 
     useEffect(() => {
-        fetchCurrentUserDislikes();
-    }, [auth.currentUser]);
-
-    const isUserDisliked = (userId) => {
-        return currentUserDislikes.includes(userId);
-    };
-
-    const handleScroll = (event) => {
-        const offsetY = event.nativeEvent.contentOffset.y;
-
-        // Check if the user is scrolling back up
-        if (offsetY < scrollOffset) {
-            // Scroll back up detected, set the scroll position back to the previous value
-            // This prevents scrolling back up
-            flatListRef.current.scrollToOffset({ offset: scrollOffset, animated: false });
-            return;
+        if (users.length >= 2) {
+            setCurrentProfiles([users[0], users[1]]);
+        } else if (users.length === 1) {
+            setCurrentProfiles([users[0]]);
         }
+    }, [users]);
 
-        // Calculate the current index based on the scroll offset and the number of items per page
-        const newIndex = Math.round(offsetY / (cardHeight * 10)); // Multiply by the number of items per page
 
-        // Log the current user index
-        console.log(`Current user index: ${newIndex}`);
+    const onScroll = (event) => {
+        let offsetY = event.nativeEvent.contentOffset.y;
+        console.log(offsetY);
 
-        // If the current index is greater than the previous index, it means the user has swiped to the next user
-        if (newIndex > currentIndex) {
-            const dislikedUserId = users[currentIndex]?.id;
-
-            // Call handleDislikeClick regardless of whether the user has been swiped up or not
-            if (dislikedUserId) {
+        if (offsetY >= availableSpace) {
+            // setScrollCounter(scrollCounter + 1);
+            if (currentProfiles.length > 0) {
+                const dislikedUserId = currentProfiles[0].id; // Assuming the first profile is the one to dislike
                 handleDislikeClick(dislikedUserId);
             }
-        } else if (newIndex < 0) {
-            // Iterate through users with indexes <  0
-            for (let i = newIndex; i < 0; i++) {
-                const dislikedUserId = users[Math.abs(i)]?.id;
-
-                // Check if the dislikedUserId is not already in the swipedUpUsers array
-                if (dislikedUserId && !swipedUpUsers.includes(dislikedUserId)) {
-                    // Add the disliked user to Firebase
-                    handleDislikeClick(dislikedUserId);
-                }
-            }
+            console.log("prevent going back")
+            const remainingUsers = users.slice(1);
+            setUsers(remainingUsers);
+            setCurrentProfiles([users[0], users[1]]);
+            flatListRef.current.scrollToOffset({ offset: 0, animated: false });
         }
+    };
 
-        // Update the previous index and scroll offset
-        setCurrentIndex(newIndex);
-        console.log(`Previous index updated to: ${newIndex}`);
-        setScrollOffset(offsetY); // Update the scroll offset
-        console.log(`Scroll offset updated to: ${offsetY}`);
+    // useEffect(() => {
+    //     console.log('scrollCounter: ', scrollCounter);
+    // }, [scrollCounter]);
+
+    const onScrollStart = () => {
+        setScrolling(true);
+        console.log('SCROLLING ON');
+    };
+
+    const onScrollEnd = (event) => {
+        setScrolling(false);
+        console.log('SCROLLING OFF');
     };
 
     const pausedRender = (
@@ -591,6 +580,32 @@ const HomeScreen = () => {
         return miles;
     };
 
+    const [swipeableEnabled, setSwipeableEnabled] = useState(false);
+
+    const [allowSwipe, setAllowSwipe] = useState({
+        vertical: true,
+        horizontal: true,
+    });
+
+    // Handlers for starting swipe gestures
+    const onSwipeStart = (direction) => {
+        if (direction === 'vertical') {
+            setAllowSwipe({ vertical: true, horizontal: false });
+            setSwipeableEnabled(true);
+        } else if (direction === 'horizontal') {
+            setAllowSwipe({ vertical: false, horizontal: true });
+            setSwipeableEnabled(false);
+        }
+    };
+
+    // Handler for when a swipe is complete
+    const onSwipeComplete = () => {
+        setAllowSwipe({ vertical: true, horizontal: true });
+        setSwipeableEnabled(true);
+    };
+
+    // FIX SWIPING FUNCTIONS ABOVE
+
     const renderItem = ({ item: user }) => {
         if (!users.length) {
             return (
@@ -602,114 +617,162 @@ const HomeScreen = () => {
 
         if (user.id === 'no-more-users') {
             return (
-                <View style={{ width: cardWidth, height: cardHeight }}>
+                <View style={{ width: cardWidth, height: availableSpace }}>
                     <NoMoreUserScreen />
                 </View>
             );
         }
 
-        const allImages = user && user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
+        const allImages = user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
+
         return (
-            <Swipeable>
-                <View style={styles.cardContainer}>
-                    <Swiper
-                        style={[styles.swiper]}
-                        index={0}
-                        loop={false}
-                    >
-                        {allImages.map((imageUrl, imageIndex) => (
-                            <View key={imageIndex} style={{ flex: 1 }}>
-                                <ImageZoom
-                                    uri={imageUrl}
-                                    minScale={0.5}
-                                    maxScale={3}
-                                    resizeMode="cover"
-                                />
-                                <View style={styles.userInfoContainer}>
-                                    <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
-                                    <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
-                                    <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
-                                    <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
-                                    <Text style={styles.userDetails}>Height: {isMetric ? convertHeight(user.cmHeight) + ' ft' : user.cmHeight + ' cm'}</Text>
-                                    <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
-                                        <Text style={styles.likeButton}>Like</Text>
-                                    </TouchableOpacity>
+            <Swipeable
+                // onSwipeableRightComplete={() => handleDislikeClick(user.id)}
+                enabled={swipeableEnabled}
+                onSwipeableOpen={(direction) => {
+                    onSwipeStart('vertical');
+                }}
+                onSwipeableClose={() => {
+                    onSwipeComplete();
+                }}
+            >
+                <View style={[styles.cardContainer, { width: cardWidth, height: availableSpace }]}>
+                    <View style={{ flex: 1 }}>
+                        <Swiper
+                            dotStyle={{
+                                width: 5,
+                                height: 5,
+                            }}
+                            activeDotColor='white'
+                            activeDotStyle={{
+                                width: 5,
+                                height: 5,
+                            }}
+                            scrollEnabled={true}
+                            onIndexChanged={() => {
+                                onSwipeStart('horizontal');
+                                console.log("swiped horizontally");
+                            }}
+                            paginationStyle={{
+                                bottom: availableSpace - (cardWidth * 4 / 3) + 5,
+                            }}
+                            index={0}
+                            loop={false}
+                        >
+                            {allImages.map((imageUrl, imageIndex) => (
+                                <View key={imageIndex} style={{ height: availableSpace, width: cardWidth }}>
+                                    <ImageZoom
+                                        source={{ uri: imageUrl }}
+                                        onLoad={() => { }}
+                                        onError={(error) => console.log('Error loading image: ', error)}
+                                        style={[styles.image, { bottom: (availableSpace - (cardWidth * 4 / 3)) / 2 }]}
+                                    />
                                 </View>
-                            </View>
-                        ))}
-                    </Swiper>
-                    {/* TouchableOpacity for filter modal button */}
-                    <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
-                        <Feather name="chevron-down" size={30} color="black" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => {
+                            ))}
+                        </Swiper>
+                        <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) }]}>
+                            <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
+                            <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
+                            <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
+                            <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
+                            <Text style={styles.userDetails}>Height: {user.cmHeight + ' cm' || 'No Height'}  </Text>
+                            <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
+                                <Text style={styles.likeButton}>Like</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+                {/* TouchableOpacity for filter modal button */}
+                <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
+                    <Feather name="chevron-down" size={30} color="black" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => {
                         setSelectedUser(user); // Pass the user object directly
                         setModalVisible(true);
-                    }}>
-                        <Feather name="chevron-up" size={30} color="white" style={styles.arrowIcon} />
-                    </TouchableOpacity>
-                    <Modal animationType="slide" transparent={true} visible={modalVisible}>
-                        <View style={styles.modalContainer}>
-                            <View style={styles.modalContent}>
-                                {selectedUser && (
-                                    <>
-                                        <Text style={styles.modalinfo}>{selectedUser.firstName + ' ' + selectedUser.lastName || 'No name'}</Text>
-                                        <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
-                                        <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
-                                        <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
-                                        <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
-                                        <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
-                                        <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
-                                        <Text style={styles.modalinfo}>
-                                            Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)).toFixed(2) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
-                                        </Text>
-                                    </>
-                                )}
-                                <Button title="Close Modal" onPress={() => {
-                                    setModalVisible(false);
-                                    setSelectedUser(null);
-                                }} />
-                            </View>
+                    }}
+                    style={styles.arrowIcon}
+                >
+                    <Feather name="chevron-up" size={30} color="black" />
+                </TouchableOpacity>
+                <Modal animationType="slide" transparent={true} visible={modalVisible}>
+                    <View style={[styles.modalContainer, { height: availableSpace }]}>
+                        <View style={[styles.modalContent, { height: availableSpace }]}>
+                            {selectedUser && (
+                                <>
+                                    <Text style={styles.modalinfo}>{selectedUser.firstName + ' ' + selectedUser.lastName || 'No name'}</Text>
+                                    <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
+                                    <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
+                                    <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
+                                    <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
+                                    <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
+                                    <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
+                                    <Text style={styles.modalinfo}>
+                                        Distance: ~{currentUserData && selectedUser && haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)}km
+                                    </Text>
+                                </>
+                            )}
+                            <Button title="Close Modal" onPress={() => {
+                                setModalVisible(false);
+                                setSelectedUser(null);
+                            }} />
                         </View>
-                    </Modal>
-                </View>
+                    </View>
+                </Modal>
             </Swipeable>
         );
     };
 
     return (
-        <SafeAreaView style={styles.container}>
-            {loading ? (
-                <ActivityIndicator />
-            ) : noMoreUsers ? (
-                <NoMoreUserScreen />
-            ) : (
-                paused ? (
-                    pausedRender
-                ) : (
-                    <>
-                        <FlatList
-                            ref={flatListRef}
-                            data={users}
-                            keyExtractor={(user) => user.id}
-                            renderItem={renderItem}
-                            onScroll={handleScroll}
-                            scrollEventThrottle={16}
-                            onEndReached={() => {
-                                if (users[users.length - 1]?.id !== 'no-more-users') {
-                                    fetchData();
-                                }
-                            }}
-                            onEndReachedThreshold={0}
-                            pagingEnabled
-                            showsVerticalScrollIndicator={false}
-                            alwaysBounceVertical={false}
-                        />
-                        {renderModal()}
-                    </>
-                )
-            )}
-        </SafeAreaView>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <View style={styles.container}>
+                {loading ? <ActivityIndicator /> : (
+                    paused ? (
+                        pausedRender
+                    ) : (
+                        <>
+                            <FlatList
+                                ref={flatListRef}
+                                data={currentProfiles}
+                                keyExtractor={(user) => user.id}
+                                renderItem={renderItem}
+                                onScroll={onScroll}
+                                // onScrollBeginDrag={onScrollStart}
+                                // onScrollEndDrag={onScrollEnd}
+                                scrollEventThrottle={16}
+                                onEndReached={() => {
+                                    if (users[users.length - 1]?.id !== 'no-more-users') {
+                                        setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+                                    }
+                                }}
+                                onEndReachedThreshold={0}
+                                showsVerticalScrollIndicator={false}
+                                alwaysBounceVertical={false}
+                            />
+                            {/* Filter modal button */}
+                            <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
+                                <Feather name="chevron-down" size={30} color="black" />
+                            </TouchableOpacity>
+                        </>
+                    )
+                )}
+
+                <Spinner
+                    visible={isLoading}
+                    animation='fade'
+                    overlayColor="rgba(0, 0, 0, 0.25)"
+                    color="white"
+                    textContent='Loading...'
+                    textStyle={{
+                        fontFamily: FONT.bold,
+                        fontSize: SIZES.medium,
+                        fontWeight: 'normal',
+                        color: 'white',
+                    }}
+                />
+            </View>
+            {renderModal()}
+        </GestureHandlerRootView>
     );
 }
 
