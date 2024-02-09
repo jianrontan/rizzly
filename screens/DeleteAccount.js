@@ -34,7 +34,17 @@ const DeleteAccountScreen = ({ navigation }) => {
           // Delete user's private chat rooms (assuming each chat room ID contains the user's UID)
           db.collection('privatechatrooms').where('users', 'array-contains', auth.currentUser.uid)
             .get().then(querySnapshot => {
-              querySnapshot.forEach(doc => deleteDoc(doc.ref));
+              // Delete each document in the query snapshot
+              querySnapshot.forEach(doc => {
+                // Delete the document
+                deleteDoc(doc.ref);
+
+                // Delete all documents in the 'messages' subcollection of the chat room
+                const messagesCollection = db.collection('privatechatrooms').doc(doc.id).collection('messages');
+                messagesCollection.get().then(snapshot => {
+                  snapshot.docs.forEach(messageDoc => deleteDoc(messageDoc.ref));
+                });
+              });
             })
         ]);
 

@@ -196,11 +196,29 @@ const HomeScreen = () => {
                 const userData = currentUserDoc.data();
                 blockedIDs = userData.blockedIDs || [];
 
-                // Check if the pausedUser field is true
-                const isUserPaused = userData.pausedUser === true;
+                // Calculate user's age based on current date and birthdate
+                const currentDate = new Date();
+                const birthdateParts = userData.birthday.split('/');
+                const birthDay = parseInt(birthdateParts[0], 10) - 1; // Month is 0-indexed
+                const birthMonth = parseInt(birthdateParts[1], 10);
+                const birthYear = parseInt(birthdateParts[2], 10);
+                const birthdate = new Date(birthYear, birthMonth, birthDay);
 
-                // Update the paused state based on the value of pausedUser field
-                setPaused(isUserPaused);
+                let userAge = currentDate.getFullYear() - birthdate.getFullYear();
+                if (
+                    currentDate.getMonth() >= birthdate.getMonth() ||
+                    (currentDate.getMonth() === birthdate.getMonth() && currentDate.getDate() < birthdate.getDate())
+                ) {
+                    // If current date is before the birthdate, decrement the age
+                    userAge++;
+                }
+
+                // Update age field in the Firestore document if necessary
+                if (currentDate >= birthdate && userAge !== userData.age) {
+                    await updateDoc(currentUserDocRef, {
+                        age: userAge,
+                    });
+                }
 
                 // Set other user data
                 setCurrentUserData(userData);
