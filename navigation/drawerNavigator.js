@@ -10,12 +10,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAuth } from 'firebase/auth';
 import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
-import NetInfo from '@react-native-community/netinfo';
+import { db } from '../firebase/firebase';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-import { db } from '../firebase/firebase';
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../screens/Settings';
+import LoadingScreen from '../screens/LoadingScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import ViewProfile from '../screens/ViewProfile';
 import SelfieCapture from '../setUpScreens/SelfieCapture';
@@ -41,7 +41,6 @@ export default function DrawerStack() {
 
     const [profileComplete, setProfileComplete] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [connected, setConnected] = useState(false);
 
     // State variable appIsReady tracks when app is ready to render
     const [appIsReady, setAppIsReady] = useState(false);
@@ -86,24 +85,11 @@ export default function DrawerStack() {
             const userId = auth.currentUser.uid;
             const userDocRef = doc(db, 'profiles', userId);
 
-            updateDoc(userDocRef, {
-                lastActive: new Date()
-            }).catch(console.error);
-
-            unsubscribe.current = onSnapshot(userDocRef, async (docSnap) => {
+            unsubscribe.current = onSnapshot(userDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    const lastActive = data.lastActive.toDate();
-                    const now = new Date();
-                    const sixMonthsAgo = new Date(now.setMonth(now.getMonth() - 6));
-
-                    if (lastActive < sixMonthsAgo) {
-                        await auth.signOut();
-                        console.log('User logged out due to inactivity');
-                    } else {
-                        setProfileComplete(data.complete);
-                        setLoading(false);
-                    }
+                    setProfileComplete(data.complete);
+                    setLoading(false);
                 } else {
                     setProfileComplete(false);
                     setLoading(false);
@@ -120,15 +106,6 @@ export default function DrawerStack() {
         };
     }, []);
 
-    // Internet connectivity
-    useEffect(() => {
-        const unsubscribeNetInfo = NetInfo.addEventListener(state => {
-            setConnected(state.isConnected);
-        });
-
-        return () => unsubscribeNetInfo();
-    }, []);
-
     // Render loading page
     if (loading) {
         return (
@@ -136,16 +113,7 @@ export default function DrawerStack() {
                 <ActivityIndicator size="large" />
             </View>
         );
-    };
-
-    if (!connected) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ fontFamily: FONT.medium }}>Attempting to connect...</Text>
-                <ActivityIndicator size="large" />
-            </View>
-        );
-    };
+    }
 
     // LOGOUT
     const logoutConfirmation = async () => {
@@ -398,6 +366,7 @@ export default function DrawerStack() {
                 <Drawer.Screen name="Profile" component={SetUpProfile} options={{ headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileNavigator} options={{ headerShown: false }} />
                 <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
+                <Drawer.Screen name="Loading" component={LoadingScreen}/>
             </Drawer.Navigator>
         </NavigationContainer>
     )

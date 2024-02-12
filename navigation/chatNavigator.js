@@ -30,7 +30,9 @@ export default function ChatStack() {
             headerRight: () => (
               <Button
                 title="Report"
-                color="#fff"
+                type="outline"
+                buttonStyle={{ borderColor: '#000', backgroundColor: '#000' }}
+                titleStyle={{ color: '#fff' }}
                 onPress={() => {
                   Alert.alert(
                     'Report Options',

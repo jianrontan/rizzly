@@ -519,20 +519,26 @@ const HomeScreen = () => {
                         <Text style={styles.sliderValue}>
                             {isMiles ? `~ ${convertDistance(minDistance).toFixed(2)} - ${convertDistance(maxDistance).toFixed(2)} miles away` : `~ ${minDistance.toFixed(2)} - ${maxDistance.toFixed(2)} km away`}
                         </Text>
-                        <Button title="Apply Filter" onPress={() => {
-                            setFilterModalVisible(false);
-                            saveFilters(auth.currentUser.uid, minAge, maxAge, minDistance, maxDistance, minHeight, maxHeight);
-                            fetchData(); // Refresh the users list
-                        }} />
+                        <Button
+                            color="#000" // Black background
+                            onPress={() => {
+                                setFilterModalVisible(false);
+                                saveFilters(auth.currentUser.uid, minAge, maxAge, minDistance, maxDistance, minHeight, maxHeight);
+                                fetchData(); // Refresh the users list
+                            }}
+                            titleStyle={styles.buttonTitle} // Apply the style to the button's title
+                            title="Apply Filter"
+                        />
                     </View>
                 </View>
             </Modal>
         );
     };
+
     const saveFilters = async (uid, minAge, maxAge, minDistance, maxDistance, minHeight, maxHeight) => {
         try {
-            const minHeightCm = isMetric ? minHeight : convertHeightToCm(minHeight);
-            const maxHeightCm = isMetric ? maxHeight : convertHeightToCm(maxHeight);
+            const minHeightCm = isMetric ? convertHeightToCm(minHeight) : minHeight;
+            const maxHeightCm = isMetric ? convertHeightToCm(maxHeight) : maxHeight;
 
             // Get a reference to the 'filters' collection and the specific document using the user's UID
             const filterDocRef = doc(db, 'filters', uid);
@@ -664,20 +670,14 @@ const HomeScreen = () => {
                         </Swiper>
                         <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) }]}>
                             <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
-                            <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}`}</Text>
-                            <Text style={styles.userDetails}>Number of retakes: {user.retakes || 'No retakes'} </Text>
+                            <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}, Height: ${isMetric ? convertHeight(user.cmHeight) + ' ft' : user.cmHeight + ' cm'}`}</Text>
                             <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
-                            <Text style={styles.userDetails}>Height: {isMetric ? convertHeight(user.cmHeight) + ' ft' : user.cmHeight + ' cm'}</Text>
                             <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
                                 <Text style={styles.likeButton}>Like</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
-                {/* TouchableOpacity for filter modal button */}
-                <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
-                    <Feather name="chevron-down" size={30} color="black" />
-                </TouchableOpacity>
                 <TouchableOpacity
                     onPress={() => {
                         setSelectedUser(user); // Pass the user object directly
@@ -694,7 +694,7 @@ const HomeScreen = () => {
                                 <>
                                     <Text style={styles.modalinfo}>{selectedUser.firstName + ' ' + selectedUser.lastName || 'No name'}</Text>
                                     <Text style={styles.modalinfo}>{`${selectedUser.gender || 'No gender'}, Age: ${selectedUser.age || 'No age'}`}</Text>
-                                    <Text style={styles.modalinfo}>Number of retakes: {selectedUser.retakes || 'No retakes'} </Text>
+                                    <Text style={styles.modalinfo}>Number of Selfie retakes: {selectedUser.retakes || 'No retakes'} </Text>
                                     <Text style={styles.modalinfo}>Bio: {selectedUser.bio || 'No bio'} </Text>
                                     <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
                                     <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
@@ -856,6 +856,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1, // Ensure filter button appears above the images
+    },
+    buttonTitle: {
+        color: 'white', // Set the text color to white
+        fontWeight: 'bold',
     },
 });
 

@@ -6,6 +6,7 @@ import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { setLikes } from '../redux/actions';
 import { onSnapshot } from 'firebase/firestore';
+import { StyleSheet } from 'react-native';
 
 const LikesScreen = () => {
   const dispatch = useDispatch();
@@ -69,22 +70,57 @@ const LikesScreen = () => {
   }, [currentUserId, dispatch]);
 
   return (
-    <View>
+    <View style={styles.container}>
       {likedUsersData.length > 0 ? (
         likedUsersData.map((user, index) => (
-          <View key={index}>
-            <Text>Username: {user.firstName}</Text>
+          <View key={index} style={styles.userCard}>
+            <Text style={styles.usernameText}>Username: {user.firstName}</Text>
             <Image
               source={{ uri: user.imageURL }}
-              style={{ width: 100, height: 100 }} // Add your desired styling here
+              style={styles.userImage}
             />
           </View>
         ))
       ) : (
-        <Text>No Liked Users</Text>
+        <Text style={styles.noLikedText}>No Liked Users</Text>
       )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F7F7F7', // Light background color that complements the bear theme
+    padding: 16,
+  },
+  userCard: {
+    marginBottom: 16,
+    backgroundColor: '#FFFFFF', // White card with a bear-themed border or shadow
+    borderRadius: 10,
+    padding: 16,
+    elevation: 3, // For Android
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  usernameText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333', // Dark text for readability
+  },
+  userImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50, // Rounded corners for a softer look
+    marginTop: 8,
+  },
+  noLikedText: {
+    fontSize: 16,
+    fontWeight: 'normal',
+    color: '#999999', // Soft gray for less prominent text
+  },
+});
 
 export default LikesScreen;

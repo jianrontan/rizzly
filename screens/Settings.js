@@ -84,11 +84,28 @@ export default function SettingsScreen({ navigation }) {
 	return (
 		<SafeAreaView style={{ flex: 1 }}>
 			<ScrollView showsVerticalScrollIndicator={false}>
+				<View style={{ flex: 1 }}>
+					<TouchableOpacity onPress={Units}>
+						<View style={styles.settingView}>
+							<Text style={styles.settingText}>Units / Measurement</Text>
+						</View>
+					</TouchableOpacity>
+					<View style={styles.borderLine}></View>
+				</View>
 
 				<View style={{ flex: 1 }}>
 					<TouchableOpacity onPress={PauseProfile}>
 						<View style={styles.settingView}>
 							<Text style={styles.settingText}>Pause Profile</Text>
+						</View>
+					</TouchableOpacity>
+					<View style={styles.borderLine}></View>
+				</View>
+
+				<View style={{ flex: 1 }}>
+					<TouchableOpacity onPress={BlockList}>
+						<View style={styles.settingView}>
+							<Text style={styles.settingText}>Blocked List</Text>
 						</View>
 					</TouchableOpacity>
 					<View style={styles.borderLine}></View>
@@ -107,24 +124,6 @@ export default function SettingsScreen({ navigation }) {
 					<TouchableOpacity onPress={Contact}>
 						<View style={styles.settingView}>
 							<Text style={styles.settingText}>Contact Us</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
-				</View>
-
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity onPress={BlockList}>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Blocked List</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
-				</View>
-
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity onPress={Units}>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Units / Measurement</Text>
 						</View>
 					</TouchableOpacity>
 					<View style={styles.borderLine}></View>

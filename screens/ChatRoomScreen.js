@@ -318,7 +318,7 @@ const BubbleImage = (props) => {
       {...props}
       wrapperStyle={{
         [alignment]: {
-          backgroundColor: alignment === 'right' ? 'blue' : 'green',
+          backgroundColor: alignment === 'right' ? 'black' : 'white',
         },
       }}
     >
@@ -337,7 +337,7 @@ const BubbleRight = (props) => {
       {...props}
       wrapperStyle={{
         right: {
-          backgroundColor: 'blue',
+          backgroundColor: 'black',
         },
       }}
     />
@@ -350,7 +350,12 @@ const BubbleLeft = (props) => {
       {...props}
       wrapperStyle={{
         left: {
-          backgroundColor: 'green',
+          backgroundColor: 'white', // Set background color to white
+        },
+      }}
+      textStyle={{
+        left: {
+          color: 'black', // Set text color to black
         },
       }}
     />
