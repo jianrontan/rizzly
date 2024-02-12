@@ -32,6 +32,42 @@ const ViewOtherProfile = ({ navigation, route }) => {
     const statusBarHeight = StatusBar.currentHeight;
     const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
 
+    useFocusEffect(
+        React.useCallback(() => {
+            const fetchUnits = async () => {
+                try {
+                    const unitsDocRef = doc(db, 'units', auth.currentUser.uid);
+                    const unitsDocSnapshot = await getDoc(unitsDocRef);
+
+                    if (unitsDocSnapshot.exists()) {
+                        const unitsData = unitsDocSnapshot.data();
+                        setIsMetric(unitsData.isMetric);
+                        console.log('Successfully retrieved units:', unitsData);
+                    } else {
+                        // If no units document exists for the current user, use default values
+                        setIsMetric(false);
+                    }
+                } catch (error) {
+                    console.error('Error fetching units:', error);
+                }
+            };
+
+            fetchUnits();
+
+            // Cleanup function
+            return () => {
+                // You can perform any cleanup here if needed
+            };
+        }, []) // Empty dependency array means this effect runs only once when the component mounts
+    );
+
+    const convertHeight = (cm) => {
+        const inches = cm / 2.54;
+        const feet = Math.floor(inches / 12);
+        const remainingInches = Math.round(inches % 12);
+        return `${feet}' ${remainingInches}"`;
+    };
+
     const fetchCurrentUser = async () => {
         try {
             const user = auth.currentUser;
