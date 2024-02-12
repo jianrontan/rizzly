@@ -19,10 +19,12 @@ const width = Dimensions.get('window').width;
 const height = Dimensions.get('window').height;
 const cardWidth = width;
 
-const ViewOtherProfile = ({ navigation }) => {
+const ViewOtherProfile = ({ navigation, route }) => {
+    const { matchId } = route.params;
     const auth = getAuth();
     const [currentUserData, setCurrentUserData] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [isMetric, setIsMetric] = useState(false);
 
     // Dimensions
     const tabNavigatorHeight = 50;
@@ -38,7 +40,7 @@ const ViewOtherProfile = ({ navigation }) => {
                 return;
             }
 
-            const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
+            const currentUserDocRef = doc(db, 'profiles', matchId);
             const currentUserDoc = await getDoc(currentUserDocRef);
 
             if (currentUserDoc.exists()) {
@@ -108,12 +110,10 @@ const ViewOtherProfile = ({ navigation }) => {
                         ))}
                     </SwiperFlatList>
                     <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) }]}>
-                        <Text style={styles.userName}>{currentUserData.firstName || 'No name'}</Text>
-                        <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}`}</Text>
-                        <Text style={styles.userDetails}>Number of retakes: {currentUserData.retakes || 'No retakes'} </Text>
-                        <Text style={styles.userDetails}>Location: {currentUserData.location || 'No Location'} </Text>
-                        <Text style={styles.userDetails}>Height: {`${currentUserData.cmHeight} cm` || 'No Height'} </Text>
-                    </View>
+                            <Text style={styles.userName}>{currentUserData.firstName + ' ' + currentUserData.lastName || 'No name'}</Text>
+                            <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}, Height: ${isMetric ? convertHeight(currentUserData.cmHeight) + ' ft' : currentUserData.cmHeight + ' cm'}`}</Text>
+                            <Text style={styles.userDetails}>Location: {currentUserData.location || 'No Location'} </Text>
+                        </View>
                 </View>
             )}
             <TouchableOpacity
@@ -149,7 +149,7 @@ const ViewOtherProfile = ({ navigation }) => {
             </Modal>
         </SafeAreaView >
     );
-}; 
+};
 
 const styles = StyleSheet.create({
     container: {
