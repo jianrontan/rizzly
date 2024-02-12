@@ -2,28 +2,30 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import MatchesScreen from '../screens/MatchesScreen';
 import ChatRoomScreen from '../screens/ChatRoomScreen';
-import { useSelector, useDispatch } from 'react-redux';
-import Report from '../screens/Report'
-import { Button } from 'react-native-elements';
-import { Alert, TouchableOpacity } from 'react-native';
-import { Text } from 'react-native-elements';
-import { Image } from 'react-native-elements';
+import { useSelector } from 'react-redux';
+import Report from '../screens/Report';
+import ViewOtherProfile from '../screens/ViewOtherProfile';
+import { Button, TouchableOpacity, Alert } from 'react-native';
+import { Text, Image } from 'react-native-elements';
 
 const Stack = createStackNavigator();
 
-const CustomHeaderTitle = ({ userFirstName, imageUrl }) => (
-  <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center' }}>
+const CustomHeaderTitle = ({ userFirstName, imageUrl, navigation }) => (
+  <TouchableOpacity
+    style={{ flexDirection: 'row', alignItems: 'center' }}
+    onPress={() => navigation.navigate('ViewOtherProfile')}
+  >
     <Image
       style={{
-        width: 50,
-        height: 50,
-        borderRadius: 25, // Make it half of width and height to create a circular shape
-        marginLeft: 0, // Add left margin to separate the image and text
-        marginRight: 10, // Add right margin to separate the image from other content
+        width:  50,
+        height:  50,
+        borderRadius:  25,
+        marginLeft:  0,
+        marginRight:  10,
       }}
       source={{ uri: imageUrl }}
     />
-    <Text style={{ fontSize: 24, fontWeight: 'bold' }}>{userFirstName}</Text>
+    <Text style={{ fontSize:  24, fontWeight: 'bold' }}>{userFirstName}</Text>
   </TouchableOpacity>
 );
 
@@ -37,15 +39,15 @@ export default function ChatStack() {
         name="ChatRoom"
         component={ChatRoomScreen}
         options={({ route, navigation }) => {
-          const currentMatchId = route.params.userId; // Assuming you have the user ID in your route params
+          const currentMatchId = route.params?.userId;
           const currentMatch = matches.find(match => match.id === currentMatchId);
           const userFirstName = currentMatch ? currentMatch.firstName : '';
-          const imageUrl = currentMatch && currentMatch.imageURLs && currentMatch.imageURLs.length > 0
+          const imageUrl = currentMatch && currentMatch.imageURLs && currentMatch.imageURLs.length >  0
             ? currentMatch.imageURLs[0]
             : null;
 
           return {
-            headerTitle: () => <CustomHeaderTitle userFirstName={userFirstName} imageUrl={imageUrl} />,
+            headerTitle: () => <CustomHeaderTitle userFirstName={userFirstName} imageUrl={imageUrl} navigation={navigation} />,
             headerRight: () => (
               <Button
                 title="Report"
@@ -82,6 +84,7 @@ export default function ChatStack() {
         }}
       />
       <Stack.Screen name="Report" component={Report} />
+      <Stack.Screen name="ViewOtherProfile" component={ViewOtherProfile} />
     </Stack.Navigator>
   );
 }
