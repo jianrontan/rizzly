@@ -103,7 +103,7 @@ const MatchesScreen = ({ navigation }) => {
           navigation.navigate('ChatRoom', {
             chatRoomID,
             userId: item.id,
-            userName: item.firstName,
+            userFirstName: item.firstName,
           });
 
           if (!openedChatrooms.includes(chatRoomID)) {
