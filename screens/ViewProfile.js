@@ -12,6 +12,7 @@ import { Button } from 'react-native-elements';
 import { Swipeable } from 'react-native-gesture-handler';
 import Swiper from 'react-native-swiper';
 import { SwiperFlatList } from 'react-native-swiper-flatlist';
+import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 
 import { COLORS, SIZES, FONT } from '../constants';
 
@@ -23,12 +24,49 @@ const ViewProfile = ({ navigation }) => {
     const auth = getAuth();
     const [currentUserData, setCurrentUserData] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [isMetric, setIsMetric] = useState(false);
 
     // Dimensions
     const tabNavigatorHeight = 50;
     const headerHeight = useHeaderHeight();
     const statusBarHeight = StatusBar.currentHeight;
     const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
+
+    useFocusEffect(
+        React.useCallback(() => {
+            const fetchUnits = async () => {
+                try {
+                    const unitsDocRef = doc(db, 'units', auth.currentUser.uid);
+                    const unitsDocSnapshot = await getDoc(unitsDocRef);
+
+                    if (unitsDocSnapshot.exists()) {
+                        const unitsData = unitsDocSnapshot.data();
+                        setIsMetric(unitsData.isMetric);
+                        console.log('Successfully retrieved units:', unitsData);
+                    } else {
+                        // If no units document exists for the current user, use default values
+                        setIsMetric(false);
+                    }
+                } catch (error) {
+                    console.error('Error fetching units:', error);
+                }
+            };
+
+            fetchUnits();
+
+            // Cleanup function
+            return () => {
+                // You can perform any cleanup here if needed
+            };
+        }, []) // Empty dependency array means this effect runs only once when the component mounts
+    );
+
+    const convertHeight = (cm) => {
+        const inches = cm / 2.54;
+        const feet = Math.floor(inches / 12);
+        const remainingInches = Math.round(inches % 12);
+        return `${feet}' ${remainingInches}"`;
+    };
 
     const fetchCurrentUser = async () => {
         try {
@@ -98,7 +136,7 @@ const ViewProfile = ({ navigation }) => {
                     >
                         {allImages.map((imageUrl, index) => (
                             <View key={index} style={{ height: availableSpace, width: cardWidth }}>
-                                <Image
+                                <ImageZoom
                                     source={{ uri: imageUrl }}
                                     onLoad={() => console.log('Image loaded')}
                                     onError={(error) => console.log('Error loading image: ', error)}
@@ -108,11 +146,9 @@ const ViewProfile = ({ navigation }) => {
                         ))}
                     </SwiperFlatList>
                     <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) }]}>
-                        <Text style={styles.userName}>{currentUserData.firstName || 'No name'}</Text>
-                        <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}`}</Text>
-                        <Text style={styles.userDetails}>Number of retakes: {currentUserData.retakes || 'No retakes'} </Text>
+                        <Text style={styles.userName}>{currentUserData.firstName + ' ' + currentUserData.lastName || 'No name'}</Text>
+                        <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}, Height: ${isMetric ? convertHeight(currentUserData.cmHeight) + ' ft' : currentUserData.cmHeight + ' cm'}`}</Text>
                         <Text style={styles.userDetails}>Location: {currentUserData.location || 'No Location'} </Text>
-                        <Text style={styles.userDetails}>Height: {`${currentUserData.cmHeight} cm` || 'No Height'} </Text>
                     </View>
                 </View>
             )}

@@ -1,46 +1,37 @@
-import React, { useRef, useEffect } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 import LottieView from 'lottie-react-native';
 
-const width = Dimensions.get('window').width;
-const height = Dimensions.get('window').height;
-
-const LoadingScreen = ({ navigation }) => {
-    const animationRef = useRef(null);
+export default function Loading() {
+    const animationRef = React.useRef(null);
 
     useEffect(() => {
-        animationRef.current?.play();
-
-        // Stop the animation when the component unmounts
-        return () => {
-            animationRef.current?.reset();
-        };
+        animationRef.current?.reset();
+        setTimeout(() => {
+            animationRef.current?.play();
+        }, 100);
     }, []);
 
     return (
         <View style={styles.container}>
             <LottieView
                 ref={animationRef}
-                source={require('../constants/walking bear.json')}
+                source={require('../assets/walkingBear.json')} // Update the path to your Lottie file
                 loop
-                autoPlay
-                style={styles.lottie}
+                style={styles.animation}
             />
         </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        justifyContent: 'center',
     },
-    lottie: {
-        width: width,
-        height: height,
+    animation: {
+        width: 400, // Set explicit width
+        height: 400, // Set explicit height
     },
 });
-
-export default LoadingScreen;

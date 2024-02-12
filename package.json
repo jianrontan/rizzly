@@ -48,7 +48,7 @@
     "firebase": "^10.6.0",
     "firebase-admin": "^12.0.0",
     "firebase-functions": "^4.6.0",
-    "lottie-react-native": "^6.6.0",
+    "lottie-react-native": "^5.1.6",
     "patch-package": "^8.0.0",
     "react": "^18.2.0",
     "react-native": "0.72.6",

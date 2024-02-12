@@ -12,6 +12,7 @@ import { Button } from 'react-native-elements';
 import { Swipeable } from 'react-native-gesture-handler';
 import Swiper from 'react-native-swiper';
 import { SwiperFlatList } from 'react-native-swiper-flatlist';
+import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 
 import { COLORS, SIZES, FONT } from '../constants';
 
@@ -136,7 +137,7 @@ const ViewOtherProfile = ({ navigation, route }) => {
                     >
                         {allImages.map((imageUrl, index) => (
                             <View key={index} style={{ height: availableSpace, width: cardWidth }}>
-                                <Image
+                                <ImageZoom
                                     source={{ uri: imageUrl }}
                                     onLoad={() => console.log('Image loaded')}
                                     onError={(error) => console.log('Error loading image: ', error)}

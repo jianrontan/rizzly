@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { getAuth, deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
@@ -63,20 +63,52 @@ const DeleteAccountScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>Are you sure you want to delete your account?</Text>
+    <View style={styles.container}>
+      <Text style={styles.text}>Are you sure you want to delete your account?</Text>
       <TextInput
         placeholder="Enter your password"
         secureTextEntry
-        style={{ borderWidth: 1, margin: 10, padding: 8, width: 200 }}
+        style={styles.input}
         value={password}
         onChangeText={(text) => setPassword(text)}
       />
-      <TouchableOpacity onPress={deleteAccount} disabled={loading}>
-        <Text>Delete Account</Text>
+      <TouchableOpacity onPress={deleteAccount} disabled={loading} style={styles.button}>
+        <Text style={styles.buttonText}>Delete Account</Text>
       </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#3C280D', // Deep brown background
+  },
+  text: {
+    fontSize: 18,
+    color: '#FFFFFF', // White text color
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#D3A042', // Gold border color
+    margin: 10,
+    padding: 8,
+    width: 200,
+    backgroundColor: '#FFFFFF', // White input background
+    color: '#000000', // Black input text color
+  },
+  button: {
+    backgroundColor: '#D3A042', // Gold button color
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  buttonText: {
+    color: '#FFFFFF', // White button text color
+    fontWeight: 'bold',
+  },
+});
 
 export default DeleteAccountScreen;

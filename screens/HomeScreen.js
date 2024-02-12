@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
 import Spinner from 'react-native-loading-spinner-overlay';
+import Loading from '../screens/LoadingScreen'
 
 import { FONT, COLORS, SIZES, icons } from '../constants';
 
@@ -659,7 +660,7 @@ const HomeScreen = () => {
                         >
                             {allImages.map((imageUrl, imageIndex) => (
                                 <View key={imageIndex} style={{ height: availableSpace, width: cardWidth }}>
-                                    <Image
+                                    <ImageZoom
                                         source={{ uri: imageUrl }}
                                         onLoad={() => { }}
                                         onError={(error) => console.log('Error loading image: ', error)}
