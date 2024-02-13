@@ -5,6 +5,8 @@ import { db, auth } from '../firebase/firebase';
 import { useFocusEffect } from '@react-navigation/native';
 import { Icon } from 'react-native-elements';
 
+import { SIZES } from '../constants';
+
 const BlockList = () => {
   const [blockInput, setBlockInput] = useState('');
   const [blockedEmails, setBlockedEmails] = useState([]);
@@ -88,9 +90,9 @@ const BlockList = () => {
 
   const renderItem = ({ item }) => (
     <View style={styles.listItem}>
-      <Text>{item}</Text>
+      <Text style={styles.cardText}>{item}</Text>
       <TouchableOpacity onPress={() => handleUnblock(item)} style={styles.unblockButton}>
-        <Icon name='close' type='material-icons' />
+        <Icon name='close' type='material-icons' color='white' />
       </TouchableOpacity>
     </View>
   );
@@ -100,16 +102,24 @@ const BlockList = () => {
       <TextInput
         style={styles.input}
         placeholder="Enter email to block..."
+        placeholderTextColor={'white'}
         value={blockInput}
         onChangeText={text => setBlockInput(text)}
       />
       <TouchableOpacity
-        style={styles.blockButton}
+        style={{
+          backgroundColor: '#D3A042', // Gold button color
+          padding: 10,
+          borderRadius: 5,
+          marginTop: 40, // Move the button down by increasing marginTop
+          width: 150, // Set the width of the button
+          alignSelf: 'center', // Center the button horizontally
+        }} // Set the background color to gold
         onPress={handleBlock}
       >
-        <Text style={styles.blockButtonText}>Block Email</Text>
+        <Text style={{ color: 'white', fontSize: SIZES.medium, fontWeight: 'bold', textAlign: 'center' }}>Block Email</Text>
       </TouchableOpacity>
-      <FlatList
+      <FlatList style={{ top: 20, fontSize: SIZES.medium }}
         data={blockedEmails}
         renderItem={renderItem}
         keyExtractor={(item, index) => item}
@@ -120,45 +130,42 @@ const BlockList = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex:  1,
-    backgroundColor: '#FFF', // Assuming a light background for the app
-    padding:  10,
+    flex: 1,
+    backgroundColor: '#6e4639', // Primary color: #6e4639
+    padding: 10,
   },
   input: {
-    height:  40,
-    borderColor: 'gray',
-    borderWidth:  1,
-    paddingLeft:  10,
-    marginBottom:  10,
-    borderRadius:  5,
-  },
-  blockButton: {
-    backgroundColor: 'black',
-    paddingHorizontal:  15,
-    paddingVertical:  10,
-    borderRadius:  5,
-    marginTop:  10,
-    shadowColor: '#000',
-    shadowOffset: { width:  0, height:  2 },
-    shadowOpacity:  0.25,
-    shadowRadius:  3.84,
-    elevation:  5,
-  },
-  blockButtonText: {
+    borderWidth: 2,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 20,
+    marginBottom: 20,
+    textAlignVertical: 'top', // for multiline input to start from the top
     color: 'white',
-    fontSize:  16,
-    fontWeight: 'bold',
+    top: 30,
+    fontSize: SIZES.large,
   },
   listItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical:  10,
-    borderBottomWidth:  1,
+    flexDirection: 'row', // Ensures children are laid out in a row
+    justifyContent: 'space-between', // Spaces out children evenly
+    alignItems: 'center', // Vertically aligns children in the center
+    paddingVertical: 10,
+    borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
   unblockButton: {
-    paddingRight:  10,
+    paddingRight: 10,
+  },
+  card: {
+    backgroundColor: 'white', // Set the background color to white
+    padding: 10, // Add padding to the card
+    marginVertical: 10, // Add vertical margins for spacing
+    borderRadius: 5, // Optional: round corners of the card
+  },
+  cardText: {
+    color: 'white', // Change the text color to white
+    fontSize: SIZES.medium,
+    fontWeight: 'bold'
   },
 });
 

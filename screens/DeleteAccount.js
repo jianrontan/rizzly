@@ -4,6 +4,8 @@ import { getAuth, deleteUser, EmailAuthProvider, reauthenticateWithCredential } 
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
+import { SIZES } from '../constants';
+
 const DeleteAccountScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState('');
@@ -67,6 +69,7 @@ const DeleteAccountScreen = ({ navigation }) => {
       <Text style={styles.text}>Are you sure you want to delete your account?</Text>
       <TextInput
         placeholder="Enter your password"
+        placeholderTextColor={'white'}
         secureTextEntry
         style={styles.input}
         value={password}
@@ -87,23 +90,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#6e4639', // Deep brown background
   },
   text: {
-    fontSize: 18,
+    fontSize: SIZES.xLarge,
     color: '#FFFFFF', // White text color
-  },
+    fontWeight: 'bold',
+    textAlign: 'center' // This will center the text
+  },  
   input: {
-    borderWidth: 1,
-    borderColor: '#D3A042', // Gold border color
-    margin: 10,
-    padding: 8,
-    width: 200,
-    backgroundColor: '#FFFFFF', // White input background
-    color: '#000000', // Black input text color
+    borderWidth: 2,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 20,
+    textAlignVertical: 'top', // for multiline input to start from the top
+    color: 'white',
+    top: 20,
   },
   button: {
     backgroundColor: '#D3A042', // Gold button color
     padding: 10,
     borderRadius: 5,
-    marginTop: 10,
+    marginTop: 30,
   },
   buttonText: {
     color: '#FFFFFF', // White button text color

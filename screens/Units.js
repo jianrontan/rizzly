@@ -7,6 +7,8 @@ import { doc, setDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { db } from '../firebase/firebase';
 
+import { SIZES } from '../constants';
+
 const auth = getAuth();
 
 const Units = () => {
@@ -71,12 +73,12 @@ const Units = () => {
 
     return (
         <View style={styles.container}>
-            <Text> Change the units in this app with this page</Text>
+            <Text style={styles.title}> Change your units here </Text>
             <View style={styles.switchContainer}>
                 <Text style={styles.label}>Height:</Text>
                 <Switch
-                    trackColor={{ false: "#767577", true: "#81b0ff" }}
-                    thumbColor={isMetric ? "#f5dd4b" : "#f4f3f4"}
+                    trackColor={{ false: "#767577", true: "#ffd700" }} // Tertiary color: gold
+                    thumbColor={isMetric ? "#6e4639" : "#f4f3f4"} // Primary color: #6e4639
                     ios_backgroundColor="#3e3e3e"
                     onValueChange={toggleMetric}
                     value={isMetric}
@@ -86,8 +88,8 @@ const Units = () => {
             <View style={[styles.switchContainer, { marginTop: 20 }]}>
                 <Text style={styles.label}>Distance:</Text>
                 <Switch
-                    trackColor={{ false: "#767577", true: "#81b0ff" }}
-                    thumbColor={isMiles ? "#f5dd4b" : "#f4f3f4"}
+                    trackColor={{ false: "#767577", true: "#ffd700" }} // Tertiary color: gold
+                    thumbColor={isMiles ? "#6e4639" : "#f4f3f4"} // Primary color: #6e4639
                     ios_backgroundColor="#3e3e3e"
                     onValueChange={toggleMiles}
                     value={isMiles}
@@ -103,6 +105,7 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        backgroundColor: '#6e4639',
     },
     switchContainer: {
         flexDirection: 'row',
@@ -110,12 +113,20 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     label: {
-        fontSize: 16,
+        fontSize: 20,
         marginRight: 8,
+        color: 'white',
     },
     value: {
-        fontSize: 16,
+        fontSize: 20,
         marginLeft: 8,
+        color: 'white',
+    },
+    title: {
+        fontSize: SIZES.xLarge,
+        color: 'white',
+        bottom: 20,
+        fontWeight: 'bold'
     },
 });
 
