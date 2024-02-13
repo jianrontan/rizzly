@@ -59,7 +59,7 @@ const HomeScreen = () => {
     // console.log("headerHeight: ", headerHeight);
     const statusBarHeight = StatusBar.currentHeight;
     // console.log("statusBarHeight: ", statusBarHeight);
-    const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight ;
+    const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
     // console.log("cardHeight: ", cardHeight);
     // console.log("availableSpace: ", availableSpace);
     cardHeight = availableSpace;
@@ -481,12 +481,14 @@ const HomeScreen = () => {
                             allowOverlap={false}
                             snapped={true}
                             onValuesChangeFinish={(values) => {
-                                setMinHeight(values[0]);
-                                setMaxHeight(values[1]);
+                                const convertedMinHeight = isMetric ? convertHeight(values[0]) : values[0];
+                                const convertedMaxHeight = isMetric ? convertHeight(values[1]) : values[1];
+                                setMinHeight(convertedMinHeight);
+                                setMaxHeight(convertedMaxHeight);
                             }}
                         />
                         <Text style={styles.sliderValue}>
-                            {isMetric ? `${convertHeight(minHeight)} - ${convertHeight(maxHeight)} ft` : `${minHeight} - ${maxHeight} cm`}
+                            {isMetric ? `${convertHeight(minHeight)} ft - ${convertHeight(maxHeight)} ft` : `${minHeight} cm - ${maxHeight} cm`}
                         </Text>
                         <Text style={styles.sliderLabel}>Age Range</Text>
                         <MultiSlider
@@ -726,7 +728,7 @@ const HomeScreen = () => {
     };
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.container}>
                 {loading ? <ActivityIndicator /> : (
                     paused ? (
@@ -774,7 +776,7 @@ const HomeScreen = () => {
                 />
             </View>
             {renderModal()}
-        </GestureHandlerRootView>
+        </SafeAreaView>
     );
 }
 
