@@ -338,6 +338,8 @@ const BubbleRight = (props) => {
       wrapperStyle={{
         right: {
           backgroundColor: 'black',
+          alignItems: 'flex-end', // Align text to the right
+          justifyContent: 'flex-start', // Align text to the top
         },
       }}
     />
@@ -350,12 +352,14 @@ const BubbleLeft = (props) => {
       {...props}
       wrapperStyle={{
         left: {
-          backgroundColor: 'white', // Set background color to white
+          backgroundColor: 'white',
+          left:-40,
+          
         },
       }}
       textStyle={{
         left: {
-          color: 'black', // Set text color to black
+          color: 'black',
         },
       }}
     />
