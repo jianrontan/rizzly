@@ -49,17 +49,19 @@ export default function BottomTabStack({ navigation }) {
             <Tab.Screen
                 name="Likes"
                 component={LikesScreen}
-                options={{
-                    tabBarIcon: ({ color, size }) => (
-                        <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-                            <MaterialCommunityIcons name="heart" color={color} size={size} />
-                            <Text>{likesCount}</Text>
+                options={({ color, size }) => ({
+                    tabBarIcon: () => (
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <MaterialCommunityIcons name="heart" color={color} size={30} style={{ top: 1}} />
+                            <View style={{ position: 'absolute', zIndex: 1 }}>
+                                <Text style={{ marginLeft: 11, zIndex: 1, color:'white', fontFamily: FONT.medium }}>{likesCount}</Text>
+                            </View>
                         </View>
                     ),
                     tabBarLabel: 'Likes',
                     tabBarLabelStyle: appStyles.bottomTabLabel,
                     tabBarActiveTintColor: '#824444',
-                }}
+                })}
             />
             <Tab.Screen
                 name="Chats"
@@ -67,8 +69,10 @@ export default function BottomTabStack({ navigation }) {
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <View style={{ flexDirection: 'column', alignItems: 'center' }}>
-                            <MaterialCommunityIcons name="chat" color={color} size={size} />
-                            <Text>{unreadChatsCount}</Text>
+                            <MaterialCommunityIcons name="chat" color={color} size={30} />
+                            <View style={{ position: 'absolute', zIndex: 1 }}>
+                                <Text style={{ marginLeft: 0, zIndex: 1, color:'white', fontFamily: FONT.medium, top: 4}}>{unreadChatsCount}</Text>
+                            </View>
                         </View>
                     ),
                     tabBarLabel: 'Chats',

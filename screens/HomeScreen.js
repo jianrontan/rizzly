@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
-import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
+import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, useWindowDimensions, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot, setDoc } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
-import { useHeaderHeight } from '@react-navigation/elements';
+import { useHeaderHeight, getDefaultHeaderHeight } from '@react-navigation/elements';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SwiperFlatList } from 'react-native-swiper-flatlist';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
@@ -32,7 +33,6 @@ const HomeScreen = () => {
     const [swipedUpUsers, setSwipedUpUsers] = useState([]);
 
     const [scrolling, setScrolling] = useState(false);
-    const [currentIndex, setCurrentIndex] = useState(0);
     const [scrollCounter, setScrollCounter] = useState(0);
 
     const [scrollOffset, setScrollOffset] = useState(0);
@@ -53,22 +53,33 @@ const HomeScreen = () => {
     const [minDistance, setMinDistance] = useState(1);
     const [maxDistance, setMaxDistance] = useState(10);
 
+    const [contentHeight, setContentHeight] = useState(0);
+
+    const onLayout = (event) => {
+        const { height } = event.nativeEvent.layout;
+        setContentHeight(height);
+    }
+
+    console.log("contentHeight: ", contentHeight);
+
     const tabNavigatorHeight = useContext(BottomTabBarHeightContext);
     // console.log("tabNavigatorHeight: ", tabNavigatorHeight);
-    const headerHeight = useHeaderHeight();
+    const dimensions = useWindowDimensions();
+    const insets = useSafeAreaInsets();
+    let headerHeight = getDefaultHeaderHeight(dimensions, false, insets.top);
     // console.log("headerHeight: ", headerHeight);
     const statusBarHeight = StatusBar.currentHeight;
     // console.log("statusBarHeight: ", statusBarHeight);
+    if (insets.top === 0) {
+        headerHeight += statusBarHeight;
+    }
     const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
     // console.log("cardHeight: ", cardHeight);
     // console.log("availableSpace: ", availableSpace);
     cardHeight = availableSpace;
+    console.log("available space: ", availableSpace);
 
     const dispatch = useDispatch();
-    const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
-    const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
-    const [distanceRange, setDistanceRange] = useState([1, 10])
-    const [loading, setLoading] = useState(false);
     const flatListRef = useRef(null);
 
 
@@ -728,9 +739,9 @@ const HomeScreen = () => {
     };
 
     return (
-        <SafeAreaView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }} onLayout={onLayout}>
             <View style={styles.container}>
-                {loading ? <ActivityIndicator /> : (
+                {isLoading ? <ActivityIndicator /> : (
                     paused ? (
                         pausedRender
                     ) : (
@@ -785,9 +796,8 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     likeButton: {
-        fontFamily: FONT.medium,
         position: 'absolute',
-        bottom: 67,
+        bottom: 10,
         right: 10,
         backgroundColor: 'green',
         paddingHorizontal: 10,

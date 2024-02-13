@@ -91,7 +91,7 @@ const LikesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F7F7', // Light background color that complements the bear theme
+    backgroundColor: '#6e4639', // Light background color that complements the bear theme
     padding: 16,
   },
   userCard: {
