@@ -480,7 +480,7 @@ const HomeScreen = () => {
                             step={1}
                             allowOverlap={false}
                             snapped={true}
-                            onValuesChange={(values) => {
+                            onValuesChangeFinish={(values) => {
                                 setMinHeight(values[0]);
                                 setMaxHeight(values[1]);
                             }}
@@ -497,7 +497,7 @@ const HomeScreen = () => {
                             step={1}
                             allowOverlap={false}
                             snapped={true}
-                            onValuesChange={(values) => {
+                            onValuesChangeFinish={(values) => {
                                 setMinAge(values[0]);
                                 setMaxAge(values[1]);
                             }}
@@ -512,7 +512,7 @@ const HomeScreen = () => {
                             step={1}
                             allowOverlap={false}
                             snapped={true}
-                            onValuesChange={(values) => {
+                            onValuesChangeFinish={(values) => {
                                 setMinDistance(values[0]);
                                 setMaxDistance(values[1]);
                             }}
@@ -664,12 +664,12 @@ const HomeScreen = () => {
                                         source={{ uri: imageUrl }}
                                         onLoad={() => { }}
                                         onError={(error) => console.log('Error loading image: ', error)}
-                                        style={[styles.image, { bottom: (availableSpace - (cardWidth * 4 / 3)) / 2 }]}
+                                        style={[styles.image, { bottom: (availableSpace - (cardWidth * 4 / 3)) / 2 + 1 }]}
                                     />
                                 </View>
                             ))}
                         </Swiper>
-                        <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) }]}>
+                        <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) + 1 }]}>
                             <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
                             <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}, Height: ${isMetric ? convertHeight(user.cmHeight) + ' ft' : user.cmHeight + ' cm'}`}</Text>
                             <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>

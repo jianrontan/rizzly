@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#3C280D', // Deep brown background
+    backgroundColor: '#6e4639', // Deep brown background
   },
   text: {
     fontSize: 18,
