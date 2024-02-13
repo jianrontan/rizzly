@@ -84,7 +84,11 @@ export default function ChatStack() {
         }}
       />
       <Stack.Screen name="Report" component={Report} />
-      <Stack.Screen name="ViewOtherProfile" component={ViewOtherProfile} />
+      <Stack.Screen
+        name="ViewOtherProfile"
+        component={ViewOtherProfile}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 }

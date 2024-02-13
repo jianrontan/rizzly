@@ -530,6 +530,15 @@ const HomeScreen = () => {
                             titleStyle={styles.buttonTitle} // Apply the style to the button's title
                             title="Apply Filter"
                         />
+                        <Text></Text>
+                        <Button
+                            color="#000" // Black background
+                            onPress={() => {
+                                setFilterModalVisible(false);
+                            }}
+                            titleStyle={styles.buttonTitle} // Apply the style to the button's title
+                            title="Close modal"
+                        />
                     </View>
                 </View>
             </Modal>
