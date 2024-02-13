@@ -371,26 +371,26 @@ const HomeScreen = () => {
     }, [currentUserData]);
 
     const handleLikeClick = async (likedUserId) => {
+        console.log(`handleLikeClick triggered with user ID: ${likedUserId}`);
         try {
             const likedUserDocRef = doc(db, 'profiles', likedUserId);
 
             await updateDoc(likedUserDocRef, {
                 likedBy: arrayUnion(auth.currentUser.uid),
             });
+            console.log(`Successfully updated liked user ${likedUserId}'s document.`);
 
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
             await updateDoc(currentUserDocRef, {
                 likes: arrayUnion(likedUserId),
             });
+            console.log(`Successfully updated current user's document.`);
 
             // Remove the liked user from the users array
             setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
         } catch (error) {
             console.error('Error adding like:', error);
-        }
-        if (!swipedUpUsers.includes(likedUserId)) {
-            setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
         }
     };
 
@@ -695,12 +695,12 @@ const HomeScreen = () => {
                             <Text style={styles.userName}>{user.firstName + ' ' + user.lastName || 'No name'}</Text>
                             <Text style={styles.userDetails}>{`${user.gender || 'No gender'}, Age: ${user.age || 'No age'}, Height: ${isMetric ? convertHeight(user.cmHeight) + ' ft' : user.cmHeight + ' cm'}`}</Text>
                             <Text style={styles.userDetails}>Location: {user.location || 'No Location'} </Text>
-                            <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
-                                <Text style={styles.likeButton}>Like</Text>
-                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>
+                <TouchableOpacity onPress={() => handleLikeClick(user.id)}>
+                    <Text style={styles.likeButton}>Like</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                     onPress={() => {
                         setSelectedUser(user); // Pass the user object directly
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
     },
     likeButton: {
         position: 'absolute',
-        bottom: 10,
+        bottom: 50,
         right: 10,
         backgroundColor: 'green',
         paddingHorizontal: 10,

@@ -97,7 +97,29 @@ const MatchesScreen = ({ navigation }) => {
     const chatRoomID = [auth.currentUser.uid, item.id].sort().join('_');
     return (
       <TouchableOpacity
-        style={styles.matchContainer}
+        style={unreadMessages[chatRoomID] ? {
+          backgroundColor: 'white',
+          padding: 10,
+          marginVertical: 5,
+          borderRadius: 10, // Optional: to give rounded corners
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5,
+          borderWidth: 4, // Add borderWidth
+          borderColor: 'gold' // Add borderColor
+        } : {
+          backgroundColor: 'white',
+          padding: 10,
+          marginVertical: 5,
+          borderRadius: 10, // Optional: to give rounded corners
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.25,
+          shadowRadius: 3.84,
+          elevation: 5
+        }}
         onPress={async () => {
           const chatRoomID = [auth.currentUser.uid, item.id].sort().join('_');
           navigation.navigate('ChatRoom', {
@@ -135,18 +157,18 @@ const MatchesScreen = ({ navigation }) => {
           dispatch(setUnreadChatroomsCount(unreadCount));
         }}
       >
-        {/* Display the circular avatar */}
-        <Image
-          source={{
-            uri:
-              item.imageURLs && item.imageURLs.length > 0
-                ? item.imageURLs[0]
-                : null,
-          }}
-          style={styles.avatar}
-        />
-        <Text style={styles.name}>{item.firstName}</Text>
-        {unreadMessages[chatRoomID] && <View style={styles.unreadCircle} />}
+        <View style={styles.avatarWithNameContainer}>
+          <Image
+            source={{
+              uri:
+                item.imageURLs && item.imageURLs.length > 0
+                  ? item.imageURLs[0]
+                  : null,
+            }}
+            style={styles.avatar}
+          />
+          <Text style={styles.name}>{item.firstName}</Text>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -169,18 +191,24 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
+    backgroundColor: '#6e4639',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 20,
+    color: 'white',
   },
   matchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    // Define your desired styles for the match container
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 10, // Optional: to give rounded corners
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5, // Android shadow
   },
   avatar: {
     width: 50,
@@ -191,6 +219,10 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  avatarWithNameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center', // This will vertically center the items
   },
   newMessage: {
     color: 'red',
@@ -206,7 +238,7 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: 'black',
+    backgroundColor: '#D3A042',
     marginLeft: cardWidth / 2, // Adjust this value to control the distance between the circle and the text
   },
 
