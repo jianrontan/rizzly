@@ -7,12 +7,62 @@ import { getAuth } from 'firebase/auth';
 import { setLikes } from '../redux/actions';
 import { onSnapshot } from 'firebase/firestore';
 import { StyleSheet } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 const LikesScreen = () => {
   const dispatch = useDispatch();
   const [likedUsersData, setLikedUsersData] = useState([]);
   const auth = getAuth();
   const [currentUserId, setCurrentUserId] = useState(auth.currentUser?.uid || null);
+
+  const requestNotificationPermission = async () => {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== 'granted') {
+      alert('No notification permissions!');
+      return;
+    }
+  };
+  
+  useEffect(() => {
+    requestNotificationPermission();
+
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  }, []);
+
+  useEffect(() => {
+    let lastLikesCount = 0;
+
+    const unsubscribe = onSnapshot(doc(db, 'profiles', currentUserId), (doc) => {
+      const currentUserData = doc.data();
+      const currentLikesCount = currentUserData?.likedBy?.length || 0;
+
+      // Check if the number of likes has increased
+      if (currentLikesCount > lastLikesCount) {
+        // Schedule or send a notification
+        Notifications.scheduleNotificationAsync({
+          content: {
+            title: 'New Like',
+            body: 'Someone just liked your profile!',
+          },
+          trigger: null, // Trigger immediately
+        });
+      }
+
+      lastLikesCount = currentLikesCount; // Update the last known likes count
+
+      // Update the likes count in Redux store
+      dispatch(setLikes(currentLikesCount));
+    }, { includeMetadataChanges: true });
+
+    return unsubscribe;
+  }, [currentUserId, dispatch]);
+
 
   useEffect(() => {
     const unsubscribe = onSnapshot(doc(db, 'profiles', currentUserId), (doc) => {
