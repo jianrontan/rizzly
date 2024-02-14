@@ -33,7 +33,15 @@ export default function ChatStack() {
   const matches = useSelector(state => state.editProfileReducer.matchesVal);
 
   return (
-    <Stack.Navigator initialRouteName="Welcome">
+    <Stack.Navigator
+      initialRouteName="Welcome"
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: '#8c6c5d', // Background color changed to #6e4639
+        },
+        headerTintColor: 'white', // Text color changed to white
+      }}
+    >
       <Stack.Screen name="Matches" component={MatchesScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="ChatRoom"
@@ -49,11 +57,13 @@ export default function ChatStack() {
           return {
             headerTitle: () => <CustomHeaderTitle userFirstName={userFirstName} imageUrl={imageUrl} navigation={navigation} matchId={currentMatchId} />,
             headerRight: () => (
-              <Button
-                title="Report"
-                type="outline"
-                buttonStyle={{ borderColor: '#000', backgroundColor: '#000' }}
-                titleStyle={{ color: '#fff' }}
+              <TouchableOpacity
+                style={{
+                  backgroundColor: '#D3A042',
+                  borderRadius:  5,
+                  padding:  10,
+                  marginRight:  10,
+                }}
                 onPress={() => {
                   Alert.alert(
                     'Report Options',
@@ -61,29 +71,30 @@ export default function ChatStack() {
                     [
                       {
                         text: 'This is not the real person!',
-                        onPress: () => navigation.navigate('Report')
+                        onPress: () => navigation.navigate('Report'),
                       },
                       {
                         text: 'Inappropriate content/ Harassment',
-                        onPress: () => navigation.navigate('Report')
+                        onPress: () => navigation.navigate('Report'),
                       },
                       {
                         text: 'Safety issues',
-                        onPress: () => navigation.navigate('Report')
+                        onPress: () => navigation.navigate('Report'),
                       },
                       {
                         text: 'Cancel',
                         style: 'cancel',
-                      }
-                    ]
-                  )
+                      },
+                    ],
+                  );
                 }}
-              />
-            ),
+              >
+                <Text style={{ color: 'white', fontWeight: 'bold' }}>Report</Text>
+              </TouchableOpacity>
+            ),            
           };
         }}
       />
-      <Stack.Screen name="Report" component={Report} />
       <Stack.Screen
         name="ViewOtherProfile"
         component={ViewOtherProfile}

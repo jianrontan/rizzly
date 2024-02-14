@@ -284,11 +284,15 @@ export default function DrawerStack() {
             <Stack.Navigator
                 initialRouteName="Edit Settings"
                 backBehavior="initialRoute"
-                screenOptions={({ route }) => ({
-                    headerTitle: route.name,
+                screenOptions={{
+                    headerTitle: 'Edit Settings',
                     headerTitleAlign: 'center',
                     headerShadowVisible: 'true',
-                    headerTitleStyle: appStyles.headerFont,
+                    headerTitleStyle: [appStyles.headerFont, { color: 'white' }], // Make the text white
+                    headerStyle: {
+                        backgroundColor: '#8c6c5d', // Background color
+                    },
+                    headerTintColor: 'white', // Make the header icon white
                     headerLeft: () => {
                         const navigation = useNavigation();
                         return (
@@ -308,7 +312,7 @@ export default function DrawerStack() {
                             </View>
                         )
                     },
-                })}
+                }}
             >
                 <Stack.Screen name="Edit Settings" component={SettingsScreen} />
                 <Stack.Screen name="PauseProfile" component={PauseProfile} />
@@ -366,7 +370,7 @@ export default function DrawerStack() {
                 <Drawer.Screen name="Profile" component={SetUpProfile} options={{ headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileNavigator} options={{ headerShown: false }} />
                 <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
-                <Drawer.Screen name="Loading" component={LoadingScreen}/>
+                <Drawer.Screen name="Loading" component={LoadingScreen} />
             </Drawer.Navigator>
         </NavigationContainer>
     )

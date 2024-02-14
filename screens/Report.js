@@ -31,7 +31,7 @@ const Report = ({ navigation }) => {
             style={[styles.button, reportCategory === category.value && styles.selectedButton]}
             onPress={() => setReportCategory(category.value)}
           >
-            <Text>{category.label}</Text>
+            <Text style={styles.label}>{category.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -39,13 +39,16 @@ const Report = ({ navigation }) => {
         <TextInput
           style={styles.textInput}
           placeholder="Describe the incident..."
+          placeholderTextColor={'white'}
           value={incidentDetails}
           onChangeText={(text) => setIncidentDetails(text)}
           multiline
           onSubmitEditing={Keyboard.dismiss}
         />
       </View>
-      <Button title="Send Report" onPress={handleSendReport} />
+      <TouchableOpacity style={styles.sendButton} onPress={handleSendReport}>
+        <Text style={styles.sendButtonText}>Send Report</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -54,28 +57,47 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#6e4639'
   },
   categoriesContainer: {
-    marginBottom: 10,
+    marginBottom: 20, // Increased space between labels and text input
   },
   button: {
     padding: 10,
     margin: 5,
-    backgroundColor: '#007bff',
+    backgroundColor: '#D3A042',
     alignItems: 'center',
+    borderRadius: 20, // Rounded corners for labels
   },
   selectedButton: {
     opacity: 0.6,
   },
+  label: {
+    color: 'white',
+    fontSize: 16, // Increased font size for labels
+    fontWeight: 'bold'
+  },
   textInputContainer: {
-    marginBottom: 10,
+    marginBottom: 20, // Increased space between labels and text input
   },
   textInput: {
-    height: 100,
-    borderColor: 'gray',
+    height: 200,
+    borderColor: 'white',
     borderWidth: 1,
     padding: 10,
-    color: 'black', // Set the text color for TextInput
+    color: 'white', // Set the text color for TextInput
+    fontSize: 16, // Increased font size for text input
+  },
+  sendButton: {
+    backgroundColor: '#D3A042',
+    borderRadius: 20,
+    padding: 10,
+    alignItems: 'center',
+  },
+  sendButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

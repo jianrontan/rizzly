@@ -155,18 +155,17 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 	},
 	settingView: {
-		paddingTop: 40,
-		paddingBottom: 50,
+		paddingTop: 30,
+		paddingBottom: 30,
 	},
 	settingText: {
 		fontFamily: FONT.xLarge,
 		fontSize: SIZES.medium,
 		color: 'white', // Changed text color to white
-		fontWeight: 'bold',
-		left: 40,
+		left: 20,
 	},
 	fullBorderLine: {
-		borderBottomColor: "gold",
+		borderBottomColor: "white",
 		borderBottomWidth: 2, // Thickness of the border line
 		borderStyle: 'solid',
 		width: cardWidth,
