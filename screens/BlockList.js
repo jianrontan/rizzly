@@ -4,6 +4,7 @@ import { getFirestore, collection, query, where, getDoc, arrayRemove, updateDoc,
 import { db, auth } from '../firebase/firebase';
 import { useFocusEffect } from '@react-navigation/native';
 import { Icon } from 'react-native-elements';
+import { FlashList } from '@shopify/flash-list';
 
 const BlockList = () => {
   const [blockInput, setBlockInput] = useState('');
@@ -57,6 +58,7 @@ const BlockList = () => {
     } else {
       console.log('No document found with that email');
     }
+    setBlockInput('');
   };
 
   const handleUnblock = async (email) => {
@@ -120,45 +122,45 @@ const BlockList = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex:  1,
+    flex: 1,
     backgroundColor: '#FFF', // Assuming a light background for the app
-    padding:  10,
+    padding: 10,
   },
   input: {
-    height:  40,
+    height: 40,
     borderColor: 'gray',
-    borderWidth:  1,
-    paddingLeft:  10,
-    marginBottom:  10,
-    borderRadius:  5,
+    borderWidth: 1,
+    paddingLeft: 10,
+    marginBottom: 10,
+    borderRadius: 5,
   },
   blockButton: {
     backgroundColor: 'black',
-    paddingHorizontal:  15,
-    paddingVertical:  10,
-    borderRadius:  5,
-    marginTop:  10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 10,
     shadowColor: '#000',
-    shadowOffset: { width:  0, height:  2 },
-    shadowOpacity:  0.25,
-    shadowRadius:  3.84,
-    elevation:  5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   blockButtonText: {
     color: 'white',
-    fontSize:  16,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   listItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical:  10,
-    borderBottomWidth:  1,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
   unblockButton: {
-    paddingRight:  10,
+    paddingRight: 10,
   },
 });
 

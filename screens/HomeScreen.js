@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
-import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
+import React, { useEffect, useState, useRef, useContext, useMemo, useCallback } from 'react';
+import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, useWindowDimensions, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot, setDoc } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
-import { useHeaderHeight } from '@react-navigation/elements';
+import { useHeaderHeight, getDefaultHeaderHeight } from '@react-navigation/elements';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SwiperFlatList } from 'react-native-swiper-flatlist';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
@@ -16,8 +17,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
 import Spinner from 'react-native-loading-spinner-overlay';
-import Loading from '../screens/LoadingScreen'
+import { FlashList } from "@shopify/flash-list";
 
+import Loading from '../screens/LoadingScreen'
 import { FONT, COLORS, SIZES, icons } from '../constants';
 
 const width = Dimensions.get('window').width;
@@ -33,7 +35,6 @@ const HomeScreen = () => {
 
     const [scrolling, setScrolling] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [scrollCounter, setScrollCounter] = useState(0);
 
     const [scrollOffset, setScrollOffset] = useState(0);
     const [previousIndex, setPreviousIndex] = useState(0);
@@ -46,27 +47,26 @@ const HomeScreen = () => {
     const [currentUserDislikes, setCurrentUserDislikes] = useState([]);
     const [isMetric, setIsMetric] = useState(false);
     const [isMiles, setIsMiles] = useState(false);
-    const [minHeight, setMinHeight] = useState(100); // Default minimum height
-    const [maxHeight, setMaxHeight] = useState(200); // Default maximum height
+    const [minHeight, setMinHeight] = useState(100);
+    const [maxHeight, setMaxHeight] = useState(200);
     const [minAge, setMinAge] = useState(18);
     const [maxAge, setMaxAge] = useState(80);
     const [minDistance, setMinDistance] = useState(1);
     const [maxDistance, setMaxDistance] = useState(10);
 
-    const tabNavigatorHeight = useContext(BottomTabBarHeightContext);
-    // console.log("tabNavigatorHeight: ", tabNavigatorHeight);
-    const headerHeight = useHeaderHeight();
-    // console.log("headerHeight: ", headerHeight);
-    const statusBarHeight = StatusBar.currentHeight;
-    // console.log("statusBarHeight: ", statusBarHeight);
-    const availableSpace = height - tabNavigatorHeight - headerHeight + statusBarHeight;
-    // console.log("cardHeight: ", cardHeight);
-    // console.log("availableSpace: ", availableSpace);
+    const [contentHeight, setContentHeight] = useState(0);
+
+    const onLayout = (event) => {
+        const { height } = event.nativeEvent.layout;
+        setContentHeight(height);
+    };
+
+    const availableSpace = contentHeight;
     cardHeight = availableSpace;
 
     const dispatch = useDispatch();
-    const [heightRange, setHeightRange] = useState([100, 200]); // Default height range
-    const [ageRange, setAgeRange] = useState([18, 80]); // Default age range
+    const [heightRange, setHeightRange] = useState([100, 200]);
+    const [ageRange, setAgeRange] = useState([18, 80]);
     const [distanceRange, setDistanceRange] = useState([1, 10])
     const [loading, setLoading] = useState(false);
     const flatListRef = useRef(null);
@@ -351,7 +351,6 @@ const HomeScreen = () => {
             console.error('Error fetching data:', error);
         }
         setIsLoading(false);
-        setScrollCounter(0);
         flatListRef.current.scrollToOffset({ offset: 0, animated: false });
     };
 
@@ -411,6 +410,9 @@ const HomeScreen = () => {
     };
 
     const [currentProfiles, setCurrentProfiles] = useState([]);
+    const [canScroll, setCanScroll] = useState(true);
+    const [canZoom, setCanZoom] = useState(true);
+    // const [scrollCount, setScrollCount] = useState(0);
 
     useEffect(() => {
         if (users.length >= 2) {
@@ -422,33 +424,35 @@ const HomeScreen = () => {
 
     const onScroll = (event) => {
         let offsetY = event.nativeEvent.contentOffset.y;
-        console.log(offsetY);
-
+        console.log("offset: ", offsetY);
         if (offsetY >= availableSpace) {
-            // setScrollCounter(scrollCounter + 1);
-            if (currentProfiles.length > 0) {
-                const dislikedUserId = currentProfiles[0].id; // Assuming the first profile is the one to dislike
-                handleDislikeClick(dislikedUserId);
-            }
-            console.log("prevent going back")
+            // setScrollCount(scrollCount + 1);
+            setCanScroll(false);
             const remainingUsers = users.slice(1);
             setUsers(remainingUsers);
             setCurrentProfiles([users[0], users[1]]);
             flatListRef.current.scrollToOffset({ offset: 0, animated: false });
+            setCanScroll(true);
+            if (currentProfiles.length > 0) {
+                const dislikedUserId = currentProfiles[0].id; // Assuming the first profile is the one to dislike
+                handleDislikeClick(dislikedUserId);
+            }
         }
     };
 
     // useEffect(() => {
-    //     console.log('scrollCounter: ', scrollCounter);
-    // }, [scrollCounter]);
+    //     console.log('scrollCount: ', scrollCount);
+    // }, [scrollCount]);
 
     const onScrollStart = () => {
         setScrolling(true);
+        setCanZoom(false);
         console.log('SCROLLING ON');
     };
 
     const onScrollEnd = (event) => {
         setScrolling(false);
+        setCanZoom(true);
         console.log('SCROLLING OFF');
     };
 
@@ -605,7 +609,8 @@ const HomeScreen = () => {
 
     // FIX SWIPING FUNCTIONS ABOVE
 
-    const renderItem = ({ item: user }) => {
+    const renderItem = useCallback(({ item: user }) => {
+        console.log("renderItem availableSpace: ", availableSpace);
         if (!users.length) {
             return (
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -663,6 +668,8 @@ const HomeScreen = () => {
                                     <ImageZoom
                                         source={{ uri: imageUrl }}
                                         onLoad={() => { }}
+                                        isPanEnabled={canZoom}
+                                        isPinchEnabled={canZoom}
                                         onError={(error) => console.log('Error loading image: ', error)}
                                         style={[styles.image, { bottom: (availableSpace - (cardWidth * 4 / 3)) / 2 + 1 }]}
                                     />
@@ -714,34 +721,43 @@ const HomeScreen = () => {
                 </Modal>
             </Swipeable>
         );
-    };
+    });
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaView style={{ flex: 1 }} onLayout={onLayout}>
             <View style={styles.container}>
                 {loading ? <ActivityIndicator /> : (
                     paused ? (
                         pausedRender
                     ) : (
                         <>
-                            <FlatList
-                                ref={flatListRef}
-                                data={currentProfiles}
-                                keyExtractor={(user) => user.id}
-                                renderItem={renderItem}
-                                onScroll={onScroll}
-                                // onScrollBeginDrag={onScrollStart}
-                                // onScrollEndDrag={onScrollEnd}
-                                scrollEventThrottle={16}
-                                onEndReached={() => {
-                                    if (users[users.length - 1]?.id !== 'no-more-users') {
-                                        setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
-                                    }
-                                }}
-                                onEndReachedThreshold={0}
-                                showsVerticalScrollIndicator={false}
-                                alwaysBounceVertical={false}
-                            />
+                            {availableSpace > 0 && (
+                                <FlashList
+                                    ref={flatListRef}
+                                    data={users}
+                                    extraData={[users, currentProfiles]}
+                                    renderItem={renderItem}
+                                    keyExtractor={(user) => user.id}
+                                    onScroll={onScroll}
+                                    scrollEnabled={canScroll}
+                                    onScrollBeginDrag={onScrollStart}
+                                    onScrollEndDrag={onScrollEnd}
+                                    pagingEnabled
+                                    scrollEventThrottle={16}
+                                    onEndReached={() => {
+                                        if (users[users.length - 1]?.id !== 'no-more-users') {
+                                            setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+                                        }
+                                    }}
+                                    onEndReachedThreshold={0}
+                                    showsVerticalScrollIndicator={false}
+                                    alwaysBounceVertical={false}
+                                    estimatedItemSize={availableSpace}
+                                    maintainVisibleContentPosition={{
+                                        minIndexForVisible: 0,
+                                    }}
+                                />
+                            )}
                             {/* Filter modal button */}
                             <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
                                 <Feather name="chevron-down" size={30} color="black" />
@@ -765,9 +781,9 @@ const HomeScreen = () => {
                 />
             </View>
             {renderModal()}
-        </GestureHandlerRootView>
+        </SafeAreaView>
     );
-}
+};
 
 const styles = StyleSheet.create({
     container: {
