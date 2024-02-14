@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, BackHandler } from 'react-native';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, BackHandler, Dimensions } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { Switch } from 'react-native-switch';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -13,6 +13,9 @@ import SettingsComponent from '../components/settings/SettingsComponent';
 import DeleteAccount from '../screens/DeleteAccount';
 import PauseProfile from '../screens/PauseProfile';
 import { COLORS, FONT, SIZES } from '../constants';
+
+const cardWidth = Dimensions.get('window').width;
+const cardHeight = Dimensions.get('window').height;
 
 export default function SettingsScreen({ navigation }) {
 
@@ -82,7 +85,7 @@ export default function SettingsScreen({ navigation }) {
 	}
 
 	return (
-		<SafeAreaView style={{ flex: 1 }}>
+		<SafeAreaView style={styles.container}>
 			<ScrollView showsVerticalScrollIndicator={false}>
 				<View style={{ flex: 1 }}>
 					<TouchableOpacity onPress={Units}>
@@ -90,7 +93,7 @@ export default function SettingsScreen({ navigation }) {
 							<Text style={styles.settingText}>Units / Measurement</Text>
 						</View>
 					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
+					<View style={styles.fullBorderLine}></View>
 				</View>
 
 				<View style={{ flex: 1 }}>
@@ -99,7 +102,7 @@ export default function SettingsScreen({ navigation }) {
 							<Text style={styles.settingText}>Pause Profile</Text>
 						</View>
 					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
+					<View style={styles.fullBorderLine}></View>
 				</View>
 
 				<View style={{ flex: 1 }}>
@@ -108,7 +111,7 @@ export default function SettingsScreen({ navigation }) {
 							<Text style={styles.settingText}>Blocked List</Text>
 						</View>
 					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
+					<View style={styles.fullBorderLine}></View>
 				</View>
 
 				<View style={{ flex: 1 }}>
@@ -117,7 +120,7 @@ export default function SettingsScreen({ navigation }) {
 							<Text style={styles.settingText}>Delete Account</Text>
 						</View>
 					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
+					<View style={styles.fullBorderLine}></View>
 				</View>
 
 				<View style={{ flex: 1 }}>
@@ -126,7 +129,7 @@ export default function SettingsScreen({ navigation }) {
 							<Text style={styles.settingText}>Contact Us</Text>
 						</View>
 					</TouchableOpacity>
-					<View style={styles.borderLine}></View>
+					<View style={styles.fullBorderLine}></View>
 				</View>
 
 			</ScrollView>
@@ -137,7 +140,7 @@ export default function SettingsScreen({ navigation }) {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: 'white',
+		backgroundColor: '#6e4639', // Changed background color to brown
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
@@ -151,27 +154,22 @@ const styles = StyleSheet.create({
 		justifyContent: "center",
 		alignItems: "center",
 	},
-	textStyle: {
-		fontFamily: FONT.medium,
-		fontSize: SIZES.smallmedium,
-		color: COLORS.white,
-	},
-	textStyle2: {
-		fontFamily: FONT.medium,
-		fontSize: SIZES.smallmedium,
-		color: 'black',
-	},
 	settingView: {
-		paddingHorizontal: 20,
-		paddingTop: 20,
-		paddingBottom: 20,
+		paddingTop: 40,
+		paddingBottom: 50,
 	},
 	settingText: {
-		fontFamily: FONT.medium,
+		fontFamily: FONT.xLarge,
 		fontSize: SIZES.medium,
+		color: 'white', // Changed text color to white
+		fontWeight: 'bold',
+		left: 40,
 	},
-	borderLine: {
-		borderBottomColor: "black",
-		borderBottomWidth: 1,
+	fullBorderLine: {
+		borderBottomColor: "gold",
+		borderBottomWidth: 2, // Thickness of the border line
+		borderStyle: 'solid',
+		width: cardWidth,
+		alignSelf: 'flex-start', // Align the border lines to the left
 	},
 });

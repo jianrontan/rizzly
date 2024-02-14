@@ -168,21 +168,17 @@ export default function MyName({ navigation }) {
     );
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#6e4639' }}>
             <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
 
                 <View style={styles.buttonsContainer}>
-                    <TouchableOpacity>
-                        <Text style={styles.heading}>Your last name will only be shared {"\n"}with matches</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit}>
-                        <View>
-                            <Text style={styles.headingBold}>Save Changes</Text>
-                        </View>
+                    <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit} style={styles.goldButton}>
+                        <Text style={styles.whiteText}>Save Changes</Text>
                     </TouchableOpacity>
                 </View>
 
-                <View style={{ paddingVertical: 10 }}>
+
+                <View style={{ paddingVertical: 20 }}>
                     <View style={styles.dropdownInputStyle}>
                         <TextInput
                             autoFocus={false}
@@ -190,7 +186,7 @@ export default function MyName({ navigation }) {
                             onChangeText={setFirstName}
                             maxLength={100}
                             placeholder="First Name"
-                            selectionColor={'black'}
+                            selectionColor={'white'}
                             style={styles.responseTextStyle}
                         />
                     </View>
@@ -204,10 +200,14 @@ export default function MyName({ navigation }) {
                             onChangeText={setLastName}
                             maxLength={100}
                             placeholder="Last Name"
-                            selectionColor={'black'}
+                            selectionColor={'white'}
                             style={styles.responseTextStyle}
                         />
                     </View>
+                </View>
+
+                <View>
+                    <Text style={styles.heading}>Your first name will only be shared {"\n"}with matches</Text>
                 </View>
 
                 <Spinner
@@ -279,13 +279,20 @@ const styles = StyleSheet.create({
     },
     heading: {
         fontFamily: FONT.medium,
-        fontSize: SIZES.small,
-        color: 'gray'
+        fontSize: SIZES.medium,
+        color: 'white',
+        top: 50,
+        left: 10,
     },
-    headingBold: {
-        fontFamily: FONT.bold,
-        fontSize: SIZES.small,
-        color: 'gray'
+    goldButton: {
+        backgroundColor: '#D3A042',
+        padding: 15,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    whiteText: {
+        color: 'white',
+        fontWeight: 'bold',
     },
     btnContainer: {
         width: 200,
@@ -304,29 +311,36 @@ const styles = StyleSheet.create({
     },
     dropdownTextStyle: {
         fontFamily: FONT.medium,
-        fontSize: SIZES.smallmedium,
-        color: 'black',
+        fontSize: SIZES.medium,
+        color: 'white',
     },
     dropdownInputStyle: {
         width: width - 20,
         alignSelf: 'center',
-        borderWidth: 1,
+        borderWidth: 2,
         borderRadius: 5,
+        height: 60, // Adjust the height as needed
+        color: 'white',
+        borderColor: 'white'
     },
     responseTextStyle: {
         fontFamily: FONT.medium,
-        fontSize: SIZES.mediumlarge,
-        paddingHorizontal: 10
+        fontSize: SIZES.large,
+        paddingHorizontal: 10,
+        color: 'white',
+        paddingTop: 15,
+        paddingLeft: 20 // Add padding to the left for centering
     },
     buttonsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         padding: 10,
+        left: 250,
     },
     borderLine: {
         width: width - 10,
         alignSelf: 'center',
-        borderBottomColor: "gray",
+        borderBottomColor: "white",
         borderBottomWidth: 1,
     },
 });

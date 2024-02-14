@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
-import { Text, View, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { Text, View, TouchableOpacity, Image, Dimensions, StyleSheet } from 'react-native';
 import {
   collection,
   addDoc,
@@ -19,10 +19,13 @@ import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import Spinner from 'react-native-loading-spinner-overlay';
+
+import { SIZES, FONT } from '../constants';
 
 const { width, height } = Dimensions.get('window');
 const cardWidth = width;
-const cardHeight = height - 170;
+const cardHeight = height;
 
 const ChatRoom = ({ route }) => {
   const { chatRoomID, userId, userName, navigation } = route.params;
@@ -35,6 +38,7 @@ const ChatRoom = ({ route }) => {
   const [showChat, setShowChat] = useState(true);
   const [firstMessageSent, setFirstMessageSent] = useState(false);
   const dispatch = useDispatch();
+  const [isUploading, setIsUploading] = useState(false);
 
   const goToReport = () => {
     navigation.navigate('Report');
@@ -196,44 +200,68 @@ const ChatRoom = ({ route }) => {
   };
 
   const capturePhoto = async () => {
-    if (cameraRef.current && !isCapturing) {
-      setIsCapturing(true);
-      const photo = await cameraRef.current.takePictureAsync({ base64: true });
-      setIsCapturing(false);
-      return photo.uri;
+    if (cameraRef.current) {
+      try {
+        setIsCapturing(true);
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.5, // Lower the quality to reduce file size
+          skipProcessing: true, // Skip processing to speed up capture
+          base64: true,
+        });
+        setIsCapturing(false);
+        return photo.uri;
+      } catch (error) {
+        console.error("Failed to capture photo", error);
+        setIsCapturing(false);
+      }
     }
   };
 
   const sendPhoto = async () => {
     const photoUri = await capturePhoto();
-    const imageUrl = await uploadPhoto(photoUri);
+    if (photoUri) {
+      setIsUploading(true); // Start showing the spinner
+      const imageUrl = await uploadPhoto(photoUri);
 
-    const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
+      const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
+      await addDoc(messagesCollection, {
+        image: imageUrl,
+        createdAt: serverTimestamp(),
+        senderId: auth.currentUser.uid,
+        user: {
+          name: auth.currentUser.displayName,
+        },
+        timestamp: new Date(),
+      });
 
-    await addDoc(messagesCollection, {
-      image: imageUrl,
-      createdAt: serverTimestamp(),
-      senderId: auth.currentUser.uid,
-      user: {
-        name: auth.currentUser.displayName,
-      },
-      timestamp: new Date(),
-    });
-
-    // Close the camera after sending the photo
-    closeCamera();
+      setIsUploading(false); // Stop showing the spinner
+      closeCamera();
+    }
   };
 
   return (
-    <>
+    <View style={styles.container}>
       {!firstMessageSent && (
-        < View style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ justifyContent: 'center', alignItems: 'center' }}>
           <Text>Start chatting...</Text>
         </View>
       )}
       {showCamera && (
         <View style={{ flex: 1 }}>
-          <Camera style={{ width: cardWidth, height: cardHeight }} type={type} ref={cameraRef}>
+          <Camera style={styles.cameraContainer} type={type} ref={cameraRef}>
+          <Spinner
+                    visible={isUploading}
+                    animation='fade'
+                    overlayColor="rgba(0, 0, 0, 0.25)"
+                    color="white"
+                    textContent='Loading...'
+                    textStyle={{
+                        fontFamily: FONT.bold,
+                        fontSize: SIZES.medium,
+                        fontWeight: 'normal',
+                        color: 'white',
+                    }}
+                />
             <TouchableOpacity
               style={{
                 position: 'absolute',
@@ -245,7 +273,7 @@ const ChatRoom = ({ route }) => {
                 padding: 10,
               }}
               onPress={closeCamera}>
-              <Icon name="times" size={30} color="white" />
+              <Icon name="times" size={30} color="black" />
             </TouchableOpacity>
             <TouchableOpacity
               style={{
@@ -258,7 +286,7 @@ const ChatRoom = ({ route }) => {
                 padding: 10,
               }}
               onPress={flipCamera}>
-              <Icon name="exchange" size={30} color="white" />
+              <Icon name="exchange" size={30} color="black" />
             </TouchableOpacity>
             <TouchableOpacity
               style={{
@@ -307,18 +335,19 @@ const ChatRoom = ({ route }) => {
           renderInputToolbar={(props) => <CustomInputToolbar {...props} />}
         />
       )}
-    </>
+    </View>
   );
 }
 const BubbleImage = (props) => {
   const alignment = props.currentMessage.user._id === auth.currentUser.uid ? 'right' : 'left';
+  const backgroundColor = alignment === 'right' ? '#000' : '#fff'; // Adjust background color based on alignment
 
   return (
     <Bubble
       {...props}
       wrapperStyle={{
         [alignment]: {
-          backgroundColor: alignment === 'right' ? 'black' : 'white',
+          backgroundColor: backgroundColor, // Use dynamically determined background color
         },
       }}
     >
@@ -353,8 +382,8 @@ const BubbleLeft = (props) => {
       wrapperStyle={{
         left: {
           backgroundColor: 'white',
-          left:-40,
-          
+          left: -40,
+
         },
       }}
       textStyle={{
@@ -365,5 +394,19 @@ const BubbleLeft = (props) => {
     />
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#6e4639', // Set background color here
+  },
+  cameraContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    zIndex: 999,
+    height: 999,
+  },
+});
 
 export default ChatRoom;

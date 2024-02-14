@@ -1,19 +1,30 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 const ContactUsScreen = () => {
   const [message, setMessage] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (message.trim() === '') {
       Alert.alert('Error', 'Please enter your message.');
       return;
     }
 
-    // You can implement the logic to send the message to your backend or handle it as needed.
-    // For now, just show an alert to indicate that the message has been sent.
-    Alert.alert('Success', 'Your message has been sent. We will get back to you soon.');
-    setMessage('');
+    const auth = getAuth();
+    const db = getFirestore();
+    const userUid = auth.currentUser.uid;
+
+    try {
+      const contactRef = doc(db, 'contacts', userUid);
+      await setDoc(contactRef, { message });
+      Alert.alert('Success', 'Your message has been sent. We will get back to you soon.');
+      setMessage('');
+    } catch (error) {
+      console.error('Error sending message:', error);
+      Alert.alert('Error', 'Failed to send message. Please try again later.');
+    }
   };
 
   return (

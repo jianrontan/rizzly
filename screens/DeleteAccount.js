@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#ccc',
     borderRadius: 8,
-    padding: 10,
+    padding: 20,
     marginBottom: 20,
     textAlignVertical: 'top', // for multiline input to start from the top
     color: 'white',

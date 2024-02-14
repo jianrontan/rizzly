@@ -52,7 +52,7 @@ export default function BottomTabStack({ navigation }) {
                 options={({ color, size }) => ({
                     tabBarIcon: () => (
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                            <MaterialCommunityIcons name="heart" color={color} size={30} style={{ top: 1}} />
+                            <MaterialCommunityIcons name="heart" color={COLORS.primary} size={30} style={{ top: 1}} />
                             <View style={{ position: 'absolute', zIndex: 1 }}>
                                 <Text style={{ marginLeft: 11, zIndex: 1, color:'white', fontFamily: FONT.medium }}>{likesCount}</Text>
                             </View>
