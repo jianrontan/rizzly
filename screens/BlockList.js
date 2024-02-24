@@ -59,6 +59,7 @@ const BlockList = () => {
     } else {
       console.log('No document found with that email');
     }
+    setBlockInput('');
   };
 
   const handleUnblock = async (email) => {

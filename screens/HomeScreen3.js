@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, useWindowDimensions, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, startAfter, onSnapshot, orderBy, setDoc, limit } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot, setDoc } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useHeaderHeight, getDefaultHeaderHeight } from '@react-navigation/elements';
@@ -49,9 +49,6 @@ const HomeScreen = () => {
     const [maxDistance, setMaxDistance] = useState(10);
     const [contentHeight, setContentHeight] = useState(0);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [retryCount, setRetryCount] = useState(0);
-    const [lastVisible, setLastVisible] = useState(null);
-
     const dispatch = useDispatch();
     // DECLARE VARIABLES
 
@@ -78,6 +75,9 @@ const HomeScreen = () => {
                 setMaxHeight(filterData.maxHeight);
                 setMinDistance(filterData.minDistance);
                 setMaxDistance(filterData.maxDistance);
+
+                // Log the success message here
+                console.log('Successfully retrieved filter data:', filterData);
             } else {
                 // If no filter settings document exists for the current user, use default values
                 setMinAge(18);
@@ -282,92 +282,73 @@ const HomeScreen = () => {
 
     // FETCH PROFILE DATA
     const fetchData = async () => {
-
         setIsLoading(true);
-
-        // Fetch filters
         await fetchFilters();
-
-        // Clear users array and reset index if reset
-        setUsers([]);
-        setCurrentIndex(0);
-
         try {
             if (!currentUserData) {
                 return;
             }
-            // Grab a bunch of users limit to 50
             const usersCollection = collection(db, 'profiles');
-            let q = query(usersCollection, orderBy('latitude'), limit(50));
+            const snapshot = await getDocs(usersCollection);
+            let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-            if (lastVisible) {
-                q = query(usersCollection, orderBy('latitude'), startAfter(lastVisible), limit(50));
-            }
+            // Filter users based on the ranges set by the user in the modal
+            let filteredUsers = usersData.filter(isUserWithinRanges);
 
-            // Filter the users
-            setRetryCount(retryCount + 1);
-            try {
-                const snapshot = await getDocs(q);
+            // Filter users based on gender and current user's orientation
+            filteredUsers = filteredUsers.filter((user) => {
+                const userGender = user.gender?.toLowerCase?.();
 
-                let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+                if (currentUserData.orientation) {
+                    const { male, female, nonBinary } = currentUserData.orientation;
 
-                // Apply filter ranges
-                let filteredUsers = usersData.filter(isUserWithinRanges);
-                // Filter orientation
-                filteredUsers = filteredUsers.filter((user) => {
-                    const userGender = user.gender?.toLowerCase?.();
-                    if (currentUserData.orientation) {
-                        const { male, female, nonBinary } = currentUserData.orientation;
-                        if (userGender === 'female' && female) {
-                            return true;
-                        } else if (userGender === 'male' && male) {
-                            return true;
-                        } else if (userGender === 'non-binary' && nonBinary) {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                    if (userGender === 'female' && female) {
+                        return true;
+                    } else if (userGender === 'male' && male) {
+                        return true;
+                    } else if (userGender === 'nonbinary' && nonBinary) {
+                        return true;
+                    } else {
+                        return false;
                     }
-                    return true;
-                });
-                // Filter distance
-                filteredUsers = filteredUsers.filter((user) => {
-                    const distance = haversineDistance(currentUserData.latitude, currentUserData.longitude, user.latitude, user.longitude);
-                    return distance >= minDistance && distance <= maxDistance;
-                });
-                // Filter likes/ dislikes
-                filteredUsers = filteredUsers.filter(
-                    // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserDislikes.includes(user.id) && !currentUserLikes.includes(user.id)
-                    // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
-                    (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
-                );
-                // Filter blocked users
-                filteredUsers = filteredUsers.filter(
-                    (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
-                );
-
-                setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-
-                if (filteredUsers.length === 0) {
-                    // If no one matches filter description
-                    setUsers([{ id: 'no-more-users' }]);
-                } else {
-                    // Set the users state
-                    setUsers([...filteredUsers]);
-                    setUsers((prevUsers) => [...prevUsers, { id: 'last-user' }]);
                 }
 
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            };
+                return true;
+            });
+
+            // Calculate distance for each user and filter based on distance range
+            filteredUsers = filteredUsers.filter((user) => {
+                const distance = haversineDistance(currentUserData.latitude, currentUserData.longitude, user.latitude, user.longitude);
+                return distance >= minDistance && distance <= maxDistance;
+            });
+
+            // Exclude the current user and swiped up users from the list
+            filteredUsers = filteredUsers.filter(
+                // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserDislikes.includes(user.id) && !currentUserLikes.includes(user.id)
+                // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
+                (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
+            );
+
+            // Exclude users who have blocked the current user
+            filteredUsers = filteredUsers.filter(
+                (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
+            );
+
+            // Limit the number of users to render to the first 10
+            filteredUsers = filteredUsers.slice(0, 10);
+
+            if (filteredUsers.length === 0) {
+                // If no users match the filter criteria, set the users state with a single object representing the "No More Users" screen
+                setUsers([{ id: 'no-more-users' }]);
+            } else {
+                // Set the users state with the filtered users
+                setUsers([...filteredUsers]);
+                setUsers((prevUsers) => [...prevUsers, { id: 'no-more-users' }]);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
         setIsLoading(false);
-    };
-
-    const fetchData2 = async (userId) => {
-
     };
 
     useEffect(() => {
@@ -390,7 +371,7 @@ const HomeScreen = () => {
 
             await updateDoc(currentUserDocRef, {
                 likes: arrayUnion(likedUserId),
-            }); ``
+            });
             console.log(`Successfully updated current user's document.`);
 
             // Remove the liked user from the users array
@@ -456,6 +437,9 @@ const HomeScreen = () => {
             setMaxDistanceIntermediate(maxDistance);
         }, [minHeight, maxHeight, minAge, maxAge, minDistance, maxDistance]);
 
+        // console.log("isMetric: ", isMetric);
+        // console.log("maxHeightIntermediate: ", maxHeightIntermediate);
+
         return (
             <Modal
                 animationType="slide"
@@ -474,7 +458,6 @@ const HomeScreen = () => {
                             min={100}
                             max={250}
                             step={1}
-                            minMarkerOverlapDistance={50}
                             allowOverlap={false}
                             onValuesChangeFinish={(values) => {
                                 setMinHeightIntermediate(values[0]);
@@ -642,26 +625,13 @@ const HomeScreen = () => {
             );
         }
 
-        // When users from the start
         if (user.id === 'no-more-users') {
-            if (retryCount < 5) {
-                setRetryCount(retryCount + 1);
-                fetchData();
-                return;
-            } else {
-                return (
-                    <View style={{ width: cardWidth, height: availableSpace }}>
-                        <NoMoreUserScreen />
-                    </View>
-                );
-            };
+            return (
+                <View style={{ width: cardWidth, height: availableSpace }}>
+                    <NoMoreUserScreen />
+                </View>
+            );
         }
-
-        // When have users and run out
-        if (user.id === 'last-user') {
-            fetchData();
-            return;
-        };
 
         const allImages = user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
 
@@ -741,10 +711,9 @@ const HomeScreen = () => {
     // USER CARD
 
     useEffect(() => {
-        console.log("retryCount: ", retryCount);
         console.log("Current Index: ", currentIndex);
         console.log("Users length: ", users.length);
-    }, [currentIndex, users, retryCount]);
+    }, [currentIndex, users])
 
     // RENDER
     return (
@@ -754,16 +723,16 @@ const HomeScreen = () => {
                     pausedRender
                 ) : (
                     <>
-                        {users.length > 0 && !isLoading && (
+                        {users.length > 0 && (
                             <FlatList
-                            data={[users[currentIndex]]}
-                            renderItem={renderItem}
-                            keyExtractor={(user) => user.id}
-                            scrollEnabled={false}
-                            showsVerticalScrollIndicator={false}
-                        />
-                    )}
-                    <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
+                                data={[users[currentIndex]]}
+                                renderItem={renderItem}
+                                keyExtractor={(user) => user.id}
+                                scrollEnabled={false}
+                                showsVerticalScrollIndicator={false}
+                            />
+                        )}
+                        <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
                             <Feather name="chevron-down" size={30} color="black" />
                         </TouchableOpacity>
                     </>
@@ -773,13 +742,13 @@ const HomeScreen = () => {
                     visible={isLoading}
                     animation='fade'
                     overlayColor="rgba(0, 0, 0, 0.25)"
-                    color="black"
+                    color="white"
                     textContent='Loading...'
                     textStyle={{
                         fontFamily: FONT.bold,
                         fontSize: SIZES.medium,
                         fontWeight: 'normal',
-                        color: 'black',
+                        color: 'white',
                     }}
                 />
             </View>
