@@ -15,7 +15,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../screens/Settings';
-import LoadingScreen from '../screens/LoadingScreen';
+import CustomLoadingScreen from '../screens/LoadingScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import ViewProfile from '../screens/ViewProfile';
 import SelfieCapture from '../setUpScreens/SelfieCapture';
@@ -110,7 +110,7 @@ export default function DrawerStack() {
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" />
+                <CustomLoadingScreen/>
             </View>
         );
     }
@@ -370,7 +370,7 @@ export default function DrawerStack() {
                 <Drawer.Screen name="Profile" component={SetUpProfile} options={{ headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileNavigator} options={{ headerShown: false }} />
                 <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
-                <Drawer.Screen name="Loading" component={LoadingScreen} />
+                <Drawer.Screen name="Loading" component={CustomLoadingScreen} />
             </Drawer.Navigator>
         </NavigationContainer>
     )

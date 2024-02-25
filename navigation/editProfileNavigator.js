@@ -29,7 +29,6 @@ import Vices from '../screens/Vices';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
-import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';
 
 const Stack = createStackNavigator();

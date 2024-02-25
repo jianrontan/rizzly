@@ -9,11 +9,12 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 import Welcome from '../authentication/welcome';
-import SignIn from '../authentication/signin';
+import SignIn from '../authentication/signupPhone';
 import SignUp from '../authentication/signup';
 import ForgotPassword from '../authentication/forgotpassword';
-import EmailAndPw from '../authentication/EmailAndPwScreen';
 import { COLORS } from '../constants';
+import SignInOptionsStack from './signInNavigator';
+import SignUpOptionsStack from './signUpNavigator';
 
 const Stack = createNativeStackNavigator();
 const auth = getAuth();
@@ -90,16 +91,31 @@ export default function AuthStack() {
                 screenOptions={{
                     headerStyle: { backgroundColor: COLORS.lightBeige },
                     headerTitle: () => (
-                        <Text>Welcome</Text>
+                        null
                     ),
                     headerTitleAlign: 'center',
                 }}
             >
-                <Stack.Screen name="Welcome" component={Welcome} />
-                <Stack.Screen name="SignUp" component={SignUp} />
-                <Stack.Screen name="SignIn" component={SignIn} />
-                <Stack.Screen name="ForgotPassword" component={ForgotPassword} />
-                <Stack.Screen name="EmailAndPw" component={EmailAndPw} />
+                <Stack.Screen
+                    name="Welcome"
+                    component={Welcome}
+                    options={{ title: 'Rizzly' }}
+                />
+                <Stack.Screen
+                    name="SignUp"
+                    component={SignUpOptionsStack}
+                    options={{ title: 'Sign Up' }}
+                />
+                <Stack.Screen
+                    name="SignIn"
+                    component={SignInOptionsStack}
+                    options={{ title: 'Sign In' }}
+                />
+                <Stack.Screen
+                    name="ForgotPassword"
+                    component={ForgotPassword}
+                    options={{ title: 'Forgot Password' }}
+                />
             </Stack.Navigator>
         </NavigationContainer>
     );
