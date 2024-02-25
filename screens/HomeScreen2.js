@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, useWindowDimensions, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot, setDoc, limit } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, startAfter, onSnapshot, orderBy, setDoc, limit } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useHeaderHeight, getDefaultHeaderHeight } from '@react-navigation/elements';
@@ -49,6 +49,9 @@ const HomeScreen = () => {
     const [maxDistance, setMaxDistance] = useState(10);
     const [contentHeight, setContentHeight] = useState(0);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [retryCount, setRetryCount] = useState(0);
+    const [lastVisible, setLastVisible] = useState(null);
+
     const dispatch = useDispatch();
     // DECLARE VARIABLES
 
@@ -75,9 +78,6 @@ const HomeScreen = () => {
                 setMaxHeight(filterData.maxHeight);
                 setMinDistance(filterData.minDistance);
                 setMaxDistance(filterData.maxDistance);
-
-                // Log the success message here
-                console.log('Successfully retrieved filter data:', filterData);
             } else {
                 // If no filter settings document exists for the current user, use default values
                 setMinAge(18);
@@ -282,55 +282,86 @@ const HomeScreen = () => {
 
     // FETCH PROFILE DATA
     const fetchData = async () => {
+
         setIsLoading(true);
+
+        // Fetch filters
         await fetchFilters();
+
+        // Clear users array and reset index if reset
+        setUsers([]);
+        setCurrentIndex(0);
+
         try {
             if (!currentUserData) {
                 return;
             }
-            const { male, female, nonBinary } = currentUserData.orientation;
+            // Grab a bunch of users limit to 50
             const usersCollection = collection(db, 'profiles');
-            let q = query(usersCollection, limit(10));
+            let q = query(usersCollection, orderBy('latitude'), limit(50));
 
-            if (male) q = query(q, where('gender', '==', 'Male'));
-            if (female) q = query(q, where('gender', '==', 'Female'));
-            if (nonBinary) q = query(q, where('gender', '==', 'Non-binary'));
-
-            const snapshot = await getDocs(q);
-            let usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            // Filter users based on the ranges set by the user in the modal
-            let filteredUsers = usersData.filter(isUserWithinRanges);
-
-            // Calculate distance for each user and filter based on distance range
-            filteredUsers = filteredUsers.filter((user) => {
-                const distance = haversineDistance(currentUserData.latitude, currentUserData.longitude, user.latitude, user.longitude);
-                return distance >= minDistance && distance <= maxDistance;
-            });
-
-            // Exclude the current user and swiped up users from the list
-            filteredUsers = filteredUsers.filter(
-                // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserDislikes.includes(user.id) && !currentUserLikes.includes(user.id)
-                // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
-                (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
-            );
-
-            // Exclude users who have blocked the current user
-            filteredUsers = filteredUsers.filter(
-                (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
-            );
-
-            // Limit the number of users to render to the first 10
-            filteredUsers = filteredUsers.slice(0, 10);
-
-            if (filteredUsers.length === 0) {
-                // If no users match the filter criteria, set the users state with a single object representing the "No More Users" screen
-                setUsers([{ id: 'no-more-users' }]);
-            } else {
-                // Set the users state with the filtered users
-                setUsers([...filteredUsers]);
-                setUsers((prevUsers) => [...prevUsers, { id: 'last-user' }]);
+            if (lastVisible) {
+                q = query(usersCollection, orderBy('latitude'), startAfter(lastVisible), limit(50));
             }
+
+            // Filter the users
+            setRetryCount(retryCount + 1);
+            try {
+                const snapshot = await getDocs(q);
+
+                let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+                // Apply filter ranges
+                let filteredUsers = usersData.filter(isUserWithinRanges);
+                // Filter orientation
+                filteredUsers = filteredUsers.filter((user) => {
+                    const userGender = user.gender?.toLowerCase?.();
+                    if (currentUserData.orientation) {
+                        const { male, female, nonBinary } = currentUserData.orientation;
+                        if (userGender === 'female' && female) {
+                            return true;
+                        } else if (userGender === 'male' && male) {
+                            return true;
+                        } else if (userGender === 'non-binary' && nonBinary) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+                // Filter distance
+                filteredUsers = filteredUsers.filter((user) => {
+                    const distance = haversineDistance(currentUserData.latitude, currentUserData.longitude, user.latitude, user.longitude);
+                    return distance >= minDistance && distance <= maxDistance;
+                });
+                // Filter likes/ dislikes
+                filteredUsers = filteredUsers.filter(
+                    // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserDislikes.includes(user.id) && !currentUserLikes.includes(user.id)
+                    // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
+                    (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
+                );
+                // Filter blocked users
+                filteredUsers = filteredUsers.filter(
+                    (user) => !user.blockedIDs?.includes(auth.currentUser.uid)
+                );
+
+                setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+
+                if (filteredUsers.length === 0) {
+                    // If no one matches filter description
+                    console.log("No users queried")
+                    setUsers([{ id: 'no-more-users' }]);
+                } else {
+                    // Set the users state
+                    console.log(`set ${filteredUsers.length} queried users`)
+                    setUsers([...filteredUsers]);
+                    setUsers((prevUsers) => [...prevUsers, { id: 'last-user' }]);
+                }
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            };
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -340,6 +371,10 @@ const HomeScreen = () => {
     useEffect(() => {
         fetchData();
     }, [minAge, maxAge, minHeight, maxHeight, minDistance, maxDistance])
+
+    useEffect(() => {
+        
+    }, []);
     // FETCH PROFILE DATA
 
     // LIKING AND DISLIKING
@@ -357,7 +392,7 @@ const HomeScreen = () => {
 
             await updateDoc(currentUserDocRef, {
                 likes: arrayUnion(likedUserId),
-            });
+            }); ``
             console.log(`Successfully updated current user's document.`);
 
             // Remove the liked user from the users array
@@ -422,9 +457,6 @@ const HomeScreen = () => {
             setMinDistanceIntermediate(minDistance);
             setMaxDistanceIntermediate(maxDistance);
         }, [minHeight, maxHeight, minAge, maxAge, minDistance, maxDistance]);
-
-        // console.log("isMetric: ", isMetric);
-        // console.log("maxHeightIntermediate: ", maxHeightIntermediate);
 
         return (
             <Modal
@@ -612,16 +644,26 @@ const HomeScreen = () => {
             );
         }
 
+        // When users from the start
         if (user.id === 'no-more-users') {
-            return (
-                <View style={{ width: cardWidth, height: availableSpace }}>
-                    <NoMoreUserScreen />
-                </View>
-            );
+            if (retryCount < 20) {
+                console.log('NO USERS, FETCHING DATA');
+                fetchData();
+                return;
+            } else {
+                return (
+                    <View style={{ width: cardWidth, height: availableSpace }}>
+                        <NoMoreUserScreen />
+                    </View>
+                );
+            };
         }
 
-        if(user.id === 'last-user') {
+        // When have users and run out
+        if (user.id === 'last-user') {
+            console.log('LAST USER, FETCHING DATA')
             fetchData();
+            return;
         };
 
         const allImages = user.selfieURLs ? [user.selfieURLs, ...user.imageURLs] : user.imageURLs;
@@ -702,9 +744,10 @@ const HomeScreen = () => {
     // USER CARD
 
     useEffect(() => {
+        console.log("retryCount: ", retryCount);
         console.log("Current Index: ", currentIndex);
         console.log("Users length: ", users.length);
-    }, [currentIndex, users])
+    }, [currentIndex, users, retryCount]);
 
     // RENDER
     return (
@@ -714,16 +757,16 @@ const HomeScreen = () => {
                     pausedRender
                 ) : (
                     <>
-                        {users.length > 0 && (
+                        {users.length > 0 && !isLoading && (
                             <FlatList
-                                data={[users[currentIndex]]}
-                                renderItem={renderItem}
-                                keyExtractor={(user) => user.id}
-                                scrollEnabled={false}
-                                showsVerticalScrollIndicator={false}
-                            />
-                        )}
-                        <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
+                            data={[users[currentIndex]]}
+                            renderItem={renderItem}
+                            keyExtractor={(user) => user.id}
+                            scrollEnabled={false}
+                            showsVerticalScrollIndicator={false}
+                        />
+                    )}
+                    <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
                             <Feather name="chevron-down" size={30} color="black" />
                         </TouchableOpacity>
                     </>
@@ -733,13 +776,13 @@ const HomeScreen = () => {
                     visible={isLoading}
                     animation='fade'
                     overlayColor="rgba(0, 0, 0, 0.25)"
-                    color="white"
+                    color="black"
                     textContent='Loading...'
                     textStyle={{
                         fontFamily: FONT.bold,
                         fontSize: SIZES.medium,
                         fontWeight: 'normal',
-                        color: 'white',
+                        color: 'black',
                     }}
                 />
             </View>

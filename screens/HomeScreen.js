@@ -283,6 +283,8 @@ const HomeScreen = () => {
     // FETCH PROFILE DATA
     const fetchData = async () => {
 
+        console.log("FETCH DATA");
+
         setIsLoading(true);
 
         // Fetch filters
@@ -305,7 +307,6 @@ const HomeScreen = () => {
             }
 
             // Filter the users
-            setRetryCount(retryCount + 1);
             try {
                 const snapshot = await getDocs(q);
 
@@ -350,13 +351,23 @@ const HomeScreen = () => {
 
                 if (filteredUsers.length === 0) {
                     // If no one matches filter description
-                    setUsers([{ id: 'no-more-users' }]);
+                    // console.log(`No users queried, retry number: ${retryCount}`)
+                    // if (retryCount < 5) {
+                    //     console.log(`Retry count: ${retryCount}, is less than 5`)
+                    //     setRetryCount(currentRetryCount => currentRetryCount + 1);
+                    //     console.log("Retry count + 1")
+                    //     console.log(`retryCount updated to ${retryCount}`);
+                    // } else {
+                    //     setUsers([{ id: 'no-more-users' }]);
+                    // }
+                    setRetryCount(currentRetryCount => currentRetryCount + 1);
                 } else {
                     // Set the users state
+                    console.log(`set ${filteredUsers.length} queried users`)
                     setUsers([...filteredUsers]);
                     setUsers((prevUsers) => [...prevUsers, { id: 'last-user' }]);
+                    setRetryCount(0);
                 }
-
             } catch (error) {
                 console.error('Error fetching data:', error);
             };
@@ -366,14 +377,19 @@ const HomeScreen = () => {
         setIsLoading(false);
     };
 
-    const fetchData2 = async (userId) => {
-
-    };
-
     useEffect(() => {
         fetchData();
     }, [minAge, maxAge, minHeight, maxHeight, minDistance, maxDistance])
     // FETCH PROFILE DATA
+
+    useEffect(() => {
+        if (retryCount < 5 && retryCount > 0) {
+            console.log(`Retrying fetch, retry count: ${retryCount}`);
+            fetchData();
+        } else if (retryCount >= 5) {
+            setUsers([{ id: 'no-more-users' }]);
+        }
+    }, [retryCount])
 
     // LIKING AND DISLIKING
     const handleLikeClick = async (likedUserId) => {
@@ -390,15 +406,19 @@ const HomeScreen = () => {
 
             await updateDoc(currentUserDocRef, {
                 likes: arrayUnion(likedUserId),
-            }); ``
+            });
             console.log(`Successfully updated current user's document.`);
 
             // Remove the liked user from the users array
             // setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
+            setCurrentIndex((prevIndex) => prevIndex + 1);
         } catch (error) {
             console.error('Error adding like:', error);
         }
-        setCurrentIndex((prevIndex) => prevIndex + 1);
+        if (currentIndex == users.length - 2) {
+            console.log("re fetching more data")
+            fetchData();
+        }
     };
 
     const handleDislikeClick = async (dislikedUserId) => {
@@ -426,6 +446,10 @@ const HomeScreen = () => {
             setCurrentIndex((prevIndex) => prevIndex + 1);
         } catch (error) {
             console.error('Error adding dislike:', error);
+        }
+        if (currentIndex == users.length - 2) {
+            console.log("re fetching more data")
+            fetchData();
         }
     };
     // LIKING AND DISLIKING
@@ -634,32 +658,18 @@ const HomeScreen = () => {
 
     // USER CARD
     const renderItem = ({ item: user }) => {
-        if (!users.length) {
+
+        // When no users from the start
+        if (user.id === 'no-more-users') {
             return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>No more users to display.</Text>
+                <View style={{ width: cardWidth, height: availableSpace }}>
+                    <NoMoreUserScreen />
                 </View>
             );
         }
 
-        // When users from the start
-        if (user.id === 'no-more-users') {
-            if (retryCount < 5) {
-                setRetryCount(retryCount + 1);
-                fetchData();
-                return;
-            } else {
-                return (
-                    <View style={{ width: cardWidth, height: availableSpace }}>
-                        <NoMoreUserScreen />
-                    </View>
-                );
-            };
-        }
-
         // When have users and run out
         if (user.id === 'last-user') {
-            fetchData();
             return;
         };
 
@@ -756,14 +766,14 @@ const HomeScreen = () => {
                     <>
                         {users.length > 0 && !isLoading && (
                             <FlatList
-                            data={[users[currentIndex]]}
-                            renderItem={renderItem}
-                            keyExtractor={(user) => user.id}
-                            scrollEnabled={false}
-                            showsVerticalScrollIndicator={false}
-                        />
-                    )}
-                    <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
+                                data={[users[currentIndex]]}
+                                renderItem={renderItem}
+                                keyExtractor={(user) => user.id}
+                                scrollEnabled={false}
+                                showsVerticalScrollIndicator={false}
+                            />
+                        )}
+                        <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
                             <Feather name="chevron-down" size={30} color="black" />
                         </TouchableOpacity>
                     </>
