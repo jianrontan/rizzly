@@ -431,7 +431,7 @@ const HomeScreen = () => {
     // LIKING AND DISLIKING
 
     const pausedRender = (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', fontFamily: FONT.regular, padding: 5, fontSize: FONT.regular }}>
             <Text>Your profile is currently paused, that means that you cant see new matches and you will not be featured on other peoples screen</Text>
             <Text>To unpause, you can go back to pause account and turn the switch back to off </Text>
         </View>

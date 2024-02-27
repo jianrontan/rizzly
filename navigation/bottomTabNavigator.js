@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
+import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { HeaderBackButton } from "@react-navigation/elements";
@@ -10,6 +10,7 @@ import ChatStack from "./chatNavigator";
 import MatchesScreen from "../screens/MatchesScreen";
 import ChatRoomScreen from "../screens/ChatRoomScreen";
 import ViewOtherProfile from "../screens/ViewOtherProfile";
+import Report from "../screens/Report";
 import LikesScreen from "../screens/LikesScreen";
 import ScreenHeaderBtn from "../components/button/ScreenHeaderBtn";
 import { COLORS, FONT, icons } from "../constants";
@@ -172,6 +173,13 @@ export default function BottomTabStack({ navigation }) {
                     };
                 }}
             />
+            <Tab.Screen
+                name="Report"
+                component={Report}
+                options={{
+                    tabBarButton: () => null,
+                }}>
+            </Tab.Screen>
             <Tab.Screen
                 name="ViewOtherProfile"
                 component={ViewOtherProfile}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
@@ -28,24 +28,26 @@ const ContactUsScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Contact Us</Text>
-      <TextInput
-        style={[styles.input, { height: 200 }]} // Adjust the height as needed, for example, height: 200
-        placeholder="Type your message here"
-        placeholderTextColor="white"
-        multiline
-        numberOfLines={5}
-        value={message}
-        onChangeText={(text) => setMessage(text)}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Send Message</Text>
-      </TouchableOpacity>
-      <Text style={styles.bottom}>
-        Alternatively, you can contact us at rizzlyapp@gmail.com
-      </Text>
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Contact Us</Text>
+        <TextInput
+          style={[styles.input, { height: 200 }]} // Adjust the height as needed, for example, height: 200
+          placeholder="Type your message here..."
+          placeholderTextColor="white"
+          multiline
+          numberOfLines={5}
+          value={message}
+          onChangeText={(text) => setMessage(text)}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.buttonText}>Send Message</Text>
+        </TouchableOpacity>
+        <Text style={styles.bottom}>
+          Alternatively, you can contact us at rizzlyapp@gmail.com
+        </Text>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
