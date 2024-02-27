@@ -367,7 +367,6 @@ export default function DrawerStack() {
                 })}
             >
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
-                <Drawer.Screen name="Profile" component={SetUpProfile} options={{ headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileNavigator} options={{ headerShown: false }} />
                 <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
                 <Drawer.Screen name="Loading" component={CustomLoadingScreen} />

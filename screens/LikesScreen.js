@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, FlatList } from 'react-native';
 import { collection, getDoc, doc, getDocs, query, where } from 'firebase/firestore';
 import { useDispatch } from 'react-redux';
 import { db } from '../firebase/firebase';
@@ -22,7 +22,7 @@ const LikesScreen = () => {
       return;
     }
   };
-  
+
   useEffect(() => {
     requestNotificationPermission();
 
@@ -119,18 +119,24 @@ const LikesScreen = () => {
     fetchLikedUsersData();
   }, [currentUserId, dispatch]);
 
+  const renderItem = ({ item }) => (
+    <View style={styles.userCard}>
+      <Text style={styles.usernameText}>Username: {item.firstName}</Text>
+      <Image
+        source={{ uri: item.imageURL }}
+        style={styles.userImage}
+      />
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       {likedUsersData.length > 0 ? (
-        likedUsersData.map((user, index) => (
-          <View key={index} style={styles.userCard}>
-            <Text style={styles.usernameText}>Username: {user.firstName}</Text>
-            <Image
-              source={{ uri: user.imageURL }}
-              style={styles.userImage}
-            />
-          </View>
-        ))
+        <FlatList
+          data={likedUsersData}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => index.toString()}
+        />
       ) : (
         <Text style={styles.noLikedText}>No Liked Users</Text>
       )}

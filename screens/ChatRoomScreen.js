@@ -40,10 +40,6 @@ const ChatRoom = ({ route }) => {
   const dispatch = useDispatch();
   const [isUploading, setIsUploading] = useState(false);
 
-  const goToReport = () => {
-    navigation.navigate('Report');
-  };
-
   const openCamera = () => {
     setShowCamera(!showCamera);
     if (!showCamera) {

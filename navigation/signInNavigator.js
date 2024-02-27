@@ -3,7 +3,7 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
-import SignInPhone from '../authentication/signupPhone';
+import SignInPhone from '../authentication/signinPhone';
 import SignInEmail from '../authentication/signinEmail';
 
 const Stack = createStackNavigator();

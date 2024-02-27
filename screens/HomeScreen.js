@@ -627,9 +627,15 @@ const HomeScreen = () => {
     };
 
     const convertDistance = (km) => {
-        const miles = km * 0.621371;
-        return miles.toFixed(1);
+        const distanceInKm = Number(km);
+        if (isNaN(distanceInKm)) {
+            console.error('Invalid distance value:', km);
+            return 'NaN'; // or handle the error in another appropriate way
+        }
+        const miles = distanceInKm * 0.621371;
+        return miles.toFixed(2);
     };
+
     //FILTERS
 
     // USER CARD
@@ -724,7 +730,7 @@ const HomeScreen = () => {
                                     <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
                                     <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
                                     <Text style={styles.modalinfo}>
-                                        Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)).toFixed(2) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
+                                        Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
                                     </Text>
                                 </>
                             )}
@@ -756,14 +762,14 @@ const HomeScreen = () => {
                     <>
                         {users.length > 0 && !isLoading && (
                             <FlatList
-                            data={[users[currentIndex]]}
-                            renderItem={renderItem}
-                            keyExtractor={(user) => user.id}
-                            scrollEnabled={false}
-                            showsVerticalScrollIndicator={false}
-                        />
-                    )}
-                    <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
+                                data={[users[currentIndex]]}
+                                renderItem={renderItem}
+                                keyExtractor={(user) => user.id}
+                                scrollEnabled={false}
+                                showsVerticalScrollIndicator={false}
+                            />
+                        )}
+                        <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
                             <Feather name="chevron-down" size={30} color="black" />
                         </TouchableOpacity>
                     </>
