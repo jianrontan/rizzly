@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
-import { Keyboard } from 'react-native';
+import { View, TextInput, Button, StyleSheet, TouchableOpacity, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { Text } from 'react-native-elements';
 
 const Report = ({ navigation }) => {
@@ -19,37 +18,39 @@ const Report = ({ navigation }) => {
     console.log(`Report Category: ${reportCategory}`);
     console.log(`Incident Details: ${incidentDetails}`);
 
-    navigation.pop();
+    navigation.goBack(); // Use goBack instead of pop
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.categoriesContainer}>
-        {reportCategories.map((category) => (
-          <TouchableOpacity
-            key={category.value}
-            style={[styles.button, reportCategory === category.value && styles.selectedButton]}
-            onPress={() => setReportCategory(category.value)}
-          >
-            <Text style={styles.label}>{category.label}</Text>
-          </TouchableOpacity>
-        ))}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <View style={styles.categoriesContainer}>
+          {reportCategories.map((category) => (
+            <TouchableOpacity
+              key={category.value}
+              style={[styles.button, reportCategory === category.value && styles.selectedButton]}
+              onPress={() => setReportCategory(category.value)}
+            >
+              <Text style={styles.label}>{category.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={styles.textInputContainer}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Describe the incident..."
+            placeholderTextColor={'white'}
+            value={incidentDetails}
+            onChangeText={(text) => setIncidentDetails(text)}
+            multiline
+            onSubmitEditing={Keyboard.dismiss}
+          />
+        </View>
+        <TouchableOpacity style={styles.sendButton} onPress={handleSendReport}>
+          <Text style={styles.sendButtonText}>Send Report</Text>
+        </TouchableOpacity>
       </View>
-      <View style={styles.textInputContainer}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Describe the incident..."
-          placeholderTextColor={'white'}
-          value={incidentDetails}
-          onChangeText={(text) => setIncidentDetails(text)}
-          multiline
-          onSubmitEditing={Keyboard.dismiss}
-        />
-      </View>
-      <TouchableOpacity style={styles.sendButton} onPress={handleSendReport}>
-        <Text style={styles.sendButtonText}>Send Report</Text>
-      </TouchableOpacity>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 

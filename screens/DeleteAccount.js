@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { getAuth, deleteUser, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
@@ -65,20 +65,22 @@ const DeleteAccountScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Are you sure you want to delete your account?</Text>
-      <TextInput
-        placeholder="Enter your password"
-        placeholderTextColor={'white'}
-        secureTextEntry
-        style={styles.input}
-        value={password}
-        onChangeText={(text) => setPassword(text)}
-      />
-      <TouchableOpacity onPress={deleteAccount} disabled={loading} style={styles.button}>
-        <Text style={styles.buttonText}>Delete Account</Text>
-      </TouchableOpacity>
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <Text style={styles.text}>Are you sure you want to delete your account?</Text>
+        <TextInput
+          placeholder="Enter your password"
+          placeholderTextColor={'white'}
+          secureTextEntry
+          style={styles.input}
+          value={password}
+          onChangeText={(text) => setPassword(text)}
+        />
+        <TouchableOpacity onPress={deleteAccount} disabled={loading} style={styles.button}>
+          <Text style={styles.buttonText}>Delete Account</Text>
+        </TouchableOpacity>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -94,7 +96,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF', // White text color
     fontWeight: 'bold',
     textAlign: 'center' // This will center the text
-  },  
+  },
   input: {
     borderWidth: 2,
     borderColor: '#ccc',
