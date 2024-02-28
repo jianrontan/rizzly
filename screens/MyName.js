@@ -168,17 +168,21 @@ export default function MyName({ navigation }) {
     );
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#6e4639' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
             <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled={true}>
 
                 <View style={styles.buttonsContainer}>
-                    <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit} style={styles.goldButton}>
-                        <Text style={styles.whiteText}>Save Changes</Text>
+                    <TouchableOpacity>
+                        <Text style={styles.heading}>Your last name will only be shared {"\n"}with matches</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity activeOpacity={0.69} onPress={handleSubmit}>
+                        <View>
+                            <Text style={styles.headingBold}>Save Changes</Text>
+                        </View>
                     </TouchableOpacity>
                 </View>
 
-
-                <View style={{ paddingVertical: 20 }}>
+                <View style={{ paddingVertical: 10 }}>
                     <View style={styles.dropdownInputStyle}>
                         <TextInput
                             autoFocus={false}
@@ -186,7 +190,7 @@ export default function MyName({ navigation }) {
                             onChangeText={setFirstName}
                             maxLength={100}
                             placeholder="First Name"
-                            selectionColor={'white'}
+                            selectionColor={'black'}
                             style={styles.responseTextStyle}
                         />
                     </View>
@@ -200,14 +204,10 @@ export default function MyName({ navigation }) {
                             onChangeText={setLastName}
                             maxLength={100}
                             placeholder="Last Name"
-                            selectionColor={'white'}
+                            selectionColor={'black'}
                             style={styles.responseTextStyle}
                         />
                     </View>
-                </View>
-
-                <View>
-                    <Text style={styles.heading}>Your first name will only be shared {"\n"}with matches</Text>
                 </View>
 
                 <Spinner
@@ -254,6 +254,7 @@ const width = Dimensions.get('window').width;
 const styles = StyleSheet.create({
     wrapper: {
         flex: 1,
+        backgroundColor: '#6e4639'
     },
     item: {
         width: width / 2 - 50,
@@ -279,20 +280,13 @@ const styles = StyleSheet.create({
     },
     heading: {
         fontFamily: FONT.medium,
-        fontSize: SIZES.medium,
-        color: 'white',
-        top: 50,
-        left: 10,
+        fontSize: SIZES.small,
+        color: 'gray'
     },
-    goldButton: {
-        backgroundColor: '#D3A042',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    whiteText: {
-        color: 'white',
-        fontWeight: 'bold',
+    headingBold: {
+        fontFamily: FONT.bold,
+        fontSize: SIZES.small,
+        color: 'gray'
     },
     btnContainer: {
         width: 200,
@@ -311,36 +305,29 @@ const styles = StyleSheet.create({
     },
     dropdownTextStyle: {
         fontFamily: FONT.medium,
-        fontSize: SIZES.medium,
-        color: 'white',
+        fontSize: SIZES.smallmedium,
+        color: 'black',
     },
     dropdownInputStyle: {
         width: width - 20,
         alignSelf: 'center',
-        borderWidth: 2,
+        borderWidth: 1,
         borderRadius: 5,
-        height: 60, // Adjust the height as needed
-        color: 'white',
-        borderColor: 'white'
     },
     responseTextStyle: {
         fontFamily: FONT.medium,
-        fontSize: SIZES.large,
-        paddingHorizontal: 10,
-        color: 'white',
-        paddingTop: 15,
-        paddingLeft: 20 // Add padding to the left for centering
+        fontSize: SIZES.mediumlarge,
+        paddingHorizontal: 10
     },
     buttonsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         padding: 10,
-        left: 250,
     },
     borderLine: {
         width: width - 10,
         alignSelf: 'center',
-        borderBottomColor: "white",
+        borderBottomColor: "gray",
         borderBottomWidth: 1,
     },
 });

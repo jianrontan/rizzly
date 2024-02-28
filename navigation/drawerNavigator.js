@@ -110,7 +110,7 @@ export default function DrawerStack() {
     if (loading) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <CustomLoadingScreen/>
+                <CustomLoadingScreen />
             </View>
         );
     }
@@ -173,7 +173,11 @@ export default function DrawerStack() {
                     headerTitle: "View Profile",
                     headerTitleAlign: 'center',
                     headerShadowVisible: 'true',
-                    headerTitleStyle: appStyles.headerFont,
+                    headerTitleStyle: [appStyles.headerFont, { color: 'white' }], // Make the text white
+                    headerStyle: {
+                        backgroundColor: '#8c6c5d', // Background color
+                    },
+                    headerTintColor: 'white', // Make the header icon white
                     headerLeft: () => {
                         const navigation = useNavigation();
                         return (
@@ -201,11 +205,12 @@ export default function DrawerStack() {
                     options={{
                         headerShown: false,
                         tabBarIcon: ({ color, size }) => (
-                            <MaterialCommunityIcons name="lead-pencil" color={color} size={size} />
+                            <MaterialCommunityIcons name="lead-pencil" color={color} size={30} />
                         ),
                         tabBarLabel: 'Edit',
                         tabBarLabelStyle: appStyles.bottomTabLabel,
-                        tabBarActiveTintColor: '#824444',
+                        tabBarLabelStyle: { color: 'white' },
+                        tabBarActiveTintColor: 'white',
                     }}
                 />
                 <Tab.Screen
@@ -227,11 +232,11 @@ export default function DrawerStack() {
     const CustomTabBar = (props) => {
         const navigation = useNavigation();
         const dispatch = useDispatch();
-
+    
         const hasUnsavedChangesExportVal = useSelector(state => state.editProfileReducer.hasUnsavedChangesExportVal);
         const aboutMeChangesVal = useSelector(state => state.editProfileReducer.aboutMeChangesVal);
         const viewProfileChangesVal = useSelector(state => state.editProfileReducer.viewProfileChangesVal);
-
+    
         const handleTabPress = (route, isFocused) => {
             if (route.name === 'View' && (viewProfileChangesVal || aboutMeChangesVal || hasUnsavedChangesExportVal) && !isFocused) {
                 dispatch(setSaveChanges(true));
@@ -239,7 +244,7 @@ export default function DrawerStack() {
                 navigation.navigate(route.name);
             }
         };
-
+    
         return (
             <View style={{
                 flexDirection: 'row',
@@ -252,11 +257,11 @@ export default function DrawerStack() {
                 shadowRadius: 3,
                 elevation: 5,
                 shadowColor: '#000',
-                backgroundColor: 'white'
+                backgroundColor: '#8c6c5d' // Change background color to brown
             }}>
                 {props.state.routes.map((route, index) => {
                     const isFocused = props.state.index === index;
-
+    
                     return (
                         <TouchableOpacity
                             key={route.key}
@@ -265,7 +270,7 @@ export default function DrawerStack() {
                             activeOpacity={1}
                         >
                             <Text style={{
-                                color: isFocused ? '#824444' : 'black',
+                                color: isFocused ? 'white' : 'black',
                                 alignSelf: 'center',
                                 fontFamily: FONT.bold,
                             }}>
@@ -276,7 +281,7 @@ export default function DrawerStack() {
                 })}
             </View>
         );
-    };
+    };    
 
     // SETTINGS
     const SettingsStack = () => {

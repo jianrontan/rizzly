@@ -45,7 +45,11 @@ export default function EditProfileStack() {
                 headerTitle: route.name,
                 headerTitleAlign: 'center',
                 headerShadowVisible: 'true',
-                headerTitleStyle: appStyles.headerFont,
+                headerTitleStyle: [appStyles.headerFont, { color: 'white' }], // Make the text white
+                headerStyle: {
+                    backgroundColor: '#8c6c5d', // Background color
+                },
+                headerTintColor: 'white', // Make the header icon white
                 headerLeft: () => {
                     const navigation = useNavigation();
                     return (
