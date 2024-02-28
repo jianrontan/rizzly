@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { View, SafeAreaView, StyleSheet, Text, TouchableOpacity, Image, StatusBar } from 'react-native';
+import { View, SafeAreaView, StyleSheet, Text, TouchableOpacity, Image, StatusBar, ActivityIndicator } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useFocusEffect } from '@react-navigation/native';
 import { getDoc, doc } from 'firebase/firestore';
@@ -26,6 +26,7 @@ const ViewOtherProfile = ({ navigation, route }) => {
     const [currentUserData, setCurrentUserData] = useState(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [isMetric, setIsMetric] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     // Dimensions
     const tabNavigatorHeight = 50;
@@ -70,51 +71,38 @@ const ViewOtherProfile = ({ navigation, route }) => {
     };
 
     const fetchCurrentUser = async () => {
+        setIsLoading(true); // Start loading
         try {
             const user = auth.currentUser;
             if (!user) {
                 console.error('No user is currently signed in');
                 return;
             }
-
+    
             const currentUserDocRef = doc(db, 'profiles', matchId);
             const currentUserDoc = await getDoc(currentUserDocRef);
-
+    
             if (currentUserDoc.exists()) {
                 const userData = currentUserDoc.data();
-
-                // Convert the date of birth from a Timestamp to a Date object
-                const dob = userData.datePickerValue.toDate();
-
-                // Get today's date
-                const today = new Date();
-
-                // Calculate the user's age
-                let age = today.getFullYear() - dob.getFullYear();
-                const m = today.getMonth() - dob.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-                    age--;
-                }
-
-                // Add the age to the user data
-                userData.age = age;
-
+                // Your existing logic to process userData
                 setCurrentUserData(userData);
             }
         } catch (error) {
             console.error('Error fetching current user data:', error);
+        } finally {
+            setIsLoading(false); // Stop loading regardless of success or error
         }
-    };
+    };    
 
     useEffect(() => {
         fetchCurrentUser();
-    }, []);
+    }, [matchId]);
 
     useFocusEffect(
         React.useCallback(() => {
             // Re-fetch current user data when the screen is focused
             fetchCurrentUser();
-        }, [])
+        }, [matchId])
     );
     let allImages = [];
     if (currentUserData) {
@@ -123,7 +111,11 @@ const ViewOtherProfile = ({ navigation, route }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {currentUserData && (
+            {isLoading ? ( // Render spinner if loading
+                <View style={styles.spinnerContainer}>
+                    <ActivityIndicator size="large" color={COLORS.primary} />
+                </View>
+            ) : currentUserData && (
                 <View style={[styles.cardContainer, { height: availableSpace }]}>
                     <SwiperFlatList
                         style={{ height: availableSpace, width: cardWidth }}
@@ -147,10 +139,10 @@ const ViewOtherProfile = ({ navigation, route }) => {
                         ))}
                     </SwiperFlatList>
                     <View style={[styles.userInfoContainer, { height: (availableSpace - (cardWidth * 4 / 3)) }]}>
-                            <Text style={styles.userName}>{currentUserData.firstName + ' ' + currentUserData.lastName || 'No name'}</Text>
-                            <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}, Height: ${isMetric ? convertHeight(currentUserData.cmHeight) + ' ft' : currentUserData.cmHeight + ' cm'}`}</Text>
-                            <Text style={styles.userDetails}>Location: {currentUserData.location || 'No Location'} </Text>
-                        </View>
+                        <Text style={styles.userName}>{currentUserData.firstName + ' ' + currentUserData.lastName || 'No name'}</Text>
+                        <Text style={styles.userDetails}>{`${currentUserData.gender || 'No gender'}, Age: ${currentUserData.age || 'No age'}, Height: ${isMetric ? convertHeight(currentUserData.cmHeight) + ' ft' : currentUserData.cmHeight + ' cm'}`}</Text>
+                        <Text style={styles.userDetails}>Location: {currentUserData.location || 'No Location'} </Text>
+                    </View>
                 </View>
             )}
             <TouchableOpacity
@@ -261,7 +253,12 @@ const styles = StyleSheet.create({
     modalinfo: {
         color: 'black',
         fontSize: 16,
-    }
+    },
+    spinnerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });
 
 export default ViewOtherProfile;
