@@ -1,16 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
-import { useFocusEffect, CommonActions } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useDispatch, useSelector } from 'react-redux';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
-import { db, storage } from '../firebase/firebase';
+import React, { useState, useCallback } from 'react';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Dimensions, BackHandler } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { getDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
-import DraggableFlatList from 'react-native-draggable-flatlist';
-import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
-import DropDownPicker from 'react-native-dropdown-picker';
 
 import { COLORS, SIZES, FONT, icons } from '../constants';
 
@@ -78,21 +72,19 @@ export default function Name({ navigation }) {
                 firstName: firstName,
                 lastName: lastName,
             };
-            // Check if the document exists and if cmHeight and ftHeight are missing, then set them
+
             if (docSnap.exists()) {
                 let data = docSnap.data();
                 if (data.cmHeight === undefined) {
-                    updates.cmHeight = 175; // Default cmHeight
+                    updates.cmHeight = 175; 
                 }
                 if (data.ftHeight === undefined) {
-                    updates.ftHeight = "5'9\""; // Default ftHeight
+                    updates.ftHeight = "5'9\""; 
                 }
             } else {
-                // If the document doesn't exist, include default heights in the update
                 updates.cmHeight = 175;
                 updates.ftHeight = "5'9\"";
             }
-            // Perform the update with either new or existing heights
             await setDoc(userDocRef, updates, { merge: true });
         } catch (e) {
             console.error("Error submitting: ", e);

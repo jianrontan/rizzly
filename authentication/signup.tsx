@@ -4,7 +4,7 @@ import { Input } from 'react-native-elements';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getAuth, createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { doc, addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
 import { COLORS, SIZES } from '../constants';
@@ -64,12 +64,10 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
         // Send email verification
         sendEmailVerification(userCredential.user)
           .then(() => {
-            // Clear error message
             setValue({
               ...value,
               error: ''
             });
-            // Show alert
             Alert.alert(
               'Alert',
               'Please check your email to verify your account.',
@@ -81,14 +79,12 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
             )
           })
           .catch((error) => {
-            // Handle error
             setValue({
               ...value,
               error: error.message
             });
           });
 
-        // Create a new document in the "emails" collection with the user's email
         const emailsCollection = collection(db, 'emails');
         addDoc(emailsCollection, { email: value.email })
           .then((docRef) => {
@@ -99,7 +95,6 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
           });
       })
       .catch((error) => {
-        // Handle error
         setValue({
           ...value,
           error: error.message

@@ -1,16 +1,13 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 
 import Welcome from '../authentication/welcome';
-import SignIn from '../authentication/signupPhone';
-import SignUp from '../authentication/signup';
 import ForgotPassword from '../authentication/forgotpassword';
 import { COLORS } from '../constants';
 import SignInOptionsStack from './signInNavigator';

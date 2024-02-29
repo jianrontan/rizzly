@@ -1,23 +1,12 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
-import { useFocusEffect, CommonActions } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useDispatch, useSelector } from 'react-redux';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
-import { db, storage } from '../firebase/firebase';
+import { useFocusEffect } from '@react-navigation/native';
+import { updateDoc, doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
-import { parseISO, format } from 'date-fns';
-import SelectDropdown from 'react-native-select-dropdown';
-import DropDownPicker from 'react-native-dropdown-picker';
-import DraggableFlatList from 'react-native-draggable-flatlist';
-import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { haversineDistance } from '../screens/haversine';
 import * as Location from 'expo-location';
 
-import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import { COLORS, SIZES, FONT, icons } from '../constants';
 
 export default function MyLocation({ navigation }) {
@@ -79,40 +68,37 @@ export default function MyLocation({ navigation }) {
     const [location, setLocation] = useState([])
     const [place, setPlace] = useState('');
     const [have, setHave] = useState('');
-const makeLocation = async () => {
-    setSubmitting(true);
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-        alert('Permission to access location was denied');
-        return;
-    }
-    try {
-        const location = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-        });
-        setLocation(location);
-        setHave(location);
-        // Get place from coordinates
-        const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
-        setPlace(place); // Update place state variable
+    const makeLocation = async () => {
+        setSubmitting(true);
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Permission to access location was denied');
+            return;
+        }
+        try {
+            const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.High,
+            });
+            setLocation(location);
+            setHave(location);
+            // Get place from coordinates
+            const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
+            setPlace(place); 
 
-        // Update user document with location information
-        const userId = auth.currentUser.uid;
-        const userDocRef = doc(db, 'profiles', userId);
+            const userId = auth.currentUser.uid;
+            const userDocRef = doc(db, 'profiles', userId);
 
-        // Update user document with location details
-        updateDoc(userDocRef, {
-            location: place,
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-        });
-    } catch (error) {
-        console.error('Error getting location:', error);
-        alert('Unable to retrieve your location. Please try again later.');
-        // Handle error as needed
-    }
-    setSubmitting(false);
-};
+            updateDoc(userDocRef, {
+                location: place,
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            });
+        } catch (error) {
+            console.error('Error getting location:', error);
+            alert('Unable to retrieve your location. Please try again later.');
+        }
+        setSubmitting(false);
+    };
 
 
     return (

@@ -12,13 +12,11 @@ import {
 import { db, auth, storage } from '../firebase/firebase';
 import { Camera } from 'expo-camera';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import * as FileSystem from 'expo-file-system';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { Composer, Send } from 'react-native-gifted-chat';
 import { StatusBar } from 'expo-status-bar';
 import { useFocusEffect } from '@react-navigation/native';
-import { useDispatch, useSelector } from 'react-redux';
-import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { useDispatch } from 'react-redux';
 import Spinner from 'react-native-loading-spinner-overlay';
 
 import { SIZES, FONT } from '../constants';
@@ -61,8 +59,8 @@ const ChatRoom = ({ route }) => {
   const uploadPhoto = async (uri) => {
     const response = await fetch(uri);
     const blob = await response.blob();
-    const imageId = Math.random().toString(36).substring(7); // Generate a random ID for the image
-    const storageRef = ref(storage, `chat_image/${imageId}`); // Use ref function to create storage reference
+    const imageId = Math.random().toString(36).substring(7);
+    const storageRef = ref(storage, `chat_image/${imageId}`);
     const uploadTask = uploadBytesResumable(storageRef, blob);
 
     return new Promise((resolve, reject) => {
@@ -111,8 +109,8 @@ const ChatRoom = ({ route }) => {
               _id: data.senderId,
               name: data.user.name,
             },
-            image: data.image, // Include the image field
-            read: data.read, // Include the read field
+            image: data.image,
+            read: data.read,
           };
         });
 
@@ -139,7 +137,6 @@ const ChatRoom = ({ route }) => {
     (async () => {
       const { status } = await Camera.requestCameraPermissionsAsync();
       if (status === 'denied') {
-        // Handle the case where permission has been denied
         alert('Permission to access camera was denied.');
       } else {
         setHasPermission(status === 'granted');
@@ -190,8 +187,6 @@ const ChatRoom = ({ route }) => {
       }
     });
 
-    // Clear the text input
-    // Assuming you are using the default gifted-chat component, you can do:
     setMessages((previousMessages) => GiftedChat.append(previousMessages, []));
   };
 
@@ -216,7 +211,7 @@ const ChatRoom = ({ route }) => {
   const sendPhoto = async () => {
     const photoUri = await capturePhoto();
     if (photoUri) {
-      setIsUploading(true); // Start showing the spinner
+      setIsUploading(true);
       const imageUrl = await uploadPhoto(photoUri);
 
       const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
@@ -230,7 +225,7 @@ const ChatRoom = ({ route }) => {
         timestamp: new Date(),
       });
 
-      setIsUploading(false); // Stop showing the spinner
+      setIsUploading(false);
       closeCamera();
     }
   };
@@ -245,19 +240,19 @@ const ChatRoom = ({ route }) => {
       {showCamera && (
         <View style={{ flex: 1 }}>
           <Camera style={styles.cameraContainer} type={type} ref={cameraRef}>
-          <Spinner
-                    visible={isUploading}
-                    animation='fade'
-                    overlayColor="rgba(0, 0, 0, 0.25)"
-                    color="white"
-                    textContent='Loading...'
-                    textStyle={{
-                        fontFamily: FONT.bold,
-                        fontSize: SIZES.medium,
-                        fontWeight: 'normal',
-                        color: 'white',
-                    }}
-                />
+            <Spinner
+              visible={isUploading}
+              animation='fade'
+              overlayColor="rgba(0, 0, 0, 0.25)"
+              color="white"
+              textContent='Loading...'
+              textStyle={{
+                fontFamily: FONT.bold,
+                fontSize: SIZES.medium,
+                fontWeight: 'normal',
+                color: 'white',
+              }}
+            />
             <TouchableOpacity
               style={{
                 position: 'absolute',
@@ -336,14 +331,14 @@ const ChatRoom = ({ route }) => {
 }
 const BubbleImage = (props) => {
   const alignment = props.currentMessage.user._id === auth.currentUser.uid ? 'right' : 'left';
-  const backgroundColor = alignment === 'right' ? '#000' : '#fff'; // Adjust background color based on alignment
+  const backgroundColor = alignment === 'right' ? '#000' : '#fff';
 
   return (
     <Bubble
       {...props}
       wrapperStyle={{
         [alignment]: {
-          backgroundColor: backgroundColor, // Use dynamically determined background color
+          backgroundColor: backgroundColor,
         },
       }}
     >
@@ -363,8 +358,8 @@ const BubbleRight = (props) => {
       wrapperStyle={{
         right: {
           backgroundColor: 'black',
-          alignItems: 'flex-end', // Align text to the right
-          justifyContent: 'flex-start', // Align text to the top
+          alignItems: 'flex-end',
+          justifyContent: 'flex-start',
         },
       }}
     />
@@ -394,7 +389,7 @@ const BubbleLeft = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#6e4639', // Set background color here
+    backgroundColor: '#6e4639',
   },
   cameraContainer: {
     flex: 1,

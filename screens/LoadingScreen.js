@@ -16,7 +16,7 @@ export default function CustomLoadingScreen() {
         <View style={styles.container}>
             <LottieView
                 ref={animationRef}
-                source={require('../assets/walkingBear.json')} // Update the path to your Lottie file
+                source={require('../assets/walkingBear.json')} 
                 loop
                 style={styles.animation}
             />
@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     animation: {
-        width: 400, // Set explicit width
-        height: 400, // Set explicit height
+        width: 400, 
+        height: 400, 
     },
 });

@@ -3,7 +3,7 @@ import { Text, View, TouchableOpacity, Image, SafeAreaView, Dimensions, StyleShe
 import { Camera } from 'expo-camera';
 import { doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { db, auth, storage } from '../firebase/firebase'; // Assuming you have a firebase.js file exporting db and auth
+import { db, auth, storage } from '../firebase/firebase'; 
 import { Icon } from 'react-native-elements';
 import Spinner from 'react-native-loading-spinner-overlay';
 
@@ -57,35 +57,28 @@ const SelfieCapture = ({ navigation }) => {
 
       uploadTask.on('state_changed',
         (snapshot) => {
-          // Handle progress updates here...
         },
         (error) => {
           console.log("Error during upload", error)
-          // Handle errors here...
         },
         async () => {
-          // Get the download URL once the upload is complete
+
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
 
-          // Save the download URL under the `selfieURLs` field in Firestore
           const userDocRef = doc(db, 'profiles', userId);
           await setDoc(userDocRef, {
             selfieURLs: downloadURL
           }, { merge: true });
 
-          // Save the number of retakes under the `retakes` field in Firestore
           await setDoc(userDocRef, {
             retakes: retakes
           }, { merge: true });
 
-          // Set complete to be true
           await setDoc(userDocRef, {
             complete: true
           }, { merge: true });
 
-          // Remove the sent image from the local array
           setImages(images.slice(0, -1));
-          // Navigate to 'App' screen
           navigation.navigate('App');
         }
       );

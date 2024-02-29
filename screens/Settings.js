@@ -1,17 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, BackHandler, Dimensions } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { Switch } from 'react-native-switch';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { useFocusEffect } from '@react-navigation/native';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { StatusBar } from 'expo-status-bar';
 
-import OptionButton from '../components/touchableHighlight/touchableHightlight';
-import SettingsComponent from '../components/settings/SettingsComponent';
-import DeleteAccount from '../screens/DeleteAccount';
-import PauseProfile from '../screens/PauseProfile';
 import { COLORS, FONT, SIZES } from '../constants';
 
 const cardWidth = Dimensions.get('window').width;
@@ -52,7 +45,6 @@ export default function SettingsScreen({ navigation }) {
 			}
 		});
 
-		// Clean up the listener when the component unmounts
 		return () => unsubscribe();
 	};
 
@@ -140,7 +132,7 @@ export default function SettingsScreen({ navigation }) {
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#6e4639', // Changed background color to brown
+		backgroundColor: '#6e4639',
 		alignItems: 'center',
 		justifyContent: 'center',
 	},
@@ -161,14 +153,14 @@ const styles = StyleSheet.create({
 	settingText: {
 		fontFamily: FONT.xLarge,
 		fontSize: SIZES.medium,
-		color: 'white', // Changed text color to white
+		color: 'white',
 		left: 20,
 	},
 	fullBorderLine: {
 		borderBottomColor: "white",
-		borderBottomWidth: 2, // Thickness of the border line
+		borderBottomWidth: 2, 
 		borderStyle: 'solid',
 		width: cardWidth,
-		alignSelf: 'flex-start', // Align the border lines to the left
+		alignSelf: 'flex-start', 
 	},
 });

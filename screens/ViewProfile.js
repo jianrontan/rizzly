@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useContext } from 'react';
-import { View, SafeAreaView, StyleSheet, Text, TouchableOpacity, Image, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, SafeAreaView, StyleSheet, Text, TouchableOpacity, StatusBar } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements';
 import { useFocusEffect } from '@react-navigation/native';
 import { getDoc, doc } from 'firebase/firestore';
@@ -9,8 +9,6 @@ import { Dimensions } from 'react-native'
 import { Feather } from '@expo/vector-icons';
 import { Modal } from 'react-native';
 import { Button } from 'react-native-elements';
-import { Swipeable } from 'react-native-gesture-handler';
-import Swiper from 'react-native-swiper';
 import { SwiperFlatList } from 'react-native-swiper-flatlist';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 
@@ -54,11 +52,9 @@ const ViewProfile = ({ navigation }) => {
 
             fetchUnits();
 
-            // Cleanup function
             return () => {
-                // You can perform any cleanup here if needed
             };
-        }, []) // Empty dependency array means this effect runs only once when the component mounts
+        }, [])
     );
 
     const convertHeight = (cm) => {
@@ -111,7 +107,6 @@ const ViewProfile = ({ navigation }) => {
 
     useFocusEffect(
         React.useCallback(() => {
-            // Re-fetch current user data when the screen is focused
             fetchCurrentUser();
         }, [])
     );

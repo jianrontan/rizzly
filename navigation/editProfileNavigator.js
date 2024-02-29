@@ -1,16 +1,7 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler } from 'react-native';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useFonts } from 'expo-font';
-import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { View, } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useDispatch, useSelector } from 'react-redux';
-import { getAuth } from 'firebase/auth';
-import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
 
 import EditProfileScreen from '../screens/EditProfileScreen';
 import MyName from '../screens/MyName';
@@ -27,7 +18,6 @@ import Education from '../screens/Education';
 import Work from '../screens/Work';
 import Vices from '../screens/Vices';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
-import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import appStyles from '../components/app/app.style';
 import { FONT, icons } from '../constants';
 
@@ -47,7 +37,7 @@ export default function EditProfileStack() {
                 headerShadowVisible: 'true',
                 headerTitleStyle: [appStyles.headerFont, { color: 'white' }], // Make the text white
                 headerStyle: {
-                    backgroundColor: '#8c6c5d', // Background color
+                    backgroundColor: '#8c6c5d',
                 },
                 headerTintColor: 'white', // Make the header icon white
                 headerLeft: () => {

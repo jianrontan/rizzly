@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { getFirestore, collection, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const ContactUsScreen = () => {
@@ -32,7 +32,7 @@ const ContactUsScreen = () => {
       <View style={styles.container}>
         <Text style={styles.title}>Contact Us</Text>
         <TextInput
-          style={[styles.input, { height: 200 }]} // Adjust the height as needed, for example, height: 200
+          style={[styles.input, { height: 200 }]} 
           placeholder="Type your message here..."
           placeholderTextColor="white"
           multiline
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginBottom: 20,
-    textAlignVertical: 'top', // for multiline input to start from the top
+    textAlignVertical: 'top', 
     color: 'white',
   },
   button: {

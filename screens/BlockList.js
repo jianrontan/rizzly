@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Button, TextInput, View, FlatList, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
-import { getFirestore, collection, query, where, getDoc, arrayRemove, updateDoc, doc, getDocs, arrayUnion } from 'firebase/firestore';
+import React, { useState } from 'react';
+import { TextInput, View, FlatList, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { collection, query, where, getDoc, arrayRemove, updateDoc, doc, getDocs, arrayUnion } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
 import { useFocusEffect } from '@react-navigation/native';
 import { Icon } from 'react-native-elements';
@@ -31,7 +31,6 @@ const BlockList = () => {
     // Create a query against the 'emails' collection
     const q = query(collection(db, 'emails'), where('email', '==', blockInput));
 
-    // Execute the query
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
@@ -41,7 +40,6 @@ const BlockList = () => {
 
       const email = docRef.data().email;
 
-      // Check if the entered email is the current user's email
       if (email === auth.currentUser.email) {
         Alert.alert("Cannot block your own email");
         return;
@@ -76,7 +74,6 @@ const BlockList = () => {
 
   useFocusEffect(
     React.useCallback(() => {
-      // This function runs every time the screen comes into focus
       const fetchBlockedEmails = async () => {
         const userRef = doc(db, 'profiles', auth.currentUser.uid);
         const userSnapshot = await getDoc(userRef);
@@ -109,13 +106,13 @@ const BlockList = () => {
       />
       <TouchableOpacity
         style={{
-          backgroundColor: '#D3A042', // Gold button color
+          backgroundColor: '#D3A042', 
           padding: 10,
           borderRadius: 5,
-          marginTop: 40, // Move the button down by increasing marginTop
-          width: 150, // Set the width of the button
-          alignSelf: 'center', // Center the button horizontally
-        }} // Set the background color to gold
+          marginTop: 40, 
+          width: 150, 
+          alignSelf: 'center', 
+        }} 
         onPress={handleBlock}
       >
         <Text style={{ color: 'white', fontSize: SIZES.medium, fontWeight: 'bold', textAlign: 'center' }}>Block Email</Text>
@@ -132,7 +129,7 @@ const BlockList = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#6e4639', // Primary color: #6e4639
+    backgroundColor: '#6e4639', 
     padding: 10,
   },
   input: {
@@ -141,15 +138,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 20,
     marginBottom: 20,
-    textAlignVertical: 'top', // for multiline input to start from the top
+    textAlignVertical: 'top', 
     color: 'white',
     top: 30,
     fontSize: SIZES.large,
   },
   listItem: {
-    flexDirection: 'row', // Ensures children are laid out in a row
-    justifyContent: 'space-between', // Spaces out children evenly
-    alignItems: 'center', // Vertically aligns children in the center
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
@@ -158,13 +155,13 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   card: {
-    backgroundColor: 'white', // Set the background color to white
-    padding: 10, // Add padding to the card
-    marginVertical: 10, // Add vertical margins for spacing
-    borderRadius: 5, // Optional: round corners of the card
+    backgroundColor: 'white', 
+    padding: 10, 
+    marginVertical: 10, 
+    borderRadius: 5, 
   },
   cardText: {
-    color: 'white', // Change the text color to white
+    color: 'white', 
     fontSize: SIZES.medium,
     fontWeight: 'bold'
   },

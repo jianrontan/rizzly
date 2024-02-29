@@ -1,35 +1,31 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler, StyleSheet } from 'react-native';
+import { Text, View, Alert, TouchableOpacity, } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAuth } from 'firebase/auth';
-import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import BottomTabStack from "./bottomTabNavigator";
 import SettingsScreen from '../screens/Settings';
 import CustomLoadingScreen from '../screens/LoadingScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
 import ViewProfile from '../screens/ViewProfile';
-import SelfieCapture from '../setUpScreens/SelfieCapture';
 import PauseProfile from '../screens/PauseProfile';
 import DeleteAccountScreen from '../screens/DeleteAccount';
 import ContactUsScreen from '../screens/Contact';
 import BlockList from '../screens/BlockList';
-import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
-import SetUpProfile from './setUpProfileNavigator';
 import EditProfileStack from './editProfileNavigator.js';
 import Units from '../screens/Units';
 import appStyles from '../components/app/app.style';
-import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges, setSaveChanges } from '../redux/actions';
+import { setSaveChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';
 
 const Drawer = createDrawerNavigator();
@@ -232,11 +228,11 @@ export default function DrawerStack() {
     const CustomTabBar = (props) => {
         const navigation = useNavigation();
         const dispatch = useDispatch();
-    
+
         const hasUnsavedChangesExportVal = useSelector(state => state.editProfileReducer.hasUnsavedChangesExportVal);
         const aboutMeChangesVal = useSelector(state => state.editProfileReducer.aboutMeChangesVal);
         const viewProfileChangesVal = useSelector(state => state.editProfileReducer.viewProfileChangesVal);
-    
+
         const handleTabPress = (route, isFocused) => {
             if (route.name === 'View' && (viewProfileChangesVal || aboutMeChangesVal || hasUnsavedChangesExportVal) && !isFocused) {
                 dispatch(setSaveChanges(true));
@@ -244,7 +240,7 @@ export default function DrawerStack() {
                 navigation.navigate(route.name);
             }
         };
-    
+
         return (
             <View style={{
                 flexDirection: 'row',
@@ -257,11 +253,11 @@ export default function DrawerStack() {
                 shadowRadius: 3,
                 elevation: 5,
                 shadowColor: '#000',
-                backgroundColor: '#8c6c5d' // Change background color to brown
+                backgroundColor: '#8c6c5d'
             }}>
                 {props.state.routes.map((route, index) => {
                     const isFocused = props.state.index === index;
-    
+
                     return (
                         <TouchableOpacity
                             key={route.key}
@@ -281,7 +277,7 @@ export default function DrawerStack() {
                 })}
             </View>
         );
-    };    
+    };
 
     // SETTINGS
     const SettingsStack = () => {
@@ -293,11 +289,11 @@ export default function DrawerStack() {
                     headerTitle: 'Edit Settings',
                     headerTitleAlign: 'center',
                     headerShadowVisible: 'true',
-                    headerTitleStyle: [appStyles.headerFont, { color: 'white' }], // Make the text white
+                    headerTitleStyle: [appStyles.headerFont, { color: 'white' }], 
                     headerStyle: {
-                        backgroundColor: '#8c6c5d', // Background color
+                        backgroundColor: '#8c6c5d', 
                     },
-                    headerTintColor: 'white', // Make the header icon white
+                    headerTintColor: 'white', 
                     headerLeft: () => {
                         const navigation = useNavigation();
                         return (

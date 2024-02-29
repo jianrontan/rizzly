@@ -5,7 +5,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getAuth, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
 import { FirebaseRecaptchaVerifierModal, FirebaseRecaptchaBanner } from 'expo-firebase-recaptcha';
 import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { COLORS, SIZES } from '../constants';
+import { SIZES } from '../constants';
 import { db } from '../firebase/firebase'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -54,8 +54,7 @@ const SignUpPhone: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
       // Retrieve the email from local storage
       const storedEmail = await AsyncStorage.getItem('@email');
       if (storedEmail !== null) {
-        // Assuming you have a user ID, save the email to Firestore
-        const userId = auth.currentUser.uid; // Get the user ID
+        const userId = auth.currentUser.uid; 
         await setDoc(doc(db, "emails", userId), { email: storedEmail });
       }
 
@@ -68,7 +67,6 @@ const SignUpPhone: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
     try {
       await AsyncStorage.setItem('@email', email);
     } catch (e) {
-      // saving error
       console.error(e);
     }
   };
