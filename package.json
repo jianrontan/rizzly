@@ -40,6 +40,7 @@
     "expo-camera": "~13.4.4",
     "expo-constants": "~14.4.2",
     "expo-dev-client": "~2.4.13",
+    "expo-firebase-core": "^6.0.0",
     "expo-firebase-recaptcha": "^2.3.1",
     "expo-font": "~11.4.0",
     "expo-image-manipulator": "~11.3.0",
