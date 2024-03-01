@@ -114,7 +114,7 @@ const HomeScreen = () => {
 
             // Cleanup function
             return () => {
-                
+
             };
         }, []) // Empty dependency array means this effect runs only once when the component mounts
     );
@@ -723,6 +723,12 @@ const HomeScreen = () => {
                                     <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
                                     <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
                                     <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
+                                    <Text style={styles.modalinfo}>Children: {selectedUser.children || 'No info on children'}</Text>
+                                    <Text style={styles.modalinfo}>Education: {selectedUser.education || 'No specified education'}</Text>
+                                    <Text style={styles.modalinfo}>Occupation: {selectedUser.job || 'No specified occupation'}</Text>
+                                    <Text style={styles.modalinfo}>Drinking: {selectedUser.alcohol || 'No info on alcohol'}</Text>
+                                    <Text style={styles.modalinfo}>Smoking: {selectedUser.smoking || 'No info on smoking'}</Text>
+                                    <Text style={styles.modalinfo}>Sex: {selectedUser.sex || 'No info on sex'}</Text>
                                     <Text style={styles.modalinfo}>
                                         Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
                                     </Text>

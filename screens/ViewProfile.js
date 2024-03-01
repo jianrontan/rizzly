@@ -165,8 +165,15 @@ const ViewProfile = ({ navigation }) => {
                                 <Text style={styles.modalinfo}>Number of retakes: {currentUserData.retakes || 'No retakes'} </Text>
                                 <Text style={styles.modalinfo}>Bio: {currentUserData.bio || 'No bio'} </Text>
                                 <Text style={styles.modalinfo}>Location: {currentUserData.location || 'No location'}</Text>
+                                <Text style={styles.modalinfo}>Location: {currentUserData.location || 'No location'}</Text>
                                 <Text style={styles.modalinfo}>Ethnicity: {currentUserData.ethnicity || 'No specified ethnicity'}</Text>
                                 <Text style={styles.modalinfo}>Religion: {currentUserData.religion || 'No specified religion'}</Text>
+                                <Text style={styles.modalinfo}>Children: {currentUserData.children || 'No info on children'}</Text>
+                                <Text style={styles.modalinfo}>Education: {currentUserData.education || 'No specified education'}</Text>
+                                <Text style={styles.modalinfo}>Occupation: {currentUserData.job || 'No specified occupation'}</Text>
+                                <Text style={styles.modalinfo}>Drinking: {currentUserData.alcohol || 'No info on alcohol'}</Text>
+                                <Text style={styles.modalinfo}>Smoking: {currentUserData.smoking || 'No info on smoking'}</Text>
+                                <Text style={styles.modalinfo}>Sex: {currentUserData.sex || 'No info on sex'}</Text>
                                 <Text style={styles.modalinfo}>
                                     Distance: This will display the estimated distance you are from the other party in km
                                 </Text>
