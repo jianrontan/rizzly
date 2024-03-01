@@ -1,23 +1,17 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
-import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, useWindowDimensions, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, startAfter, onSnapshot, orderBy, setDoc, limit } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
-import { useHeaderHeight, getDefaultHeaderHeight } from '@react-navigation/elements';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SwiperFlatList } from 'react-native-swiper-flatlist';
-import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
 import Spinner from 'react-native-loading-spinner-overlay';
-import Loading from '../screens/LoadingScreen'
 
 import { FONT, COLORS, SIZES, icons } from '../constants';
 
@@ -120,7 +114,7 @@ const HomeScreen = () => {
 
             // Cleanup function
             return () => {
-                // You can perform any cleanup here if needed
+
             };
         }, []) // Empty dependency array means this effect runs only once when the component mounts
     );
@@ -729,6 +723,12 @@ const HomeScreen = () => {
                                     <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
                                     <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
                                     <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
+                                    <Text style={styles.modalinfo}>Children: {selectedUser.children || 'No info on children'}</Text>
+                                    <Text style={styles.modalinfo}>Education: {selectedUser.education || 'No specified education'}</Text>
+                                    <Text style={styles.modalinfo}>Occupation: {selectedUser.job || 'No specified occupation'}</Text>
+                                    <Text style={styles.modalinfo}>Drinking: {selectedUser.alcohol || 'No info on alcohol'}</Text>
+                                    <Text style={styles.modalinfo}>Smoking: {selectedUser.smoking || 'No info on smoking'}</Text>
+                                    <Text style={styles.modalinfo}>Sex: {selectedUser.sex || 'No info on sex'}</Text>
                                     <Text style={styles.modalinfo}>
                                         Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
                                     </Text>

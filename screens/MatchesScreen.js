@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, Dimensions } from 'react-native';
-import { collection, getDocs, query, where, onSnapshot, updateDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, where, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase/firebase';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFocusEffect } from '@react-navigation/native';
 import { setMatchesCount, setMatchesRedux, setUnreadChatroomsCount } from '../redux/actions';
 
 const cardWidth = Dimensions.get('window').width;
@@ -14,7 +13,6 @@ const MatchesScreen = ({ navigation }) => {
   const [unreadMessages, setUnreadMessages] = useState({});
   const [matches, setMatches] = useState([]);
   const [openedChatrooms, setOpenedChatrooms] = useState([]);
-  // const chatVal = Number(useSelector(state => state.chatVal));
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -22,27 +20,22 @@ const MatchesScreen = ({ navigation }) => {
         const usersCollection = collection(db, 'profiles');
         const currentUser = auth.currentUser;
 
-        // Query for documents where the 'likes' array contains the current user's ID
         const likesQuery = query(usersCollection, where('likes', 'array-contains', currentUser.uid));
         const likesSnapshot = await getDocs(likesQuery);
         const likesUsers = likesSnapshot.docs.map((doc) => {
           const data = doc.data();
-          // Exclude the datePickerValue field
           const { datePickerValue, ...restOfData } = data;
           return { id: doc.id, ...restOfData };
         });
 
-        // Query for documents where the 'likedBy' array contains the current user's ID
         const likedByQuery = query(usersCollection, where('likedBy', 'array-contains', currentUser.uid));
         const likedBySnapshot = await getDocs(likedByQuery);
         const likedByUsers = likedBySnapshot.docs.map((doc) => {
           const data = doc.data();
-          // Exclude the datePickerValue field
           const { datePickerValue, ...restOfData } = data;
           return { id: doc.id, ...restOfData };
         });
 
-        // Combine the results locally
         const matchedUsers = likesUsers.filter((likeUser) =>
           likedByUsers.some((likedByUser) => likedByUser.id === likeUser.id)
         );
@@ -69,7 +62,7 @@ const MatchesScreen = ({ navigation }) => {
       const chatRoomID = [auth.currentUser.uid, match.id].sort().join('_');
       const messagesCollection = collection(db, 'privatechatrooms', chatRoomID, 'messages');
 
-      let unreadCount = 0; // Add this line to initialize the counter
+      let unreadCount = 0;
 
       const unsubscribe = onSnapshot(messagesCollection, (snapshot) => {
         const hasUnread = snapshot.docs.some((doc) => {
@@ -82,19 +75,16 @@ const MatchesScreen = ({ navigation }) => {
         });
 
         setUnreadMessages((prev) => ({ ...prev, [chatRoomID]: hasUnread }));
-        // Dispatch the count to your redux store
       });
 
       onSnapshot(messagesCollection, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
             const messageData = change.doc.data();
-            // No need to mark the message as read here
           }
         });
       });
 
-      // Clean up the listener when the component unmounts
       return () => unsubscribe();
     });
   }, [matches, dispatch]);
@@ -107,20 +97,19 @@ const MatchesScreen = ({ navigation }) => {
           backgroundColor: 'white',
           padding: 10,
           marginVertical: 5,
-          borderRadius: 10, // Optional: to give rounded corners
+          borderRadius: 10,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.25,
           shadowRadius: 3.84,
           elevation: 5,
-          borderWidth: 4, // Add borderWidth
-          borderColor: 'gold' // Add borderColor
+          borderWidth: 4,
+          borderColor: 'gold'
         } : {
           backgroundColor: 'white',
           padding: 10,
           marginVertical: 5,
-          borderRadius: 10, // Optional: to give rounded corners
-          shadowColor: '#000',
+          borderRadius: 10,
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.25,
           shadowRadius: 3.84,
@@ -135,20 +124,16 @@ const MatchesScreen = ({ navigation }) => {
           });
 
           if (!openedChatrooms.includes(chatRoomID)) {
-            setOpenedChatrooms([...openedChatrooms, chatRoomID]); // Add the chat room to the list of opened chatrooms
+            setOpenedChatrooms([...openedChatrooms, chatRoomID]);
           }
 
-          // Fetch all messages in the chat room
           const messagesSnapshot = await getDocs(collection(db, 'privatechatrooms', chatRoomID, 'messages'));
 
-          // Iterate over all messages
           messagesSnapshot.docs.forEach(async (doc) => {
             const messageData = doc.data();
 
-            // Only mark the message as read if the current user is the receiver
             if (messageData.senderId !== auth.currentUser.uid && !messageData.read) {
-              // Use the correct syntax to create a reference to the document
-              const messageRef = doc.ref; // Use doc.ref instead of doc
+              const messageRef = doc.ref;
               await updateDoc(messageRef, { read: true });
             }
           });
@@ -159,7 +144,6 @@ const MatchesScreen = ({ navigation }) => {
             return messageData.senderId !== auth.currentUser.uid && !messageData.read ? count + 1 : count;
           }, 0);
 
-          // Update chatVal with the new unread count
           dispatch(setUnreadChatroomsCount(unreadCount));
         }}
       >
@@ -206,20 +190,19 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   matchContainer: {
-    // Define your desired styles for the match container
     padding: 10,
     marginVertical: 5,
-    borderRadius: 10, // Optional: to give rounded corners
+    borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5, // Android shadow
+    elevation: 5,
   },
   avatar: {
     width: 50,
     height: 50,
-    borderRadius: 25, // Make it half of width and height to create a circular shape
+    borderRadius: 25,
     marginRight: 10,
   },
   name: {
@@ -228,7 +211,7 @@ const styles = StyleSheet.create({
   },
   avatarWithNameContainer: {
     flexDirection: 'row',
-    alignItems: 'center', // This will vertically center the items
+    alignItems: 'center',
   },
   newMessage: {
     color: 'red',
@@ -245,7 +228,7 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: '#D3A042',
-    marginLeft: cardWidth / 2, // Adjust this value to control the distance between the circle and the text
+    marginLeft: cardWidth / 2,
   },
 
 });

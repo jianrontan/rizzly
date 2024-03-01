@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Image, FlatList } from 'react-native';
-import { collection, getDoc, doc, getDocs, query, where } from 'firebase/firestore';
+import { getDoc, doc } from 'firebase/firestore';
 import { useDispatch } from 'react-redux';
 import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
@@ -50,7 +50,7 @@ const LikesScreen = () => {
             title: 'New Like',
             body: 'Someone just liked your profile!',
           },
-          trigger: null, // Trigger immediately
+          trigger: null, 
         });
       }
 
@@ -61,19 +61,7 @@ const LikesScreen = () => {
     }, { includeMetadataChanges: true });
 
     return unsubscribe;
-  }, [currentUserId, dispatch]);
-
-
-  useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, 'profiles', currentUserId), (doc) => {
-      const currentUserData = doc.data();
-
-      // Update the likes count in Redux store
-      dispatch(setLikes(currentUserData?.likedBy?.length || 0));
-    }, { includeMetadataChanges: true });
-
-    return unsubscribe;
-  }, [currentUserId, dispatch]);
+  }, [currentUserId, dispatch])
 
   useEffect(() => {
     const fetchLikedUsersData = async () => {
@@ -147,15 +135,15 @@ const LikesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#6e4639', // Light background color that complements the bear theme
+    backgroundColor: '#6e4639', 
     padding: 16,
   },
   userCard: {
     marginBottom: 16,
-    backgroundColor: '#FFFFFF', // White card with a bear-themed border or shadow
+    backgroundColor: '#FFFFFF', 
     borderRadius: 10,
     padding: 16,
-    elevation: 3, // For Android
+    elevation: 3, 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -164,18 +152,18 @@ const styles = StyleSheet.create({
   usernameText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333', // Dark text for readability
+    color: '#333333',
   },
   userImage: {
     width: 100,
     height: 100,
-    borderRadius: 50, // Rounded corners for a softer look
+    borderRadius: 50, 
     marginTop: 8,
   },
   noLikedText: {
     fontSize: 16,
     fontWeight: 'normal',
-    color: '#999999', // Soft gray for less prominent text
+    color: '#999999', 
   },
 });
 

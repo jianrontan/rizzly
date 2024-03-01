@@ -1,19 +1,13 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Button, Dimensions, BackHandler, ActivityIndicator } from 'react-native';
-import { useFocusEffect, CommonActions } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useDispatch } from 'react-redux';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
-import { db, storage } from '../firebase/firebase';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
-import DraggableFlatList from 'react-native-draggable-flatlist';
-import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
 
 import { setHasUnsavedChangesExport } from '../redux/actions';
 import { COLORS, SIZES, FONT, icons } from '../constants';
-import { isLoading } from 'expo-font';
 
 export default function EditProfileScreen({ navigation }) {
 

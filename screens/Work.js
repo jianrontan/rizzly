@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Dimensions, BackHandler } from 'react-native';
 import { useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateDoc, doc, onSnapshot } from 'firebase/firestore';

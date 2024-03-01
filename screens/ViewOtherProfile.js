@@ -9,8 +9,6 @@ import { Dimensions } from 'react-native'
 import { Feather } from '@expo/vector-icons';
 import { Modal } from 'react-native';
 import { Button } from 'react-native-elements';
-import { Swipeable } from 'react-native-gesture-handler';
-import Swiper from 'react-native-swiper';
 import { SwiperFlatList } from 'react-native-swiper-flatlist';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 
@@ -46,7 +44,6 @@ const ViewOtherProfile = ({ navigation, route }) => {
                         setIsMetric(unitsData.isMetric);
                         console.log('Successfully retrieved units:', unitsData);
                     } else {
-                        // If no units document exists for the current user, use default values
                         setIsMetric(false);
                     }
                 } catch (error) {
@@ -56,11 +53,9 @@ const ViewOtherProfile = ({ navigation, route }) => {
 
             fetchUnits();
 
-            // Cleanup function
             return () => {
-                // You can perform any cleanup here if needed
             };
-        }, []) // Empty dependency array means this effect runs only once when the component mounts
+        }, []) 
     );
 
     const convertHeight = (cm) => {
@@ -71,7 +66,7 @@ const ViewOtherProfile = ({ navigation, route }) => {
     };
 
     const fetchCurrentUser = async () => {
-        setIsLoading(true); // Start loading
+        setIsLoading(true); 
         try {
             const user = auth.currentUser;
             if (!user) {
@@ -84,13 +79,12 @@ const ViewOtherProfile = ({ navigation, route }) => {
     
             if (currentUserDoc.exists()) {
                 const userData = currentUserDoc.data();
-                // Your existing logic to process userData
                 setCurrentUserData(userData);
             }
         } catch (error) {
             console.error('Error fetching current user data:', error);
         } finally {
-            setIsLoading(false); // Stop loading regardless of success or error
+            setIsLoading(false); 
         }
     };    
 
@@ -100,7 +94,6 @@ const ViewOtherProfile = ({ navigation, route }) => {
 
     useFocusEffect(
         React.useCallback(() => {
-            // Re-fetch current user data when the screen is focused
             fetchCurrentUser();
         }, [matchId])
     );
@@ -111,7 +104,7 @@ const ViewOtherProfile = ({ navigation, route }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {isLoading ? ( // Render spinner if loading
+            {isLoading ? ( 
                 <View style={styles.spinnerContainer}>
                     <ActivityIndicator size="large" color={COLORS.primary} />
                 </View>

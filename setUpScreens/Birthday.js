@@ -1,15 +1,9 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
-import { useFocusEffect, CommonActions } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useDispatch, useSelector } from 'react-redux';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
-import { db, storage } from '../firebase/firebase';
+import { useFocusEffect } from '@react-navigation/native';
+import { updateDoc, doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
-import { parseISO, format } from 'date-fns';
-import DraggableFlatList from 'react-native-draggable-flatlist';
-import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
 import DateTimePicker from '@react-native-community/datetimepicker';
 

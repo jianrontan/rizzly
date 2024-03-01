@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Switch, StyleSheet, Image } from 'react-native';
+import { View, Text, Switch, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setUnits } from '../redux/actions';
 import { useDispatch, useSelector } from 'react-redux';
@@ -20,7 +20,6 @@ const Units = () => {
     const [isMiles, setIsMiles] = useState(isMilesRedux);
 
     useEffect(() => {
-        // Fetch and set unit preferences from AsyncStorage on component mount
         const fetchUnitPreferences = async () => {
             try {
                 const unitPreference = await AsyncStorage.getItem('unitPreference');
@@ -38,7 +37,6 @@ const Units = () => {
         fetchUnitPreferences();
     }, [dispatch]);
 
-    // Function to save unit preferences to AsyncStorage and Firestore
     const saveUnits = async (uid, isMetric, isMiles) => {
         try {
             const unitDocRef = doc(db, 'units', uid);
@@ -48,7 +46,6 @@ const Units = () => {
                 isMetric: isMetric
             });
 
-            // Save unit preferences to AsyncStorage
             AsyncStorage.setItem('unitPreference', JSON.stringify({ isMetric, isMiles }));
 
             console.log(`Units saved for user ${uid}.`);
@@ -57,17 +54,15 @@ const Units = () => {
         }
     };
 
-    // Function to toggle metric preference
     const toggleMetric = () => {
         setIsMetric(previousState => !previousState);
-        saveUnits(auth.currentUser.uid, !isMetric, isMiles); // Save the updated state
+        saveUnits(auth.currentUser.uid, !isMetric, isMiles);
         dispatch(setUnits({ isMetric: !isMetric, isMiles }));
     };
 
-    // Function to toggle miles preference
     const toggleMiles = () => {
         setIsMiles(previousState => !previousState);
-        saveUnits(auth.currentUser.uid, isMetric, !isMiles); // Save the updated state
+        saveUnits(auth.currentUser.uid, isMetric, !isMiles);
         dispatch(setUnits({ isMetric, isMiles: !isMiles }));
     };
 
@@ -77,8 +72,8 @@ const Units = () => {
             <View style={styles.switchContainer}>
                 <Text style={styles.label}>Height:</Text>
                 <Switch
-                    trackColor={{ false: "#767577", true: "#ffd700" }} // Tertiary color: gold
-                    thumbColor={isMetric ? "#6e4639" : "#f4f3f4"} // Primary color: #6e4639
+                    trackColor={{ false: "#767577", true: "#ffd700" }} 
+                    thumbColor={isMetric ? "#6e4639" : "#f4f3f4"} 
                     ios_backgroundColor="#3e3e3e"
                     onValueChange={toggleMetric}
                     value={isMetric}
@@ -88,8 +83,8 @@ const Units = () => {
             <View style={[styles.switchContainer, { marginTop: 20 }]}>
                 <Text style={styles.label}>Distance:</Text>
                 <Switch
-                    trackColor={{ false: "#767577", true: "#ffd700" }} // Tertiary color: gold
-                    thumbColor={isMiles ? "#6e4639" : "#f4f3f4"} // Primary color: #6e4639
+                    trackColor={{ false: "#767577", true: "#ffd700" }} 
+                    thumbColor={isMiles ? "#6e4639" : "#f4f3f4"} 
                     ios_backgroundColor="#3e3e3e"
                     onValueChange={toggleMiles}
                     value={isMiles}

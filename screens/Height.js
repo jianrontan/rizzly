@@ -1,16 +1,11 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
-import { useFocusEffect, CommonActions } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useDispatch } from 'react-redux';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
-import { db, storage } from '../firebase/firebase';
+import { updateDoc, doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
-import DraggableFlatList from 'react-native-draggable-flatlist';
-import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
-import DropDownPicker from 'react-native-dropdown-picker';
 import ScrollPicker from 'react-native-wheel-scrollview-picker';
 import SwitchSelector from 'react-native-switch-selector';
 

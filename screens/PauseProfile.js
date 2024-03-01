@@ -66,7 +66,7 @@ const PauseProfile = () => {
     <View style={styles.container}>
       <Text style={styles.header}>Pause Profile</Text>
       <Switch
-        style={styles.switch} // Added style to apply margin if needed
+        style={styles.switch} 
         trackColor={{ false: "#767577", true: "#ffd700" }}
         thumbColor={isEnabled ? "#6e4639" : "#f4f3f4"}
         ios_backgroundColor="#3e3e3e"
@@ -84,9 +84,9 @@ const styles = StyleSheet.create({
   container: {
     flex:   1,
     backgroundColor: "#6e4639",
-    justifyContent: 'center', // Centers children vertically
-    alignItems: 'center', // Centers children horizontally
-    paddingHorizontal:   20, // Horizontal padding
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    paddingHorizontal:   20, 
   },
   header: {
     fontSize:   24,
@@ -95,14 +95,14 @@ const styles = StyleSheet.create({
     marginBottom:   10,
   },
   switchContainer: {
-    width: '80%', // Add a width to control the size of the switch
-    marginBottom:  20, // Add bottom margin to separate the switch from the description
+    width: '80%', 
+    marginBottom:  20, 
   },
   description: {
     color: 'white',
     fontSize:   16,
-    textAlign: 'center', // Aligns text to center
-    marginTop:  10, // Adds some space above the description
+    textAlign: 'center', 
+    marginTop:  10,
   },
 });
 

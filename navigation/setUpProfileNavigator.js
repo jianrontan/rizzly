@@ -1,16 +1,7 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity, ActivityIndicator, BackHandler } from 'react-native';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useFonts } from 'expo-font';
-import { SplashScreen } from 'expo-router';
-import { NavigationContainer, getFocusedRouteNameFromRoute, useNavigation, useIsFocused, useFocusEffect } from '@react-navigation/native';
-import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList } from '@react-navigation/drawer';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useDispatch, useSelector } from 'react-redux';
-import { getAuth } from 'firebase/auth';
-import { getDoc, updateDoc, doc, setDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
 
 import Name from '../setUpScreens/NameS';
 import Birthday from '../setUpScreens/Birthday';
@@ -25,7 +16,6 @@ import SelfieCapture from '../setUpScreens/SelfieCapture';
 import DrawerBackBtn from '../components/button/DrawerBackBtn';
 import SetUpBackBtn from '../components/button/SetUpBackBtn';
 import appStyles from '../components/app/app.style';
-import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';
 
 const Stack = createStackNavigator();

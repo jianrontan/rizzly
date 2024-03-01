@@ -1,23 +1,12 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Keyboard, Button, Dimensions, BackHandler, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
-import { useFocusEffect, CommonActions } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useDispatch, useSelector } from 'react-redux';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion } from 'firebase/firestore';
-import { db, storage } from '../firebase/firebase';
+import React, { useState, useCallback } from 'react';
+import { View, ScrollView, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, Dimensions, BackHandler } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { updateDoc, doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
-import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
-import { parseISO, format } from 'date-fns';
-import SelectDropdown from 'react-native-select-dropdown';
-import DropDownPicker from 'react-native-dropdown-picker';
-import DraggableFlatList from 'react-native-draggable-flatlist';
-import * as ImagePicker from 'expo-image-picker';
 import Spinner from 'react-native-loading-spinner-overlay';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { haversineDistance } from '../screens/haversine';
 import * as Location from 'expo-location';
 
-import OptionButton from '../components/touchableHighlight/touchableHightlight';
 import { COLORS, SIZES, FONT, icons } from '../constants';
 
 export default function MyLocation({ navigation }) {
@@ -56,15 +45,13 @@ export default function MyLocation({ navigation }) {
             });
             setLocation(location);
             setHave(location);
-            // Get place from coordinates
-            const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
-            setPlace(place); // Update place state variable
 
-            // Update user document with location information
+            const place = await getPlaceFromCoordinates(location.coords.latitude, location.coords.longitude);
+            setPlace(place); 
+
             const userId = auth.currentUser.uid;
             const userDocRef = doc(db, 'profiles', userId);
 
-            // Update user document with location details
             updateDoc(userDocRef, {
                 location: place,
                 latitude: location.coords.latitude,
@@ -72,7 +59,6 @@ export default function MyLocation({ navigation }) {
             });
         } catch (error) {
             console.error('Error getting location:', error);
-            // Handle error as needed
         }
         setSubmitting(false);
     };

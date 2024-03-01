@@ -1,10 +1,8 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Animated, View, ScrollView, FlatList, PanResponder, SafeAreaView, StyleSheet, Text, TouchableOpacity, Alert, TextInput, Image, Button, Dimensions, BackHandler, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Alert, Image, Dimensions, BackHandler } from 'react-native';
 import { useFocusEffect, CommonActions } from '@react-navigation/native';
-import { GestureHandlerRootView, PanGestureHandler, State } from 'react-native-gesture-handler';
-import { add, eq, set, useCode } from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
-import { getDoc, updateDoc, doc, setDoc, addDoc, collection, onSnapshot, arrayUnion, DocumentSnapshot } from 'firebase/firestore';
+import { updateDoc, doc, onSnapshot } from 'firebase/firestore';
 import { db, storage } from '../firebase/firebase';
 import { getAuth } from 'firebase/auth';
 import { uploadBytesResumable, ref, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -242,7 +240,7 @@ const EditPhotos = ({ navigation }) => {
     };
 
     useEffect(() => {
-        if(saveChangesVal) {
+        if (saveChangesVal) {
             handleSubmit();
             navigation.navigate('View')
         }

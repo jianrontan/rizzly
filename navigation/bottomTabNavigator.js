@@ -6,7 +6,6 @@ import { HeaderBackButton } from "@react-navigation/elements";
 import { useSelector } from 'react-redux';
 
 import Home from "../screens/HomeScreen";
-import ChatStack from "./chatNavigator";
 import MatchesScreen from "../screens/MatchesScreen";
 import ChatRoomScreen from "../screens/ChatRoomScreen";
 import ViewOtherProfile from "../screens/ViewOtherProfile";
@@ -60,14 +59,14 @@ export default function BottomTabStack({ navigation }) {
                 ),
                 headerTitleAlign: 'center',
                 headerStyle: {
-                    backgroundColor: '#8c6c5d', // Background color
+                    backgroundColor: '#8c6c5d',
                 },
-                headerTintColor: 'white', // Color of drawer icon
+                headerTintColor: 'white', 
                 headerTitleStyle: {
-                    color: 'white', // Color of title
+                    color: 'white',
                 },
                 tabBarStyle: {
-                    backgroundColor: '#8c6c5d', // Background color of the entire bottom tab
+                    backgroundColor: '#8c6c5d', 
                 },
             }}
         >

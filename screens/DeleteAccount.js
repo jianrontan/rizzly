@@ -17,31 +17,25 @@ const DeleteAccountScreen = ({ navigation }) => {
 
     if (user) {
       try {
-        // Prompt the user to enter their password for reauthentication
         const credentials = {
-          email: user.email, // Use the user's email
+          email: user.email,
           password: password.trim(),
         };
 
-        // Reauthenticate user with their password
         const credential = EmailAuthProvider.credential(credentials.email, credentials.password);
         await reauthenticateWithCredential(user, credential);
 
-        // Delete user's document from Firestore collections
         await Promise.all([
-          deleteDoc(doc(db, 'profiles', auth.currentUser.uid)), // Delete from 'profiles'
-          deleteDoc(doc(db, 'filters', auth.currentUser.uid)), // Delete from 'filters'
-          deleteDoc(doc(db, 'emails', auth.currentUser.uid)), // Delete from 'emails'
-          deleteDoc(doc(db, 'units', auth.currentUser.uid)), // Delete from 'units'
-          // Delete user's private chat rooms (assuming each chat room ID contains the user's UID)
+          deleteDoc(doc(db, 'profiles', auth.currentUser.uid)), 
+          deleteDoc(doc(db, 'filters', auth.currentUser.uid)), 
+          deleteDoc(doc(db, 'emails', auth.currentUser.uid)), 
+          deleteDoc(doc(db, 'units', auth.currentUser.uid)), 
+
           db.collection('privatechatrooms').where('users', 'array-contains', auth.currentUser.uid)
             .get().then(querySnapshot => {
-              // Delete each document in the query snapshot
               querySnapshot.forEach(doc => {
-                // Delete the document
                 deleteDoc(doc.ref);
 
-                // Delete all documents in the 'messages' subcollection of the chat room
                 const messagesCollection = db.collection('privatechatrooms').doc(doc.id).collection('messages');
                 messagesCollection.get().then(snapshot => {
                   snapshot.docs.forEach(messageDoc => deleteDoc(messageDoc.ref));
@@ -50,7 +44,6 @@ const DeleteAccountScreen = ({ navigation }) => {
             })
         ]);
 
-        // Delete user from Firebase Auth
         await deleteUser(user);
 
         Alert.alert('Success!', 'Your account has been deleted.');
@@ -89,13 +82,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#6e4639', // Deep brown background
+    backgroundColor: '#6e4639', 
   },
   text: {
     fontSize: SIZES.xLarge,
-    color: '#FFFFFF', // White text color
+    color: '#FFFFFF',
     fontWeight: 'bold',
-    textAlign: 'center' // This will center the text
+    textAlign: 'center' 
   },
   input: {
     borderWidth: 2,
@@ -103,18 +96,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 20,
     marginBottom: 20,
-    textAlignVertical: 'top', // for multiline input to start from the top
+    textAlignVertical: 'top', 
     color: 'white',
     top: 20,
   },
   button: {
-    backgroundColor: '#D3A042', // Gold button color
+    backgroundColor: '#D3A042', 
     padding: 10,
     borderRadius: 5,
     marginTop: 30,
   },
   buttonText: {
-    color: '#FFFFFF', // White button text color
+    color: '#FFFFFF', 
     fontWeight: 'bold',
   },
 });
