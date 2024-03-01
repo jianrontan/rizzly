@@ -1,10 +1,13 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { HeaderBackButton } from '@react-navigation/elements';
 import { useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import SignInPhone from '../authentication/signupPhone';
 import SignUp from '../authentication/signup';
+import { FONT, COLORS, SIZES, icons } from '../constants';
+import appStyles from '../components/app/app.style';
 
 const Stack = createStackNavigator();
 
@@ -21,6 +24,9 @@ const SignUpOptionsScreen = () => {
 
     return (
         <View style={styles.container}>
+            <View style={styles.titleContainer}>
+                <Text style={styles.title}>Pick your sign up method</Text>
+            </View>
             <TouchableOpacity style={styles.button} onPress={handlePhoneSignUp}>
                 <Text style={styles.buttonText}>Phone Number</Text>
             </TouchableOpacity>
@@ -35,32 +41,35 @@ const SignUpOptionsStack = () => {
     const navigation = useNavigation();
 
     const handleGoBack = () => {
-        navigation.goBack(); // Navigate back to the previous screen (Sign Up Options)
+        navigation.goBack();
     };
 
     return (
-        <Stack.Navigator initialRouteName="Sign Up Options">
+        <Stack.Navigator
+            initialRouteName="Sign Up Options"
+            screenOptions={({ route }) => ({
+                headerStyle: { backgroundColor: "#6e4639" },
+                headerTitle: "Sign Up",
+                headerTitleAlign: 'center',
+                headerTitleStyle: appStyles.headerFont2,
+            })}
+        >
             <Stack.Screen
                 name="Sign Up Options"
                 component={SignUpOptionsScreen}
                 options={{
-                    headerShown: false,
                     headerLeft: () => (
-                        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-                            <Text style={styles.backButtonText}>{'< Back'}</Text>
-                        </TouchableOpacity>
+                        <HeaderBackButton onPress={handleGoBack} />
                     ),
                 }}
             />
             <Stack.Screen
                 name="Sign Up With Phone"
                 component={SignInPhone}
-                options={{ headerShown: false }}
             />
             <Stack.Screen
                 name="Sign Up with Email"
                 component={SignUp}
-                options={{ headerShown: false }}
             />
         </Stack.Navigator>
     );
@@ -70,15 +79,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#6e4639',
-        justifyContent: 'center',
         alignItems: 'center',
-    },
-    button: {
-        backgroundColor: '#D3A042',
-        paddingVertical: 15,
-        paddingHorizontal: 30,
-        borderRadius: 8,
-        marginVertical: 10,
     },
     buttonText: {
         color: 'white',
@@ -89,6 +90,28 @@ const styles = StyleSheet.create({
     },
     backButtonText: {
         color: 'white',
+    },
+    titleContainer: {
+        paddingVertical: SIZES.xLarge,
+    },
+    title: {
+        fontFamily: FONT.medium,
+        fontSize: SIZES.mediumlarge,
+        color: 'white'
+    },
+    button: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#D3A042',
+        borderRadius: 8,
+        paddingVertical: SIZES.smallmedium,
+        paddingHorizontal: SIZES.smallmedium,
+        marginVertical: SIZES.smallmedium,
+    },
+    buttonText: {
+        fontSize: 18,
+        fontFamily: FONT.medium,
+        color: COLORS.white,
     },
 });
 

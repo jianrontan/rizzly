@@ -206,125 +206,125 @@ export default function EditProfileScreen({ navigation }) {
     }
 
     return (
-        <SafeAreaView>
-            <ScrollView showsVerticalScrollIndicator={false} style={styles.container}>
+        <SafeAreaView style={styles.container}>
+            <ScrollView showsVerticalScrollIndicator={false}>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateName}>
+                <TouchableOpacity onPress={navigateName}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>My Name</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{fullNameString}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{fullNameString}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateGender}>
+                <TouchableOpacity onPress={navigateGender}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>My Gender</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{gender}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{gender}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateSexuality}>
+                <TouchableOpacity onPress={navigateSexuality}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>My Sexuality</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{orientationString}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{orientationString}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigatePhotos}>
+                <TouchableOpacity onPress={navigatePhotos}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>My Photos</Text>
-                    </TouchableOpacity>
-                </View>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateLocation}>
+                <TouchableOpacity onPress={navigateLocation}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>My Location</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{locationString}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{locationString}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateAbout}>
+                <TouchableOpacity onPress={navigateAbout}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>About Me</Text>
-                    </TouchableOpacity>
-                </View>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateHeight}>
+                <TouchableOpacity onPress={navigateHeight}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>Height</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{cmHeight}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{cmHeight}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateEthnicity}>
+                <TouchableOpacity onPress={navigateEthnicity}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>Ethnicity</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{ethnicityString}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{ethnicityString}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateReligion}>
+                <TouchableOpacity onPress={navigateReligion}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>Religion</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{religion}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{religion}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateChildren}>
+                <TouchableOpacity onPress={navigateChildren}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>Children</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{children}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{children}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateEducation}>
+                <TouchableOpacity onPress={navigateEducation}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>Education</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{education}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{education}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateWork}>
+                <TouchableOpacity onPress={navigateWork}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>Work</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.tabInfoText}>{jobString}</Text>
-                </View>
+                        <Text style={styles.tabInfoText}>{jobString}</Text>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
-                <View style={styles.tabView}>
-                    <TouchableOpacity onPress={navigateVices}>
+                <TouchableOpacity onPress={navigateVices}>
+                    <View style={styles.tabView}>
                         <Text style={styles.tabText}>Vices</Text>
-                    </TouchableOpacity>
-                </View>
+                    </View>
+                </TouchableOpacity>
 
                 <View style={styles.borderLine}></View>
 
                 <Spinner
-                    visible={isLoading}
+                    visible={isLoading && !fullName}
                     animation='fade'
                     overlayColor="rgba(0, 0, 0, 0.25)"
                     color="white"
@@ -347,7 +347,8 @@ export default function EditProfileScreen({ navigation }) {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: 'white',
+        flex: 1,
+        backgroundColor: '#6e4639',
     },
     btnContainer: {
         width: 200,
@@ -374,7 +375,7 @@ const styles = StyleSheet.create({
         color: 'gray'
     },
     borderLine: {
-        borderBottomColor: "gray",
+        borderBottomColor: "#805c5e",
         borderBottomWidth: 1,
     },
     tabView: {
@@ -388,10 +389,11 @@ const styles = StyleSheet.create({
     tabText: {
         fontFamily: FONT.medium,
         fontSize: SIZES.medium,
+        color: "white"
     },
     tabInfoText: {
         fontFamily: FONT.regular,
         fontSize: SIZES.small,
-        color: 'gray'
+        color: 'white'
     }
 });

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Text, View, TouchableOpacity, SafeAreaView, ScrollView, TextInput } from 'react-native';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SIZES } from '../constants';
+import { COLORS, SIZES, FONT } from '../constants';
 
 const auth = getAuth();
 
@@ -35,19 +35,19 @@ const SignIn = ({ navigation }) => {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#6e4639', paddingHorizontal: SIZES.medium }}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, paddingTop: SIZES.medium }}>
 
-          <View style={{ alignItems: 'center', marginTop: SIZES.medium }}>
-            <Text style={{ color: 'white', fontSize: SIZES.large }}>Log In</Text>
+          <View>
+            <Text style={{ color: 'white', fontFamily: FONT.regular }}>Sign In with Email</Text>
           </View>
 
-          {!!value.error && <View style={{ alignItems: 'center', marginTop: SIZES.medium }}>
+          {!!value.error && <View style={{ alignItems: 'center', marginTop: SIZES.small }}>
             <Text style={{ color: 'white' }}>{value.error}</Text>
           </View>}
 
           <View style={{ marginTop: SIZES.medium }}>
             <TextInput
-              style={{ backgroundColor: 'white', padding: SIZES.small, borderRadius: SIZES.small }}
+              style={{ backgroundColor: 'white', padding: SIZES.small, borderRadius: SIZES.small, fontFamily: FONT.regular }}
               placeholder='Email'
               value={value.email}
               onChangeText={(text) => setValue({ ...value, email: text })}
@@ -56,7 +56,7 @@ const SignIn = ({ navigation }) => {
 
             <View style={{ position: 'relative', marginTop: SIZES.medium }}>
               <TextInput
-                style={{ backgroundColor: 'white', padding: SIZES.small, borderRadius: SIZES.small }}
+                style={{ backgroundColor: 'white', padding: SIZES.small, borderRadius: SIZES.small, fontFamily: FONT.regular }}
                 placeholder='Password'
                 value={value.password}
                 onChangeText={(text) => setValue({ ...value, password: text })}
@@ -69,15 +69,15 @@ const SignIn = ({ navigation }) => {
             </View>
 
             <TouchableOpacity style={{ backgroundColor: '#D3A042', borderRadius: SIZES.small, paddingVertical: SIZES.medium, alignItems: 'center', marginTop: SIZES.medium }} onPress={signIn} >
-              <Text style={{ color: 'white', fontSize: SIZES.medium }}>Sign In</Text>
+              <Text style={{ color: 'white', fontSize: SIZES.medium, fontFamily: FONT.regular }}>Sign In</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={{ marginTop: SIZES.medium }} onPress={() => navigation.navigate('SignUp')} >
-              <Text style={{ color: 'white' }}>Don't have an account? Sign up</Text>
+            <TouchableOpacity style={{ marginTop: SIZES.medium }} onPress={() => navigation.navigate('Sign Up')} >
+              <Text style={{ color: 'white', fontFamily: FONT.regular }}>Don't have an account? Sign up</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={{ marginTop: SIZES.small }} onPress={() => navigation.navigate('ForgotPassword')} >
-              <Text style={{ color: 'white' }}>Forgot Password?</Text>
+            <TouchableOpacity style={{ marginTop: SIZES.small }} onPress={() => navigation.navigate('Forgot Password')} >
+              <Text style={{ color: 'white', fontFamily: FONT.regular }}>Forgot Password?</Text>
             </TouchableOpacity>
 
           </View>

@@ -30,7 +30,7 @@ import EditProfileStack from './editProfileNavigator.js';
 import Units from '../screens/Units';
 import appStyles from '../components/app/app.style';
 import { setHasUnsavedChangesExport, setAboutMeChanges, setViewProfileChanges, setSaveChanges } from '../redux/actions';
-import { FONT, icons } from '../constants';
+import { FONT, COLORS, icons } from '../constants';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
@@ -289,8 +289,8 @@ export default function DrawerStack() {
             <Stack.Navigator
                 initialRouteName="Edit Settings"
                 backBehavior="initialRoute"
-                screenOptions={{
-                    headerTitle: 'Edit Settings',
+                screenOptions={({ route }) => ({
+                    headerTitle: route.name,
                     headerTitleAlign: 'center',
                     headerShadowVisible: 'true',
                     headerTitleStyle: [appStyles.headerFont, { color: 'white' }], // Make the text white
@@ -317,7 +317,7 @@ export default function DrawerStack() {
                             </View>
                         )
                     },
-                }}
+                })}
             >
                 <Stack.Screen name="Edit Settings" component={SettingsScreen} />
                 <Stack.Screen name="PauseProfile" component={PauseProfile} />
@@ -345,10 +345,11 @@ export default function DrawerStack() {
                 screenOptions={({ route }) => ({
                     drawerStyle: {
                         width: 180,
+                        backgroundColor: COLORS.themeColor
                     },
                     drawerLabelStyle: {
                         fontFamily: FONT.medium,
-                        color: 'black',
+                        color: 'white',
                     },
                     headerTitle: route.name,
                     headerTitleAlign: 'center',
@@ -374,6 +375,7 @@ export default function DrawerStack() {
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileNavigator} options={{ headerShown: false }} />
                 <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
+                <Drawer.Screen name="Profile" component={SetUpProfile} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
             </Drawer.Navigator>
         </NavigationContainer>
     )

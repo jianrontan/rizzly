@@ -5,7 +5,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { getAuth, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
 import { FirebaseRecaptchaVerifierModal, FirebaseRecaptchaBanner } from 'expo-firebase-recaptcha';
 import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { COLORS, SIZES } from '../constants';
+import { COLORS, SIZES, FONT } from '../constants';
 import { db } from '../firebase/firebase'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -78,11 +78,11 @@ const SignUpPhone: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flex: 1, padding: SIZES.medium, }}>
 
-          <View>
-            <Text style={{ color: 'white' }}>Register a new account</Text>
+        <View>
+            <Text style={{ color: 'white', fontFamily: FONT.regular, padding: SIZES.small }}>Register a new account</Text>
           </View>
 
-          {info && <View><Text style={{ color: 'white' }}>{info}</Text></View>}
+          {info && <View><Text style={{ color: 'white', fontFamily: FONT.regular }}>{info}</Text></View>}
 
           <View>
             <Input
@@ -90,7 +90,7 @@ const SignUpPhone: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
               value={phoneNumber}
               onChangeText={(text) => setPhoneNumber(text)}
               autoCapitalize='none'
-              inputStyle={{ color: 'white' }}
+              inputStyle={{ color: 'white', fontFamily: FONT.regular }}
             />
 
             <Input
@@ -101,11 +101,11 @@ const SignUpPhone: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
                 saveEmail(text);
               }}
               autoCapitalize='none'
-              inputStyle={{ color: 'white' }}
+              inputStyle={{ color: 'white', fontFamily: FONT.regular }}
             />
 
             <TouchableOpacity onPress={handleSendVerificationCode} style={{ backgroundColor: '#D3A042', borderRadius: SIZES.small, padding: SIZES.small, alignItems: 'center' }}>
-              <Text style={{ color: 'white' }}>Send Verification Code</Text>
+              <Text style={{ color: 'white', fontFamily: FONT.regular }}>Send Verification Code</Text>
             </TouchableOpacity>
 
             <Input
@@ -114,11 +114,11 @@ const SignUpPhone: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
               onChangeText={setVerificationCode}
               secureTextEntry={true}
               autoCapitalize='none'
-              inputStyle={{ color: 'white' }}
+              inputStyle={{ color: 'white', fontFamily: FONT.regular, paddingTop: SIZES.medium }}
             />
 
             <TouchableOpacity onPress={handleVerifyVerificationCode} style={{ backgroundColor: '#D3A042', borderRadius: SIZES.small, padding: SIZES.small, alignItems: 'center' }}>
-              <Text style={{ color: 'white' }}>Verify Code</Text>
+              <Text style={{ color: 'white', fontFamily: FONT.regular }}>Verify Code</Text>
             </TouchableOpacity>
 
             <FirebaseRecaptchaVerifierModal

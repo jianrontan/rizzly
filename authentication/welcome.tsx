@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View, TouchableOpacity, SafeAreaView, ScrollView, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { COLORS, SIZES } from '../constants';
+import { COLORS, SIZES, FONT } from '../constants';
 
 const Welcome: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
   return (
@@ -13,12 +13,12 @@ const Welcome: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
             <Text style={styles.title}>Welcome to Rizzly</Text>
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SignIn')}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Sign In')}>
             <Text style={styles.buttonText}>Log In</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SignUp')}>
-            <Text style={styles.buttonText}>Create your rizzly account</Text>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Sign Up')}>
+            <Text style={styles.buttonText}>Create a Rizzly account</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -40,8 +40,8 @@ const styles = StyleSheet.create({
     paddingVertical: SIZES.xLarge,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: FONT.bold,
+    fontSize: SIZES.large,
     color: 'white'
   },
   button: {
@@ -49,12 +49,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#D3A042',
     borderRadius: 8,
-    paddingVertical: SIZES.medium,
-    paddingHorizontal: SIZES.large,
-    marginVertical: SIZES.medium,
+    paddingVertical: SIZES.smallmedium,
+    paddingHorizontal: SIZES.smallmedium,
+    marginVertical: SIZES.smallmedium,
   },
   buttonText: {
     fontSize: 18,
+    fontFamily: FONT.medium,
     color: COLORS.white,
   },
 });

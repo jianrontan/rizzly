@@ -7,7 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { doc, addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 
-import { COLORS, SIZES } from '../constants';
+import { COLORS, SIZES, FONT } from '../constants';
 
 const auth = getAuth();
 
@@ -108,12 +108,12 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.lightBeige }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#6e4639" }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flex: 1, padding: SIZES.medium, }}>
 
           <View>
-            <Text>Register a new account</Text>
+            <Text style={{ color: 'white', fontFamily: FONT.regular, padding: SIZES.small }}>Register a new account</Text>
           </View>
 
           {!!value.error && <View><Text>{value.error}</Text></View>}
@@ -124,6 +124,7 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
               value={value.email}
               onChangeText={(text) => setValue({ ...value, email: text })}
               autoCapitalize='none'
+              inputStyle={{ color: 'white', fontFamily: FONT.regular }}
             />
 
             <View style={{ position: 'relative' }}>
@@ -133,9 +134,10 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
                 onChangeText={(text) => setValue({ ...value, password: text })}
                 secureTextEntry={!isPasswordVisible}
                 autoCapitalize='none'
+                inputStyle={{ color: 'white', fontFamily: FONT.regular }}
               />
               <TouchableOpacity style={{ position: 'absolute', right: 10 }} onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
-                <MaterialCommunityIcons name={isPasswordVisible ? "eye-off" : "eye"} size={28} color={COLORS.black} />
+                <MaterialCommunityIcons name={isPasswordVisible ? "eye-off" : "eye"} size={28} color={"gray"} />
               </TouchableOpacity>
             </View>
 
@@ -146,16 +148,16 @@ const SignUp: React.FC<NativeStackScreenProps<any>> = ({ navigation }) => {
                 onChangeText={(text) => setValue({ ...value, cfmPassword: text })}
                 secureTextEntry={!isCfmPasswordVisible}
                 autoCapitalize='none'
+                inputStyle={{ color: 'white', fontFamily: FONT.regular }}
               />
               <TouchableOpacity style={{ position: 'absolute', right: 10 }} onPress={() => setIsCfmPasswordVisible(!isCfmPasswordVisible)}>
-                <MaterialCommunityIcons name={isCfmPasswordVisible ? "eye-off" : "eye"} size={28} color={COLORS.black} />
+                <MaterialCommunityIcons name={isCfmPasswordVisible ? "eye-off" : "eye"} size={28} color={"gray"} />
               </TouchableOpacity>
             </View>
-            <View style={{ padding: 8 }}>
-              <TouchableOpacity onPress={signUp}>
-                <Text>Sign Up</Text>
-              </TouchableOpacity>
-            </View>
+
+            <TouchableOpacity onPress={signUp} style={{ backgroundColor: '#D3A042', borderRadius: SIZES.small, padding: SIZES.small, alignItems: 'center' }}>
+              <Text style={{ color: 'white', fontFamily: FONT.regular }}>Sign Up</Text>
+            </TouchableOpacity>
 
           </View>
         </View>

@@ -12,9 +12,12 @@ import Welcome from '../authentication/welcome';
 import SignIn from '../authentication/signupPhone';
 import SignUp from '../authentication/signup';
 import ForgotPassword from '../authentication/forgotpassword';
-import { COLORS } from '../constants';
+import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
+import { COLORS, FONT, icons } from '../constants';
 import SignInOptionsStack from './signInNavigator';
 import SignUpOptionsStack from './signUpNavigator';
+
+import appStyles from '../components/app/app.style';
 
 const Stack = createNativeStackNavigator();
 const auth = getAuth();
@@ -88,13 +91,12 @@ export default function AuthStack() {
         <NavigationContainer onlayout={onLayoutRootView}>
             <Stack.Navigator
                 initialRouteName='Welcome'
-                screenOptions={{
-                    headerStyle: { backgroundColor: COLORS.lightBeige },
-                    headerTitle: () => (
-                        null
-                    ),
+                screenOptions={({ route }) => ({
+                    headerStyle: { backgroundColor: "#6e4639" },
+                    headerTitle: route.name,
                     headerTitleAlign: 'center',
-                }}
+                    headerTitleStyle: appStyles.headerFont2,
+                })}
             >
                 <Stack.Screen
                     name="Welcome"
@@ -102,14 +104,14 @@ export default function AuthStack() {
                     options={{ title: 'Rizzly' }}
                 />
                 <Stack.Screen
-                    name="SignUp"
+                    name="Sign Up"
                     component={SignUpOptionsStack}
-                    options={{ title: 'Sign Up' }}
+                    options={{ title: 'Sign Up', headerShown: false }}
                 />
                 <Stack.Screen
-                    name="SignIn"
+                    name="Sign In"
                     component={SignInOptionsStack}
-                    options={{ title: 'Sign In' }}
+                    options={{ title: 'Sign In', headerShown: false }}
                 />
                 <Stack.Screen
                     name="ForgotPassword"

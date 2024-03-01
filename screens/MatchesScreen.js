@@ -14,7 +14,7 @@ const MatchesScreen = ({ navigation }) => {
   const [unreadMessages, setUnreadMessages] = useState({});
   const [matches, setMatches] = useState([]);
   const [openedChatrooms, setOpenedChatrooms] = useState([]);
-  const chatVal = Number(useSelector(state => state.chatVal));
+  // const chatVal = Number(useSelector(state => state.chatVal));
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -47,9 +47,15 @@ const MatchesScreen = ({ navigation }) => {
           likedByUsers.some((likedByUser) => likedByUser.id === likeUser.id)
         );
 
+        const serializableMatches = matchedUsers.map(user => ({
+          ...user,
+          lastActive: user.lastActive ? new Date(user.lastActive.seconds * 1000).toISOString() : null,
+        }));
+
+
         setMatches(matchedUsers);
-        dispatch(setMatchesRedux(matchedUsers));
-        dispatch(setMatchesCount(matchedUsers.length));
+        dispatch(setMatchesRedux(serializableMatches));
+        dispatch(setMatchesCount(serializableMatches.length));
       } catch (error) {
         console.error('Error fetching matches:', error);
       }

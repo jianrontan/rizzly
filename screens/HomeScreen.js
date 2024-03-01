@@ -775,7 +775,7 @@ const HomeScreen = () => {
                     </>
                 )}
 
-                <Spinner
+                {/* <Spinner
                     visible={isLoading}
                     animation='fade'
                     overlayColor="rgba(0, 0, 0, 0.25)"
@@ -787,7 +787,7 @@ const HomeScreen = () => {
                         fontWeight: 'normal',
                         color: 'black',
                     }}
-                />
+                /> */}
             </View>
             {renderModal()}
         </SafeAreaView>

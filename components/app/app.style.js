@@ -10,6 +10,11 @@ const appStyles = StyleSheet.create({
         fontFamily: FONT.bold,
         fontSize: SIZES.mediumlarge,
     },
+    headerFont2: {
+        fontFamily: FONT.bold,
+        fontSize: SIZES.mediumlarge,
+        color: "white"
+    },
     bottomTabLabel: {
         fontFamily: FONT.regular,
         fontSize: SIZES.xSmall,
@@ -21,6 +26,7 @@ const appStyles = StyleSheet.create({
     },
     logoutDrawerText: {
         fontFamily: FONT.medium,
+        color: "white"
     },
 })
 

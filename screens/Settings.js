@@ -87,62 +87,51 @@ export default function SettingsScreen({ navigation }) {
 	return (
 		<SafeAreaView style={styles.container}>
 			<ScrollView showsVerticalScrollIndicator={false}>
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity onPress={Units}>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Units / Measurement</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.fullBorderLine}></View>
-				</View>
 
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity onPress={PauseProfile}>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Pause Profile</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.fullBorderLine}></View>
-				</View>
+				<TouchableOpacity onPress={Units}>
+					<View style={styles.tabView}>
+						<Text style={styles.tabText}>Units / Measurement</Text>
+					</View>
+				</TouchableOpacity>
+				<View style={styles.borderLine}></View>
 
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity onPress={BlockList}>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Blocked List</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.fullBorderLine}></View>
-				</View>
+				<TouchableOpacity onPress={PauseProfile}>
+					<View style={styles.tabView}>
+						<Text style={styles.tabText}>Pause Profile</Text>
+					</View>
+				</TouchableOpacity>
+				<View style={styles.borderLine}></View>
 
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity onPress={DeleteAccount}>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Delete Account</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.fullBorderLine}></View>
-				</View>
+				<TouchableOpacity onPress={BlockList}>
+					<View style={styles.tabView}>
+						<Text style={styles.tabText}>Blocked List</Text>
+					</View>
+				</TouchableOpacity>
+				<View style={styles.borderLine}></View>
 
-				<View style={{ flex: 1 }}>
-					<TouchableOpacity onPress={Contact}>
-						<View style={styles.settingView}>
-							<Text style={styles.settingText}>Contact Us</Text>
-						</View>
-					</TouchableOpacity>
-					<View style={styles.fullBorderLine}></View>
-				</View>
+				<TouchableOpacity onPress={DeleteAccount}>
+					<View style={styles.tabView}>
+						<Text style={styles.tabText}>Delete Account</Text>
+					</View>
+				</TouchableOpacity>
+				<View style={styles.borderLine}></View>
+
+				<TouchableOpacity onPress={Contact}>
+					<View style={styles.tabView}>
+						<Text style={styles.tabText}>Contact Us</Text>
+					</View>
+				</TouchableOpacity>
+				<View style={styles.borderLine}></View>
 
 			</ScrollView>
 		</SafeAreaView>
 	);
-}
+};
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: '#6e4639', // Changed background color to brown
-		alignItems: 'center',
-		justifyContent: 'center',
+		backgroundColor: '#6e4639',
 	},
 	btnContainer: {
 		width: 200,
@@ -171,4 +160,26 @@ const styles = StyleSheet.create({
 		width: cardWidth,
 		alignSelf: 'flex-start', // Align the border lines to the left
 	},
+	borderLine: {
+		borderBottomColor: "#805c5e",
+		borderBottomWidth: 1,
+	},
+	tabView: {
+		paddingHorizontal: 20,
+		paddingTop: 20,
+		paddingBottom: 20,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'center'
+	},
+	tabText: {
+		fontFamily: FONT.medium,
+		fontSize: SIZES.medium,
+		color: "white"
+	},
+	tabInfoText: {
+		fontFamily: FONT.regular,
+		fontSize: SIZES.small,
+		color: 'white'
+	}
 });

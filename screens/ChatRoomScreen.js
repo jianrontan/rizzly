@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { GiftedChat, Bubble } from 'react-native-gifted-chat';
-import { Text, View, TouchableOpacity, Image, Dimensions, StyleSheet } from 'react-native';
+import { Text, View, TouchableOpacity, Image, Dimensions, StyleSheet, BackHandler } from 'react-native';
 import {
   collection,
   addDoc,
@@ -27,8 +27,8 @@ const { width, height } = Dimensions.get('window');
 const cardWidth = width;
 const cardHeight = height;
 
-const ChatRoom = ({ route }) => {
-  const { chatRoomID, userId, userName, navigation } = route.params;
+const ChatRoom = ({ route, navigation }) => {
+  const { chatRoomID, userId, userName } = route.params;
   const [messages, setMessages] = useState([]);
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
@@ -235,6 +235,17 @@ const ChatRoom = ({ route }) => {
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      const backAction = () => {
+        navigation.navigate('Chats');
+        return true;
+      };
+      const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+      return () => backHandler.remove();
+    }, [])
+  );
+
   return (
     <View style={styles.container}>
       {!firstMessageSent && (
@@ -245,19 +256,19 @@ const ChatRoom = ({ route }) => {
       {showCamera && (
         <View style={{ flex: 1 }}>
           <Camera style={styles.cameraContainer} type={type} ref={cameraRef}>
-          <Spinner
-                    visible={isUploading}
-                    animation='fade'
-                    overlayColor="rgba(0, 0, 0, 0.25)"
-                    color="white"
-                    textContent='Loading...'
-                    textStyle={{
-                        fontFamily: FONT.bold,
-                        fontSize: SIZES.medium,
-                        fontWeight: 'normal',
-                        color: 'white',
-                    }}
-                />
+            <Spinner
+              visible={isUploading}
+              animation='fade'
+              overlayColor="rgba(0, 0, 0, 0.25)"
+              color="white"
+              textContent='Loading...'
+              textStyle={{
+                fontFamily: FONT.bold,
+                fontSize: SIZES.medium,
+                fontWeight: 'normal',
+                color: 'white',
+              }}
+            />
             <TouchableOpacity
               style={{
                 position: 'absolute',

@@ -142,30 +142,22 @@ export default function BottomTabStack({ navigation }) {
                                     padding: 10,
                                     marginRight: 10,
                                 }}
-                                onPress={() => {
+                                onPress={() =>
                                     Alert.alert(
-                                        'Report Options',
-                                        '',
+                                        'Report',
+                                        'Do you want to report this person?',
                                         [
-                                            {
-                                                text: 'This is not the real person!',
-                                                onPress: () => navigation.navigate('Report'),
-                                            },
-                                            {
-                                                text: 'Inappropriate content/ Harassment',
-                                                onPress: () => navigation.navigate('Report'),
-                                            },
-                                            {
-                                                text: 'Safety issues',
-                                                onPress: () => navigation.navigate('Report'),
-                                            },
                                             {
                                                 text: 'Cancel',
                                                 style: 'cancel',
                                             },
+                                            {
+                                                text: 'OK',
+                                                onPress: () => navigation.navigate('Report'),
+                                            },
                                         ],
-                                    );
-                                }}
+                                    )
+                                }
                             >
                                 <Text style={{ color: 'white', fontWeight: 'bold' }}>Report</Text>
                             </TouchableOpacity>
@@ -178,6 +170,9 @@ export default function BottomTabStack({ navigation }) {
                 component={Report}
                 options={{
                     tabBarButton: () => null,
+                    headerLeft: () => (
+                        <HeaderBackButton onPress={() => navigation.navigate("Chats")} />
+                    ),
                 }}>
             </Tab.Screen>
             <Tab.Screen
@@ -186,7 +181,7 @@ export default function BottomTabStack({ navigation }) {
                 options={{
                     tabBarButton: () => null,
                     headerLeft: () => (
-                        <HeaderBackButton onPress={() => navigation.goBack()} />
+                        <HeaderBackButton onPress={() => navigation.navigate("Chats")} />
                     ),
                 }}
             />
