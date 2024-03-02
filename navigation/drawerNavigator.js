@@ -1,6 +1,7 @@
 import React from 'react';
-import { Text, View, Alert, TouchableOpacity, } from 'react-native';
+import { Text, View, Alert, TouchableOpacity } from 'react-native';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { CommonActions } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { SplashScreen } from 'expo-router';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
@@ -290,11 +291,11 @@ export default function DrawerStack() {
                     headerTitle: route.name,
                     headerTitleAlign: 'center',
                     headerShadowVisible: 'true',
-                    headerTitleStyle: [appStyles.headerFont, { color: 'white' }], 
+                    headerTitleStyle: [appStyles.headerFont, { color: 'white' }],
                     headerStyle: {
-                        backgroundColor: '#8c6c5d', 
+                        backgroundColor: '#8c6c5d',
                     },
-                    headerTintColor: 'white', 
+                    headerTintColor: 'white',
                     headerLeft: () => {
                         const navigation = useNavigation();
                         return (
@@ -304,10 +305,20 @@ export default function DrawerStack() {
                                     dimension='60%'
                                     title='goBack'
                                     onPress={() => {
-                                        if (navigation.canGoBack()) {
-                                            navigation.goBack();
+                                        if (route.name === 'Edit Settings') {
+                                            navigation.dispatch(
+                                                CommonActions.reset({
+                                                    index: 0,
+                                                    routes: [{ name: 'App' }],
+                                                })
+                                            );
                                         } else {
-                                            navigation.navigate('App');
+                                            // For other screens, use the default behavior (go back)
+                                            if (navigation.canGoBack()) {
+                                                navigation.goBack();
+                                            } else {
+                                                navigation.navigate('App');
+                                            }
                                         }
                                     }}
                                 />

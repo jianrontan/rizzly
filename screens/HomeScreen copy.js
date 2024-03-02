@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
-import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, useWindowDimensions, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, startAfter, onSnapshot, orderBy, setDoc, limit } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
@@ -8,7 +8,7 @@ import Swiper from 'react-native-swiper';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -45,6 +45,7 @@ const HomeScreen = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [retryCount, setRetryCount] = useState(0);
     const [lastVisible, setLastVisible] = useState(null);
+    const [trigger, setTrigger] = useState(false);
 
     const dispatch = useDispatch();
     // DECLARE VARIABLES
@@ -60,18 +61,21 @@ const HomeScreen = () => {
 
     // SAVED FILTER DATA
     const fetchFilters = async () => {
+        setIsLoading(true);
+        console.log("STARTING FETCH FILTERS");
         try {
+            console.log("TRY FETCH FILTERS");
             const filterDocRef = doc(db, 'filters', auth.currentUser.uid);
             const filterDocSnapshot = await getDoc(filterDocRef);
 
             if (filterDocSnapshot.exists()) {
                 const filterData = filterDocSnapshot.data();
-                setMinAge(filterData.minAge);
-                setMaxAge(filterData.maxAge);
-                setMinHeight(filterData.minHeight);
-                setMaxHeight(filterData.maxHeight);
-                setMinDistance(filterData.minDistance);
-                setMaxDistance(filterData.maxDistance);
+                setMinAge(filterData.minAge || 18);
+                setMaxAge(filterData.maxAge || 80);
+                setMinHeight(filterData.minHeight || 100);
+                setMaxHeight(filterData.maxHeight || 200);
+                setMinDistance(filterData.minDistance || 1);
+                setMaxDistance(filterData.maxDistance || 10);
             } else {
                 // If no filter settings document exists for the current user, use default values
                 setMinAge(18);
@@ -112,9 +116,11 @@ const HomeScreen = () => {
 
             fetchUnits();
 
+            // Cleanup function
             return () => {
+
             };
-        }, [])
+        }, []) // Empty dependency array means this effect runs only once when the component mounts
     );
     // USER UNIT PREFERENCES
 
@@ -204,8 +210,10 @@ const HomeScreen = () => {
 
     // CURRENT USER DATA
     const fetchCurrentUser = async () => {
+        console.log("STARTING FETCH CURRENT USER");
         setIsLoading(true);
         try {
+            console.log("TRY FETCH CURRENT USER");
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
             const currentUserDoc = await getDoc(currentUserDocRef);
             let blockedIDs = [];
@@ -234,12 +242,16 @@ const HomeScreen = () => {
         fetchCurrentUser();
     }, []);
 
-    useFocusEffect(
-        React.useCallback(() => {
-            // Re-fetch current user data when the screen is focused
-            fetchCurrentUser();
-        }, [])
-    );
+    useEffect(() => {
+        console.log("LOADING: ", isLoading);
+    }, [isLoading])
+
+    // useFocusEffect(
+    //     React.useCallback(() => {
+    //         // Re-fetch current user data when the screen is focused
+    //         fetchCurrentUser();
+    //     }, [])
+    // );
 
     // Use another useEffect to update the paused state when pausedUser changes
     useEffect(() => {
@@ -274,20 +286,22 @@ const HomeScreen = () => {
 
     // FETCH PROFILE DATA
     const fetchData = async () => {
-
-        console.log("FETCH DATA");
-
+        console.log("FETCHING")
         setIsLoading(true);
 
         // Fetch filters
         await fetchFilters();
+        setIsLoading(true);
 
         // Clear users array and reset index if reset
         setUsers([]);
         setCurrentIndex(0);
+        setIsLoading(true);
 
         try {
+            setIsLoading(true);
             if (!currentUserData) {
+                console.log("NO USER DATA");
                 return;
             }
             // Grab a bunch of users limit to 50
@@ -299,7 +313,10 @@ const HomeScreen = () => {
             }
 
             // Filter the users
+            setRetryCount(retryCount + 1);
             try {
+                setIsLoading(true);
+                console.log("TRY FETCH DATA");
                 const snapshot = await getDocs(q);
 
                 let usersData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -330,9 +347,9 @@ const HomeScreen = () => {
                 });
                 // Filter likes/ dislikes
                 filteredUsers = filteredUsers.filter(
-                    (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserLikes.includes(user.id) && !currentUserDislikes.includes(user.id)
+                    // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserDislikes.includes(user.id) && !currentUserLikes.includes(user.id)
                     // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
-                    // (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
+                    (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
                 );
                 // Filter blocked users
                 filteredUsers = filteredUsers.filter(
@@ -343,47 +360,30 @@ const HomeScreen = () => {
 
                 if (filteredUsers.length === 0) {
                     // If no one matches filter description
-                    // console.log(`No users queried, retry number: ${retryCount}`)
-                    // if (retryCount < 5) {
-                    //     console.log(`Retry count: ${retryCount}, is less than 5`)
-                    //     setRetryCount(currentRetryCount => currentRetryCount + 1);
-                    //     console.log("Retry count + 1")
-                    //     console.log(`retryCount updated to ${retryCount}`);
-                    // } else {
-                    //     setUsers([{ id: 'no-more-users' }]);
-                    // }
-                    setRetryCount(currentRetryCount => currentRetryCount + 1);
+                    setUsers([{ id: 'no-more-users' }]);
                 } else {
                     // Set the users state
-                    console.log(`set ${filteredUsers.length} queried users`)
                     setUsers([...filteredUsers]);
                     setUsers((prevUsers) => [...prevUsers, { id: 'last-user' }]);
-                    setRetryCount(0);
                 }
+                setIsLoading(false);
             } catch (error) {
                 console.error('Error fetching data:', error);
+                setIsLoading(false);
             };
         } catch (error) {
             console.error('Error fetching data:', error);
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     useEffect(() => {
         if (currentUserData) {
             fetchData();
         }
-    }, [minAge, maxAge, minHeight, maxHeight, minDistance, maxDistance, currentUserData])
-    // FETCH PROFILE DATA
+    }, [minAge, maxAge, minHeight, maxHeight, minDistance, maxDistance, `currentUser`Data])
 
-    useEffect(() => {
-        if (retryCount < 5 && retryCount > 0) {
-            console.log(`Retrying fetch, retry count: ${retryCount}`);
-            fetchData();
-        } else if (retryCount >= 5) {
-            setUsers([{ id: 'no-more-users' }]);
-        }
-    }, [retryCount])
+    // FETCH PROFILE DATA
 
     // LIKING AND DISLIKING
     const handleLikeClick = async (likedUserId) => {
@@ -396,8 +396,6 @@ const HomeScreen = () => {
             });
             console.log(`Successfully updated liked user ${likedUserId}'s document.`);
 
-            setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, likedUserId]);
-
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
             await updateDoc(currentUserDocRef, {
@@ -405,21 +403,12 @@ const HomeScreen = () => {
             });
             console.log(`Successfully updated current user's document.`);
 
-            setTimeout(async () => {
-                await updateDoc(currentUserDocRef, {
-                    dislikes: arrayRemove(likedUserId),
-                });
-
-                setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== likedUserId));
-            }, 100000000);
-            setCurrentIndex((prevIndex) => prevIndex + 1);
+            // Remove the liked user from the users array
+            // setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
         } catch (error) {
             console.error('Error adding like:', error);
         }
-        if (currentIndex == users.length - 2) {
-            console.log("re fetching more data")
-            fetchData();
-        }
+        setCurrentIndex((prevIndex) => prevIndex + 1);
     };
 
     const handleDislikeClick = async (dislikedUserId) => {
@@ -447,10 +436,6 @@ const HomeScreen = () => {
             setCurrentIndex((prevIndex) => prevIndex + 1);
         } catch (error) {
             console.error('Error adding dislike:', error);
-        }
-        if (currentIndex == users.length - 2) {
-            console.log("re fetching more data")
-            fetchData();
         }
     };
     // LIKING AND DISLIKING
@@ -596,8 +581,10 @@ const HomeScreen = () => {
                                     setMinDistance(minDistanceIntermediate);
                                     setMaxDistance(maxDistanceIntermediate);
                                     saveFilters(auth.currentUser.uid, minAgeIntermediate, maxAgeIntermediate, minDistanceIntermediate, maxDistanceIntermediate, minHeightIntermediate, maxHeightIntermediate);
-                                    setRetryCount(0);
+                                    setCurrentIndex(0); // Remove later on
                                     fetchData(); // Refresh the users list
+                                    setIsLoading(true);
+                                    console.log("APPLY FILTERS")
                                 }}
                             >
                                 <Text style={styles.buttonTitle}>Apply Filter</Text>
@@ -660,10 +647,18 @@ const HomeScreen = () => {
         const miles = distanceInKm * 0.621371;
         return miles.toFixed(2);
     };
+
     //FILTERS
 
     // USER CARD
     const renderItem = ({ item: user }) => {
+        if (!users.length) {
+            return (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text>No more users to display.</Text>
+                </View>
+            );
+        }
 
         // When no users from the start
         if (user.id === 'no-more-users') {

@@ -330,9 +330,9 @@ const HomeScreen = () => {
                 });
                 // Filter likes/ dislikes
                 filteredUsers = filteredUsers.filter(
-                    (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserLikes.includes(user.id) && !currentUserDislikes.includes(user.id)
+                    // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserDislikes.includes(user.id) && !currentUserLikes.includes(user.id)
                     // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
-                    // (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
+                    (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
                 );
                 // Filter blocked users
                 filteredUsers = filteredUsers.filter(
@@ -396,8 +396,6 @@ const HomeScreen = () => {
             });
             console.log(`Successfully updated liked user ${likedUserId}'s document.`);
 
-            setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, likedUserId]);
-
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
             await updateDoc(currentUserDocRef, {
@@ -405,13 +403,8 @@ const HomeScreen = () => {
             });
             console.log(`Successfully updated current user's document.`);
 
-            setTimeout(async () => {
-                await updateDoc(currentUserDocRef, {
-                    dislikes: arrayRemove(likedUserId),
-                });
-
-                setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== likedUserId));
-            }, 100000000);
+            // Remove the liked user from the users array
+            // setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
             setCurrentIndex((prevIndex) => prevIndex + 1);
         } catch (error) {
             console.error('Error adding like:', error);
@@ -596,7 +589,7 @@ const HomeScreen = () => {
                                     setMinDistance(minDistanceIntermediate);
                                     setMaxDistance(maxDistanceIntermediate);
                                     saveFilters(auth.currentUser.uid, minAgeIntermediate, maxAgeIntermediate, minDistanceIntermediate, maxDistanceIntermediate, minHeightIntermediate, maxHeightIntermediate);
-                                    setRetryCount(0);
+                                    setCurrentIndex(0); // Remove later on
                                     fetchData(); // Refresh the users list
                                 }}
                             >
@@ -746,7 +739,7 @@ const HomeScreen = () => {
                                     <Text style={styles.modalinfo}>Smoking: {selectedUser.smoking || 'No info on smoking'}</Text>
                                     <Text style={styles.modalinfo}>Sex: {selectedUser.sex || 'No info on sex'}</Text>
                                     <Text style={styles.modalinfo}>
-                                        Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
+                                    Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
                                     </Text>
                                 </>
                             )}
