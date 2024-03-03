@@ -33,13 +33,13 @@ export default function MyLocation({ navigation }) {
     const [place, setPlace] = useState('');
     const [have, setHave] = useState('');
     const makeLocation = async () => {
-        setSubmitting(true);
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
             alert('Permission to access location was denied');
             return;
         }
         try {
+            setSubmitting(true);
             const location = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.High,
             });

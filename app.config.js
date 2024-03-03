@@ -17,13 +17,15 @@ export default {
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rizzly.rizzly"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.rizzly.rizzly"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,7 +38,7 @@ export default {
           "cameraPermission": "The app accesses your camera to add photos to your profile."
         }
       ],
-      "expo-router" 
+      "expo-router"
     ],
     "extra": {
       "firebase": {
@@ -47,7 +49,16 @@ export default {
         firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
         firebaseAppId: process.env.FIREBASE_APP_ID,
         firebaseMeasurementId: process.env.FIREBASE_MEASUREMENT_ID
+      },
+      "eas": {
+        "projectId": "4181f824-6d94-4916-a82f-df7a49ad0a33"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/4181f824-6d94-4916-a82f-df7a49ad0a33"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }
