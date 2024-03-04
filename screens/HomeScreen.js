@@ -232,13 +232,13 @@ const HomeScreen = () => {
 
     useEffect(() => {
         fetchCurrentUser();
-    }, []);
+    }, [auth.currentUser]);
 
     useFocusEffect(
         React.useCallback(() => {
             // Re-fetch current user data when the screen is focused
             fetchCurrentUser();
-        }, [])
+        }, [auth.currentUser])
     );
 
     // Use another useEffect to update the paused state when pausedUser changes
@@ -269,7 +269,7 @@ const HomeScreen = () => {
 
     useEffect(() => {
         fetchCurrentUserDislikesLikes();
-    }, []);
+    }, [auth.currentUser]);
     // CURRENT USER DATA
 
     // FETCH PROFILE DATA
@@ -371,9 +371,20 @@ const HomeScreen = () => {
 
     useEffect(() => {
         if (currentUserData) {
-            fetchData();
+            debouncedFetchData();
         }
-    }, [minAge, maxAge, minHeight, maxHeight, minDistance, maxDistance, currentUserData])
+    }, [minAge, maxAge, minHeight, maxHeight, minDistance, maxDistance, currentUserData]);
+
+    const debounce = (func, wait) => {
+        let timeout;
+        return (...args) => {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), wait);
+        };
+    };
+
+    const debouncedFetchData = debounce(fetchData, 500);
     // FETCH PROFILE DATA
 
     useEffect(() => {
@@ -418,7 +429,7 @@ const HomeScreen = () => {
         }
         if (currentIndex == users.length - 2) {
             console.log("re fetching more data")
-            fetchData();
+            debouncedFetchData();
         }
     };
 
@@ -450,7 +461,7 @@ const HomeScreen = () => {
         }
         if (currentIndex == users.length - 2) {
             console.log("re fetching more data")
-            fetchData();
+            debouncedFetchData();
         }
     };
     // LIKING AND DISLIKING
@@ -472,14 +483,16 @@ const HomeScreen = () => {
         const [minDistanceIntermediate, setMinDistanceIntermediate] = useState(1);
         const [maxDistanceIntermediate, setMaxDistanceIntermediate] = useState(50);
 
-        useEffect(() => {
-            setMinHeightIntermediate(minHeight);
-            setMaxHeightIntermediate(maxHeight);
-            setMinAgeIntermediate(minAge);
-            setMaxAgeIntermediate(maxAge);
-            setMinDistanceIntermediate(minDistance);
-            setMaxDistanceIntermediate(maxDistance);
-        }, [minHeight, maxHeight, minAge, maxAge, minDistance, maxDistance]);
+        useFocusEffect(
+            React.useCallback(() => {
+                setMinHeightIntermediate(minHeight);
+                setMaxHeightIntermediate(maxHeight);
+                setMinAgeIntermediate(minAge);
+                setMaxAgeIntermediate(maxAge);
+                setMinDistanceIntermediate(minDistance);
+                setMaxDistanceIntermediate(maxDistance);
+            }, [minHeight, maxHeight, minAge, maxAge, minDistance, maxDistance])
+        );
 
         return (
             <Modal
@@ -597,7 +610,6 @@ const HomeScreen = () => {
                                     setMaxDistance(maxDistanceIntermediate);
                                     saveFilters(auth.currentUser.uid, minAgeIntermediate, maxAgeIntermediate, minDistanceIntermediate, maxDistanceIntermediate, minHeightIntermediate, maxHeightIntermediate);
                                     setRetryCount(0);
-                                    fetchData(); // Refresh the users list
                                 }}
                             >
                                 <Text style={styles.buttonTitle}>Apply Filter</Text>
