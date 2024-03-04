@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, Dimensions } from 'react-native';
+import React, { useEffect, useState, useRef, useContext } from 'react';
+import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, useWindowDimensions, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, startAfter, onSnapshot, orderBy, setDoc, limit } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
@@ -8,7 +8,7 @@ import Swiper from 'react-native-swiper';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -112,11 +112,9 @@ const HomeScreen = () => {
 
             fetchUnits();
 
-            // Cleanup function
             return () => {
-
             };
-        }, []) // Empty dependency array means this effect runs only once when the component mounts
+        }, [])
     );
     // USER UNIT PREFERENCES
 
@@ -234,13 +232,13 @@ const HomeScreen = () => {
 
     useEffect(() => {
         fetchCurrentUser();
-    }, []);
+    }, [auth.currentUser]); // Add dependencies here
 
     useFocusEffect(
         React.useCallback(() => {
             // Re-fetch current user data when the screen is focused
             fetchCurrentUser();
-        }, [])
+        }, [auth.currentUser])
     );
 
     // Use another useEffect to update the paused state when pausedUser changes
@@ -271,11 +269,13 @@ const HomeScreen = () => {
 
     useEffect(() => {
         fetchCurrentUserDislikesLikes();
-    }, []);
+    }, [auth.currentUser]);
     // CURRENT USER DATA
 
     // FETCH PROFILE DATA
     const fetchData = async () => {
+
+        console.log("FETCH DATA");
 
         setIsLoading(true);
 
@@ -299,7 +299,6 @@ const HomeScreen = () => {
             }
 
             // Filter the users
-            setRetryCount(retryCount + 1);
             try {
                 const snapshot = await getDocs(q);
 
@@ -331,9 +330,9 @@ const HomeScreen = () => {
                 });
                 // Filter likes/ dislikes
                 filteredUsers = filteredUsers.filter(
-                    // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserDislikes.includes(user.id) && !currentUserLikes.includes(user.id)
+                    (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserLikes.includes(user.id) && !currentUserDislikes.includes(user.id)
                     // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
-                    (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
+                    // (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
                 );
                 // Filter blocked users
                 filteredUsers = filteredUsers.filter(
@@ -344,13 +343,23 @@ const HomeScreen = () => {
 
                 if (filteredUsers.length === 0) {
                     // If no one matches filter description
-                    setUsers([{ id: 'no-more-users' }]);
+                    // console.log(`No users queried, retry number: ${retryCount}`)
+                    // if (retryCount < 5) {
+                    //     console.log(`Retry count: ${retryCount}, is less than 5`)
+                    //     setRetryCount(currentRetryCount => currentRetryCount + 1);
+                    //     console.log("Retry count + 1")
+                    //     console.log(`retryCount updated to ${retryCount}`);
+                    // } else {
+                    //     setUsers([{ id: 'no-more-users' }]);
+                    // }
+                    setRetryCount(currentRetryCount => currentRetryCount + 1);
                 } else {
                     // Set the users state
+                    console.log(`set ${filteredUsers.length} queried users`)
                     setUsers([...filteredUsers]);
                     setUsers((prevUsers) => [...prevUsers, { id: 'last-user' }]);
+                    setRetryCount(0);
                 }
-
             } catch (error) {
                 console.error('Error fetching data:', error);
             };
@@ -360,14 +369,35 @@ const HomeScreen = () => {
         setIsLoading(false);
     };
 
-    const fetchData2 = async (userId) => {
+    useEffect(() => {
+        if (currentUserData) {
+            debouncedFetchData();
+        }
+    }, [minAge, maxAge, minHeight, maxHeight, minDistance, maxDistance, currentUserData]);
 
+    // Debounce function
+    const debounce = (func, wait) => {
+        let timeout;
+        return (...args) => {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), wait);
+        };
     };
 
-    useEffect(() => {
-        fetchData();
-    }, [minAge, maxAge, minHeight, maxHeight, minDistance, maxDistance])
+    // Use the debounce function with fetchData
+    const debouncedFetchData = debounce(fetchData, 500); // 500ms delay
+
     // FETCH PROFILE DATA
+
+    useEffect(() => {
+        if (retryCount < 5 && retryCount > 0) {
+            console.log(`Retrying fetch, retry count: ${retryCount}`);
+            fetchData();
+        } else if (retryCount >= 5) {
+            setUsers([{ id: 'no-more-users' }]);
+        }
+    }, [retryCount])
 
     // LIKING AND DISLIKING
     const handleLikeClick = async (likedUserId) => {
@@ -380,19 +410,30 @@ const HomeScreen = () => {
             });
             console.log(`Successfully updated liked user ${likedUserId}'s document.`);
 
+            setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, likedUserId]);
+
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
             await updateDoc(currentUserDocRef, {
                 likes: arrayUnion(likedUserId),
-            }); ``
+            });
             console.log(`Successfully updated current user's document.`);
 
-            // Remove the liked user from the users array
-            // setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
+            setTimeout(async () => {
+                await updateDoc(currentUserDocRef, {
+                    dislikes: arrayRemove(likedUserId),
+                });
+
+                setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== likedUserId));
+            }, 1000);
+            setCurrentIndex((prevIndex) => prevIndex + 1);
         } catch (error) {
             console.error('Error adding like:', error);
         }
-        setCurrentIndex((prevIndex) => prevIndex + 1);
+        if (currentIndex == users.length - 2) {
+            console.log("re fetching more data")
+            debouncedFetchData();
+        }
     };
 
     const handleDislikeClick = async (dislikedUserId) => {
@@ -421,6 +462,10 @@ const HomeScreen = () => {
         } catch (error) {
             console.error('Error adding dislike:', error);
         }
+        if (currentIndex == users.length - 2) {
+            console.log("re fetching more data")
+            debouncedFetchData();
+        }
     };
     // LIKING AND DISLIKING
 
@@ -441,14 +486,16 @@ const HomeScreen = () => {
         const [minDistanceIntermediate, setMinDistanceIntermediate] = useState(1);
         const [maxDistanceIntermediate, setMaxDistanceIntermediate] = useState(50);
 
-        useEffect(() => {
-            setMinHeightIntermediate(minHeight);
-            setMaxHeightIntermediate(maxHeight);
-            setMinAgeIntermediate(minAge);
-            setMaxAgeIntermediate(maxAge);
-            setMinDistanceIntermediate(minDistance);
-            setMaxDistanceIntermediate(maxDistance);
-        }, [minHeight, maxHeight, minAge, maxAge, minDistance, maxDistance]);
+        useFocusEffect(
+            React.useCallback(() => {
+                setMinHeightIntermediate(minHeight);
+                setMaxHeightIntermediate(maxHeight);
+                setMinAgeIntermediate(minAge);
+                setMaxAgeIntermediate(maxAge);
+                setMinDistanceIntermediate(minDistance);
+                setMaxDistanceIntermediate(maxDistance);
+            }, [minHeight, maxHeight, minAge, maxAge, minDistance, maxDistance])
+        );
 
         return (
             <Modal
@@ -565,8 +612,7 @@ const HomeScreen = () => {
                                     setMinDistance(minDistanceIntermediate);
                                     setMaxDistance(maxDistanceIntermediate);
                                     saveFilters(auth.currentUser.uid, minAgeIntermediate, maxAgeIntermediate, minDistanceIntermediate, maxDistanceIntermediate, minHeightIntermediate, maxHeightIntermediate);
-                                    setCurrentIndex(0); // Remove later on
-                                    fetchData(); // Refresh the users list
+                                    setRetryCount(0);   
                                 }}
                             >
                                 <Text style={styles.buttonTitle}>Apply Filter</Text>
@@ -604,7 +650,7 @@ const HomeScreen = () => {
                 minDistance: minDistance,
                 maxDistance: maxDistance,
                 minHeight: minHeight,
-                maxHeight: maxHeight
+                maxHeight: maxHeight,
             });
 
             console.log(`Filter settings saved for user ${uid}.`);
@@ -629,37 +675,22 @@ const HomeScreen = () => {
         const miles = distanceInKm * 0.621371;
         return miles.toFixed(2);
     };
-
     //FILTERS
 
     // USER CARD
     const renderItem = ({ item: user }) => {
-        if (!users.length) {
+
+        // When no users from the start
+        if (user.id === 'no-more-users') {
             return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>No more users to display.</Text>
+                <View style={{ width: cardWidth, height: availableSpace }}>
+                    <NoMoreUserScreen />
                 </View>
             );
         }
 
-        // When users from the start
-        if (user.id === 'no-more-users') {
-            if (retryCount < 5) {
-                setRetryCount(retryCount + 1);
-                fetchData();
-                return;
-            } else {
-                return (
-                    <View style={{ width: cardWidth, height: availableSpace }}>
-                        <NoMoreUserScreen />
-                    </View>
-                );
-            };
-        }
-
         // When have users and run out
         if (user.id === 'last-user') {
-            fetchData();
             return;
         };
 
