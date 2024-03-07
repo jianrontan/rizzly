@@ -1,5 +1,5 @@
 # Rizzly
-#### We are 2 21 year olds awaiting university matriculation and this is our first dating app project 
+#### We are 2 21 year olds based in Singapore awaiting university matriculation and this is our first dating app project 
 ## Features: 
 - Framework: React Native
 -  State Container: Redux
