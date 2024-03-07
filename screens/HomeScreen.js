@@ -589,11 +589,11 @@ const HomeScreen = () => {
             </Modal>
         );
     };
+
     useEffect(() => {
         // Call your fetchData function here to apply the filters
         fetchData();
     }, [minHeight, maxHeight, minAge, maxAge, minDistance, maxDistance]);
-
 
     const saveFilters = async (uid, minAge, maxAge, minDistance, maxDistance, minHeight, maxHeight) => {
         try {
