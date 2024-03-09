@@ -1,15 +1,10 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
 import { View, Text, Image, Modal, Button, StyleSheet, SafeAreaView, TouchableOpacity, useWindowDimensions, FlatList, Dimensions, ActivityIndicator, StatusBar } from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
-import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, onSnapshot, setDoc, orderBy, limit } from 'firebase/firestore';
+import { collection, getDocs, updateDoc, arrayUnion, doc, getDoc, arrayRemove, query, where, startAfter, onSnapshot, orderBy, setDoc, limit } from 'firebase/firestore';
 import { useFocusEffect } from '@react-navigation/native';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
-import { useHeaderHeight, getDefaultHeaderHeight } from '@react-navigation/elements';
 import { db, auth } from '../firebase/firebase';
 import Swiper from 'react-native-swiper';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SwiperFlatList } from 'react-native-swiper-flatlist';
-import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import NoMoreUserScreen from './NoMoreUserScreen';
 import { Feather } from '@expo/vector-icons';
 import { haversineDistance } from '../screens/haversine';
@@ -17,16 +12,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 import { setLikes, setUnreadChatroomsCount } from '../redux/actions';
 import Spinner from 'react-native-loading-spinner-overlay';
-import Loading from '../screens/LoadingScreen'
 
 import { FONT, COLORS, SIZES, icons } from '../constants';
 
 const width = Dimensions.get('window').width;
-const height = Dimensions.get('window').height;
 const cardWidth = width;
 let cardHeight = 0;
 
 const HomeScreen = () => {
+
+    // DECLARE VARIABLES
     const [users, setUsers] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [currentUserData, setCurrentUserData] = useState(null);
@@ -117,13 +112,13 @@ const HomeScreen = () => {
 
             fetchUnits();
 
-            // Cleanup function
             return () => {
-                // You can perform any cleanup here if needed
             };
-        }, []) // Empty dependency array means this effect runs only once when the component mounts
+        }, [])
     );
+    // USER UNIT PREFERENCES
 
+    // FILTER CHECKS
     const isUserWithinRanges = (user) => {
         const userHeight = user.cmHeight;
         const userAge = user.age;
@@ -140,7 +135,9 @@ const HomeScreen = () => {
         // If the user passes all checks, they are within the ranges
         return true;
     };
+    // FILTER CHECKS
 
+    // OTHER FUNCTION
     // This is to update number of unread chats before users clicks matchesscreen
     useFocusEffect(
         React.useCallback(() => {
@@ -203,7 +200,9 @@ const HomeScreen = () => {
 
         fetchInitialLikesCount();
     }, [dispatch, auth.currentUser]);
+    // OTHER FUNCTION
 
+    // CURRENT USER DATA
     const fetchCurrentUser = async () => {
         setIsLoading(true);
         try {
@@ -233,13 +232,13 @@ const HomeScreen = () => {
 
     useEffect(() => {
         fetchCurrentUser();
-    }, []);
+    }, [auth.currentUser]);
 
     useFocusEffect(
         React.useCallback(() => {
             // Re-fetch current user data when the screen is focused
             fetchCurrentUser();
-        }, [])
+        }, [auth.currentUser])
     );
 
     // Use another useEffect to update the paused state when pausedUser changes
@@ -271,20 +270,12 @@ const HomeScreen = () => {
     useEffect(() => {
         fetchCurrentUserDislikesLikes();
     }, [auth.currentUser]);
-
-    // Call fetchData immediately when the component mounts
-    useEffect(() => {
-        fetchData();
-    }, []); // Empty dependency array ensures this runs once on mount
-
-    // Re-fetch data when certain dependencies change
-    useEffect(() => {
-        fetchData();
-    }, [currentUserData, auth.currentUser]); // Include fetchData in the dependency array
     // CURRENT USER DATA
 
     // FETCH PROFILE DATA
     const fetchData = async () => {
+
+        console.log("FETCH DATA");
 
         setIsLoading(true);
 
@@ -308,7 +299,6 @@ const HomeScreen = () => {
             }
 
             // Filter the users
-            setRetryCount(retryCount + 1);
             try {
                 const snapshot = await getDocs(q);
 
@@ -340,9 +330,9 @@ const HomeScreen = () => {
                 });
                 // Filter likes/ dislikes
                 filteredUsers = filteredUsers.filter(
-                    // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserDislikes.includes(user.id) && !currentUserLikes.includes(user.id)
+                    (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserLikes.includes(user.id) && !currentUserDislikes.includes(user.id)
                     // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
-                    (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
+                    // (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
                 );
                 // Filter blocked users
                 filteredUsers = filteredUsers.filter(
@@ -353,13 +343,23 @@ const HomeScreen = () => {
 
                 if (filteredUsers.length === 0) {
                     // If no one matches filter description
-                    setUsers([{ id: 'no-more-users' }]);
+                    // console.log(`No users queried, retry number: ${retryCount}`)
+                    // if (retryCount < 5) {
+                    //     console.log(`Retry count: ${retryCount}, is less than 5`)
+                    //     setRetryCount(currentRetryCount => currentRetryCount + 1);
+                    //     console.log("Retry count + 1")
+                    //     console.log(`retryCount updated to ${retryCount}`);
+                    // } else {
+                    //     setUsers([{ id: 'no-more-users' }]);
+                    // }
+                    setRetryCount(currentRetryCount => currentRetryCount + 1);
                 } else {
                     // Set the users state
+                    console.log(`set ${filteredUsers.length} queried users`)
                     setUsers([...filteredUsers]);
                     setUsers((prevUsers) => [...prevUsers, { id: 'last-user' }]);
+                    setRetryCount(0);
                 }
-
             } catch (error) {
                 console.error('Error fetching data:', error);
             };
@@ -369,6 +369,34 @@ const HomeScreen = () => {
         setIsLoading(false);
     };
 
+    useEffect(() => {
+        if (currentUserData) {
+            debouncedFetchData();
+        }
+    }, [minAge, maxAge, minHeight, maxHeight, minDistance, maxDistance, currentUserData]);
+
+    const debounce = (func, wait) => {
+        let timeout;
+        return (...args) => {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), wait);
+        };
+    };
+
+    const debouncedFetchData = debounce(fetchData, 500);
+    // FETCH PROFILE DATA
+
+    useEffect(() => {
+        if (retryCount < 5 && retryCount > 0) {
+            console.log(`Retrying fetch, retry count: ${retryCount}`);
+            fetchData();
+        } else if (retryCount >= 5) {
+            setUsers([{ id: 'no-more-users' }]);
+        }
+    }, [retryCount])
+
+    // LIKING AND DISLIKING
     const handleLikeClick = async (likedUserId) => {
         console.log(`handleLikeClick triggered with user ID: ${likedUserId}`);
         try {
@@ -379,19 +407,30 @@ const HomeScreen = () => {
             });
             console.log(`Successfully updated liked user ${likedUserId}'s document.`);
 
+            setSwipedUpUsers((prevSwipedUpUsers) => [...prevSwipedUpUsers, likedUserId]);
+
             const currentUserDocRef = doc(db, 'profiles', auth.currentUser.uid);
 
             await updateDoc(currentUserDocRef, {
                 likes: arrayUnion(likedUserId),
-            }); ``
+            });
             console.log(`Successfully updated current user's document.`);
 
-            // Remove the liked user from the users array
-            // setUsers((prevUsers) => prevUsers.filter((user) => user.id !== likedUserId));
+            setTimeout(async () => {
+                await updateDoc(currentUserDocRef, {
+                    dislikes: arrayRemove(likedUserId),
+                });
+
+                setSwipedUpUsers((prevSwipedUpUsers) => prevSwipedUpUsers.filter(userId => userId !== likedUserId));
+            }, 100000000);
+            setCurrentIndex((prevIndex) => prevIndex + 1);
         } catch (error) {
             console.error('Error adding like:', error);
         }
-        setCurrentIndex((prevIndex) => prevIndex + 1);
+        if (currentIndex == users.length - 2) {
+            console.log("re fetching more data")
+            debouncedFetchData();
+        }
     };
 
     const handleDislikeClick = async (dislikedUserId) => {
@@ -420,201 +459,22 @@ const HomeScreen = () => {
         } catch (error) {
             console.error('Error adding dislike:', error);
         }
+        if (currentIndex == users.length - 2) {
+            console.log("re fetching more data")
+            debouncedFetchData();
+        }
     };
+    // LIKING AND DISLIKING
 
     const pausedRender = (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', fontFamily: FONT.regular, padding: 5, fontSize: FONT.regular }}>
             <Text>Your profile is currently paused, that means that you cant see new matches and you will not be featured on other peoples screen</Text>
             <Text>To unpause, you can go back to pause account and turn the switch back to off </Text>
         </View>
     )
 
-    const renderModal = () => {
+    // FILTERS
 
-        const [minHeightIntermediate, setMinHeightIntermediate] = useState(100);
-        const [maxHeightIntermediate, setMaxHeightIntermediate] = useState(250);
-        const [minAgeIntermediate, setMinAgeIntermediate] = useState(18);
-        const [maxAgeIntermediate, setMaxAgeIntermediate] = useState(100);
-        const [minDistanceIntermediate, setMinDistanceIntermediate] = useState(1);
-        const [maxDistanceIntermediate, setMaxDistanceIntermediate] = useState(50);
-
-        useFocusEffect(
-            React.useCallback(() => {
-                setMinHeightIntermediate(minHeight);
-                setMaxHeightIntermediate(maxHeight);
-                setMinAgeIntermediate(minAge);
-                setMaxAgeIntermediate(maxAge);
-                setMinDistanceIntermediate(minDistance);
-                setMaxDistanceIntermediate(maxDistance);
-            }, [minHeight, maxHeight, minAge, maxAge, minDistance, maxDistance])
-        );
-
-        return (
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={filterModalVisible}
-                onRequestClose={() => {
-                    setFilterModalVisible(!filterModalVisible);
-                }}
-            >
-                <View style={styles.filterModalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={{ fontFamily: FONT.regular, padding: 5 }}>Height Range:</Text>
-                        <MultiSlider
-                            values={[minHeightIntermediate, maxHeightIntermediate]}
-                            sliderLength={250}
-                            min={100}
-                            max={250}
-                            step={1}
-                            minMarkerOverlapDistance={50}
-                            allowOverlap={false}
-                            onValuesChangeFinish={(values) => {
-                                setMinHeightIntermediate(values[0]);
-                                setMaxHeightIntermediate(values[1]);
-                            }}
-                            markerStyle={{
-                                backgroundColor: 'black'
-                            }}
-                            selectedStyle={{
-                                backgroundColor: 'black'
-                            }}
-                            enableLabel
-                            customLabel={props => {
-                                const displayValue1 = props.oneMarkerValue;
-                                const displayValue2 = props.twoMarkerValue;
-                                return (
-                                    <View style={{ alignSelf: 'center' }}>
-                                        <Text style={{ fontFamily: FONT.regular }}>{isMetric ? `${convertHeight(displayValue1)} - ${convertHeight(displayValue2)}` : `${displayValue1} cm - ${displayValue2} cm`}</Text>
-                                    </View>
-                                )
-                            }}
-                        />
-                        <Text style={{ fontFamily: FONT.regular, padding: 5 }}>Age Range:</Text>
-                        <MultiSlider
-                            values={[minAgeIntermediate, maxAgeIntermediate]}
-                            sliderLength={250}
-                            min={18}
-                            max={100}
-                            step={1}
-                            allowOverlap={false}
-                            onValuesChangeFinish={(values) => {
-                                setMinAgeIntermediate(values[0]);
-                                setMaxAgeIntermediate(values[1]);
-                            }}
-                            markerStyle={{
-                                backgroundColor: 'black'
-                            }}
-                            selectedStyle={{
-                                backgroundColor: 'black'
-                            }}
-                            enableLabel
-                            customLabel={props => {
-                                const displayValue1 = props.oneMarkerValue;
-                                const displayValue2 = props.twoMarkerValue;
-                                return (
-                                    <View style={{ alignSelf: 'center' }}>
-                                        <Text style={{ fontFamily: FONT.regular }}>{displayValue1} - {displayValue2}</Text>
-                                    </View>
-                                )
-                            }}
-                        />
-                        <Text style={{ fontFamily: FONT.regular, padding: 5 }}>Distance Range:</Text>
-                        <MultiSlider
-                            values={[minDistanceIntermediate, maxDistanceIntermediate]}
-                            sliderLength={250}
-                            min={1}
-                            max={50}
-                            step={1}
-                            allowOverlap={false}
-                            onValuesChangeFinish={(values) => {
-                                setMinDistanceIntermediate(values[0]);
-                                setMaxDistanceIntermediate(values[1]);
-                            }}
-                            markerStyle={{
-                                backgroundColor: 'black'
-                            }}
-                            selectedStyle={{
-                                backgroundColor: 'black'
-                            }}
-                            enableLabel
-                            customLabel={props => {
-                                const displayValue1 = props.oneMarkerValue;
-                                const displayValue2 = props.twoMarkerValue;
-                                return (
-                                    <View style={{ alignSelf: 'center' }}>
-                                        <Text style={{ fontFamily: FONT.regular }}>{isMiles ? `${convertDistance(displayValue1)} mi - ${convertDistance(displayValue2)} mi` : `${displayValue1} km - ${displayValue2} km`}</Text>
-                                    </View>
-                                )
-                            }}
-                        />
-                        <View style={{ padding: 10 }}>
-                            <TouchableOpacity
-                                style={{
-                                    backgroundColor: 'black',
-                                    padding: 10,
-                                    borderRadius: 4
-                                }}
-                                onPress={() => {
-                                    setFilterModalVisible(false);
-                                    setMinAge(minAgeIntermediate);
-                                    setMaxAge(maxAgeIntermediate);
-                                    setMinHeight(minHeightIntermediate);
-                                    setMaxHeight(maxHeightIntermediate);
-                                    setMinDistance(minDistanceIntermediate);
-                                    setMaxDistance(maxDistanceIntermediate);
-                                    saveFilters(auth.currentUser.uid, minAgeIntermediate, maxAgeIntermediate, minDistanceIntermediate, maxDistanceIntermediate, minHeightIntermediate, maxHeightIntermediate);
-                                    setRetryCount(0);
-                                }}
-                            >
-                                <Text style={styles.buttonTitle}>Apply Filter</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={{ padding: 10 }}>
-                            <TouchableOpacity
-                                style={{
-                                    backgroundColor: 'black',
-                                    padding: 10,
-                                    borderRadius: 4
-                                }}
-                                onPress={() => {
-                                    setFilterModalVisible(false);
-                                }}
-                            >
-                                <Text style={styles.buttonTitle}>Close</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-        );
-    };
-
-    useEffect(() => {
-        // Call your fetchData function here to apply the filters
-        fetchData();
-    }, [minHeight, maxHeight, minAge, maxAge, minDistance, maxDistance]);
-
-    const saveFilters = async (uid, minAge, maxAge, minDistance, maxDistance, minHeight, maxHeight) => {
-        try {
-            // Get a reference to the 'filters' collection and the specific document using the user's UID
-            const filterDocRef = doc(db, 'filters', uid);
-
-            // Set the filter data for the document
-            await setDoc(filterDocRef, {
-                minAge: minAge,
-                maxAge: maxAge,
-                minDistance: minDistance,
-                maxDistance: maxDistance,
-                minHeight: minHeight,
-                maxHeight: maxHeight
-            });
-
-            console.log(`Filter settings saved for user ${uid}.`);
-        } catch (error) {
-            console.error(`Failed to save filter settings for user ${uid}:`, error);
-        }
-    };
 
     const convertHeight = (cm) => {
         const inches = cm / 2.54;
@@ -624,37 +484,30 @@ const HomeScreen = () => {
     };
 
     const convertDistance = (km) => {
-        const miles = km * 0.621371;
-        return miles;
+        const distanceInKm = Number(km);
+        if (isNaN(distanceInKm)) {
+            console.error('Invalid distance value:', km);
+            return 'NaN'; // or handle the error in another appropriate way
+        }
+        const miles = distanceInKm * 0.621371;
+        return miles.toFixed(2);
     };
+    //FILTERS
 
+    // USER CARD
     const renderItem = ({ item: user }) => {
-        if (!users.length) {
+
+        // When no users from the start
+        if (user.id === 'no-more-users') {
             return (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Text>No more users to display.</Text>
+                <View style={{ width: cardWidth, height: availableSpace }}>
+                    <NoMoreUserScreen />
                 </View>
             );
         }
 
-        // When users from the start
-        if (user.id === 'no-more-users') {
-            if (retryCount < 5) {
-                setRetryCount(retryCount + 1);
-                fetchData();
-                return;
-            } else {
-                return (
-                    <View style={{ width: cardWidth, height: availableSpace }}>
-                        <NoMoreUserScreen />
-                    </View>
-                );
-            };
-        }
-
         // When have users and run out
         if (user.id === 'last-user') {
-            fetchData();
             return;
         };
 
@@ -691,14 +544,12 @@ const HomeScreen = () => {
                         </View>
                     </View>
                 </View>
-                <View style={styles.buttonContainer}>
-                    <TouchableOpacity onPress={() => handleLikeClick(user.id)} style={styles.likeButton}>
-                        <Text style={styles.buttonTitle}>Like</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDislikeClick(user.id)} style={styles.dislikeButton}>
-                        <Text style={styles.buttonTitle}>Dislike</Text>
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity onPress={() => handleLikeClick(user.id)} style={styles.likeButton}>
+                    <Text style={styles.buttonTitle}>Like</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDislikeClick(user.id)} style={styles.dislikeButton}>
+                    <Text style={styles.buttonTitle}>Dislike</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                     onPress={() => {
                         setSelectedUser(user);
@@ -720,8 +571,14 @@ const HomeScreen = () => {
                                     <Text style={styles.modalinfo}>Location: {selectedUser.location || 'No location'}</Text>
                                     <Text style={styles.modalinfo}>Ethnicity: {selectedUser.ethnicity || 'No specified ethnicity'}</Text>
                                     <Text style={styles.modalinfo}>Religion: {selectedUser.religion || 'No specified religion'}</Text>
+                                    <Text style={styles.modalinfo}>Children: {selectedUser.children || 'No info on children'}</Text>
+                                    <Text style={styles.modalinfo}>Education: {selectedUser.education || 'No specified education'}</Text>
+                                    <Text style={styles.modalinfo}>Occupation: {selectedUser.job || 'No specified occupation'}</Text>
+                                    <Text style={styles.modalinfo}>Drinking: {selectedUser.alcohol || 'No info on alcohol'}</Text>
+                                    <Text style={styles.modalinfo}>Smoking: {selectedUser.smoking || 'No info on smoking'}</Text>
+                                    <Text style={styles.modalinfo}>Sex: {selectedUser.sex || 'No info on sex'}</Text>
                                     <Text style={styles.modalinfo}>
-                                        Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)).toFixed(2) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
+                                        Distance: ~{currentUserData && selectedUser && (isMiles ? convertDistance(haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude)) + ' miles' : haversineDistance(currentUserData.latitude, currentUserData.longitude, selectedUser.latitude, selectedUser.longitude).toFixed(2) + ' km')}
                                     </Text>
                                 </>
                             )}
@@ -760,9 +617,6 @@ const HomeScreen = () => {
                                 showsVerticalScrollIndicator={false}
                             />
                         )}
-                        <TouchableOpacity onPress={() => setFilterModalVisible(true)} style={styles.filterButton}>
-                            <Feather name="chevron-down" size={30} color="black" />
-                        </TouchableOpacity>
                     </>
                 )}
 
@@ -780,7 +634,6 @@ const HomeScreen = () => {
                     }}
                 />
             </View>
-            {renderModal()}
         </SafeAreaView>
     );
     // RENDER
@@ -790,33 +643,25 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    buttonContainer: {
-        flexDirection: 'row', // This makes the children (buttons) align horizontally
-        justifyContent: 'space-between', // This adds space between the buttons
-        alignItems: 'center', // This centers the buttons vertically
-        position: 'absolute', // Position the container at the bottom of the card
-        bottom: 50, // Adjust as needed to position the container
-        right: 10, // Adjust as needed to position the container
-        width: '80%', // Adjust the width as needed
-    },
-
     likeButton: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
         backgroundColor: 'green',
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: 5,
+        color: 'white',
     },
-
     dislikeButton: {
+        position: 'absolute',
+        bottom: 20,
+        right: 280,
         backgroundColor: 'red',
         paddingHorizontal: 10,
         paddingVertical: 5,
         borderRadius: 5,
-    },
-
-    buttonTitle: {
         color: 'white',
-        fontWeight: 'bold',
     },
     cardContainer: {
         flex: 1,
@@ -864,7 +709,7 @@ const styles = StyleSheet.create({
     },
     arrowIcon: {
         position: 'absolute',
-        bottom: 20,
+        bottom: 100,
         right: 20,
     },
     modalinfo: {
@@ -891,6 +736,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1, // Ensure filter button appears above the images
+    },
+    buttonTitle: {
+        fontFamily: FONT.medium,
+        color: 'white'
+    },
+    modalButton: {
+        backgroundColor: 'black',
+        padding: 10,
+        borderRadius: 4
     }
 });
 

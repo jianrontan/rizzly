@@ -25,6 +25,7 @@ import ScreenHeaderBtn from '../components/button/ScreenHeaderBtn';
 import EditProfileStack from './editProfileNavigator.js';
 import Units from '../screens/Units';
 import appStyles from '../components/app/app.style';
+import FiltersScreen from '../screens/Filters.js';
 import { setSaveChanges } from '../redux/actions';
 import { FONT, icons } from '../constants';
 
@@ -370,6 +371,7 @@ export default function DrawerStack() {
                 <Drawer.Screen name="App" children={(props) => <BottomTabStack {...props} />} options={{ drawerItemStyle: { height: 0 }, headerShown: false }} />
                 <Drawer.Screen name="Edit Profile" component={EditProfileNavigator} options={{ headerShown: false }} />
                 <Drawer.Screen name="Settings" component={SettingsStack} options={{ headerShown: false }} />
+                <Drawer.Screen name="Filters" component={FiltersScreen} options={{ headerShown: false }} />
             </Drawer.Navigator>
         </NavigationContainer>
     )
