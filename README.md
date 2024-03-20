@@ -1,13 +1,13 @@
 # Rizzly
-#### We are 2 21 year olds based in Singapore awaiting university matriculation and this is our first dating app project 
+We are 2 21 year olds based in Singapore awaiting university matriculation and this is our first dating app project 
 ## Features: 
 - Framework: React Native
 -  State Container: Redux
 -  Database: Firebase
 ## Overview: 
-#### Do you face issues such as catfishing and ghosting when you are using existing dating apps? Rizzly will mitigate that and more through our very own Selfie Capture function and other functions which prevent inactivity in chats for long periods of time. 
+Do you face issues such as catfishing and ghosting when you are using existing dating apps? Rizzly will mitigate that and more through our very own Selfie Capture function and other functions which prevent inactivity in chats for long periods of time. 
 ## Description: 
-#### We implemented a mandatory selfie taking function in the sign up page, which ensures transparency when using the dating app. This ensures that all users are "verified" and there will lesser catfishing incidents. We also implemented a firebase cloud function which checks chatrooms for inactivity. If a chatroom shows an inactivity of more than 72 hours, then the chatroom will be closed permanently and users will lose their matches. Users can also choose to pause their accounts if they feel too overwhelmed, or block certain email addresses. Users data and privacy are our biggest priority. We ensure that all the data sent by users are hashed or stored securely in firebase to reduce the chances of data leaks.
+We implemented a mandatory selfie taking function in the sign up page, which ensures transparency when using the dating app. This ensures that all users are "verified" and there will lesser catfishing incidents. We also implemented a firebase cloud function which checks chatrooms for inactivity. If a chatroom shows an inactivity of more than 72 hours, then the chatroom will be closed permanently and users will lose their matches. Users can also choose to pause their accounts if they feel too overwhelmed, or block certain email addresses. Users data and privacy are our biggest priority. We ensure that all the data sent by users are hashed or stored securely in firebase to reduce the chances of data leaks.
 ## Explanation of the files:
 ### Screens folder:
 | Files  | Description |
@@ -85,7 +85,7 @@
 ### Scan this QR code to be able to use Rizzly!
 
 ## Updates to look forward to in future:  
-#### - A more refined algorithm. We will be using skill based matchmaking whereby users will be shown based on a few categories, namely popularity, time spent using the app and responsiveness. 
-#### - Minor bug fixes for notifications so users receive notifications in their emails 
-#### - Better language support so international users can also use Rizzly 
-#### - More fun features await
+- A more refined algorithm. We will be using skill based matchmaking whereby users will be shown based on a few categories, namely popularity, time spent using the app and responsiveness. 
+- Minor bug fixes for notifications so users receive notifications in their emails 
+- Better language support so international users can also use Rizzly 
+- More fun features await
