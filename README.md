@@ -83,7 +83,7 @@ We implemented a mandatory selfie taking function in the sign up page, which ens
 ## Try it yourself: 
 ### Download Expo Go from Google Play Store to test!
 #### Android:
-![QR Code](./AndroidQRCode.png)
+![QR Code](./screenshots/AndroidQRCode.png)
 
 ## Updates to look forward to in future:  
 - A more refined algorithm. We will be using skill based matchmaking whereby users will be shown based on a few categories, namely popularity, time spent using the app and responsiveness. 
