@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 2, 
 		borderStyle: 'solid',
 		width: cardWidth,
-		alignSelf: 'flex-start', // Align the border lines to the left
+		alignSelf: 'flex-start'
 	},
 	borderLine: {
 		borderBottomColor: "#805c5e",

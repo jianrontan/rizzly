@@ -3,7 +3,7 @@ function toRadians(degrees) {
 }
 
 export function haversineDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Radius of the Earth in kilometers
+    const R = 6371;
     const dLat = toRadians(Math.abs(lat2 - lat1));
     const dLon = toRadians(Math.abs(lon2 - lon1));
 
@@ -13,12 +13,10 @@ export function haversineDistance(lat1, lon1, lat2, lon2) {
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    let distance = R * c; // Distance in kilometers
+    let distance = R * c;
 
-    // Round to the nearest 0.1 km
     distance = Math.round(distance * 10) / 10;
 
-    // If distance is 0, return '<1 km'
     if (distance <= 1) {
         return '<1';
     }

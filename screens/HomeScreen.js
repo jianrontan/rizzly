@@ -331,8 +331,6 @@ const HomeScreen = () => {
                 // Filter likes/ dislikes
                 filteredUsers = filteredUsers.filter(
                     (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id) && !currentUserLikes.includes(user.id) && !currentUserDislikes.includes(user.id)
-                    // (user) => user.id !== auth.currentUser.uid && !swipedUpUsers.includes(user.id) && !blockedIDs.includes(user.id)
-                    // (user) => user.id !== auth.currentUser.uid && !blockedIDs.includes(user.id)
                 );
                 // Filter blocked users
                 filteredUsers = filteredUsers.filter(
@@ -342,16 +340,6 @@ const HomeScreen = () => {
                 setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
 
                 if (filteredUsers.length === 0) {
-                    // If no one matches filter description
-                    // console.log(`No users queried, retry number: ${retryCount}`)
-                    // if (retryCount < 5) {
-                    //     console.log(`Retry count: ${retryCount}, is less than 5`)
-                    //     setRetryCount(currentRetryCount => currentRetryCount + 1);
-                    //     console.log("Retry count + 1")
-                    //     console.log(`retryCount updated to ${retryCount}`);
-                    // } else {
-                    //     setUsers([{ id: 'no-more-users' }]);
-                    // }
                     setRetryCount(currentRetryCount => currentRetryCount + 1);
                 } else {
                     // Set the users state
@@ -667,7 +655,7 @@ const HomeScreen = () => {
         const distanceInKm = Number(km);
         if (isNaN(distanceInKm)) {
             console.error('Invalid distance value:', km);
-            return 'NaN'; // or handle the error in another appropriate way
+            return 'NaN';
         }
         const miles = distanceInKm * 0.621371;
         return miles.toFixed(2);
@@ -850,7 +838,7 @@ const styles = StyleSheet.create({
     cardContainer: {
         flex: 1,
         overflow: 'hidden',
-        backgroundColor: 'white', // Set the background color of the cards
+        backgroundColor: 'white',
     },
     image: {
         flex: 1,
@@ -908,18 +896,18 @@ const styles = StyleSheet.create({
         width: cardWidth,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         color: 'black',
-        zIndex: 3, // Ensure filter modal container appears above everything
+        zIndex: 3,
     },
     filterButton: {
         position: 'absolute',
-        top: 10, // Adjust as needed
-        right: 10, // Adjust as needed
+        top: 10,
+        right: 10,
         backgroundColor: 'rgba(255, 255, 255, 0.7)',
         borderRadius: 20,
         padding: 5,
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 1, // Ensure filter button appears above the images
+        zIndex: 1,
     },
     buttonTitle: {
         fontFamily: FONT.medium,

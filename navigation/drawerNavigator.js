@@ -68,14 +68,12 @@ export default function DrawerStack() {
         prepare();
     }, [fontsLoaded]);
 
-    // useCallback creates a memoized callback onLayoutRootView that only changes appIsReady / fontsLoaded changes
     const onLayoutRootView = useCallback(async () => {
         if (appIsReady && fontsLoaded) {
             await SplashScreen.hideAsync();
         }
     }, [appIsReady, fontsLoaded]);
 
-    // Get the data from Firebase
     const unsubscribe = useRef();;
 
     useEffect(() => {
@@ -171,11 +169,11 @@ export default function DrawerStack() {
                     headerTitle: "View Profile",
                     headerTitleAlign: 'center',
                     headerShadowVisible: 'true',
-                    headerTitleStyle: [appStyles.headerFont, { color: 'white' }], // Make the text white
+                    headerTitleStyle: [appStyles.headerFont, { color: 'white' }],
                     headerStyle: {
-                        backgroundColor: '#8c6c5d', // Background color
+                        backgroundColor: '#8c6c5d',
                     },
-                    headerTintColor: 'white', // Make the header icon white
+                    headerTintColor: 'white',
                     headerLeft: () => {
                         const navigation = useNavigation();
                         return (

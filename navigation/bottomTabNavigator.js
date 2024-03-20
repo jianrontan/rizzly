@@ -78,8 +78,8 @@ export default function BottomTabStack({ navigation }) {
                         <MaterialCommunityIcons name="home" color={color} size={size} />
                     ),
                     tabBarLabel: 'Home',
-                    tabBarLabelStyle: { color: 'white' }, // Change the text color to white
-                    tabBarActiveTintColor: 'white', // Change the active tab color to white
+                    tabBarLabelStyle: { color: 'white' },
+                    tabBarActiveTintColor: 'white',
                 }}
             />
             <Tab.Screen
